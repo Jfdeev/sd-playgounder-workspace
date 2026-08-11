@@ -31,3 +31,8 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 (`.specify/`). A ordem de construção é por marco (M0, M1, ...) conforme
 `docs/product-context.md` §10 — nenhum marco começa antes do critério de saída
 do anterior ser atingido.
+
+<!-- SPECKIT START -->
+**Plano ativo**: [specs/engine-puro-m0/plan.md](specs/engine-puro-m0/plan.md) (M0 — Engine de
+Simulação Puro, branch `feature/001-engine-core-m0`).
+<!-- SPECKIT END -->
