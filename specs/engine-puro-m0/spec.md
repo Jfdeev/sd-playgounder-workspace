@@ -4,13 +4,25 @@
 
 **Created**: 2026-08-11
 
-**Status**: Draft
+**Status**: Ready
 
 **Input**: User description: "M0 — Engine puro (`packages/engine`), sem nenhuma linha de UI, canvas, banco ou
 React: tipos fechados, propagação de carga pelo grafo, utilização e fila M/M/1, latência p50/p95/p99,
 throughput limitado pelo gargalo, efeito de cache, análises estáticas (SPOF, órfão, ciclo, aresta async),
 custo, catálogo de ~10 componentes, e a suíte de testes com casos calculados à mão." (conforme
 `docs/product-context.md` §10)
+
+## Clarifications
+
+### Session 2026-08-11
+
+- Q: Quando o Design recebido pelo engine é estruturalmente inválido (aresta apontando pra nó
+  inexistente, IDs duplicados, capacidade negativa), o engine deve lançar exceção ou sempre devolver
+  um SimulationResult com uma Violation descrevendo o problema? → A: nunca lança exceção; sempre
+  retorna um `SimulationResult` válido com uma `Violation` descrevendo o problema.
+- Q: Para a detecção de SPOF no M0, quantas réplicas já bastam pra um nó não ser considerado ponto
+  único de falha? → A: contagem de réplicas (c ≥ 2) já é suficiente — M0 não modela zona/região por
+  réplica.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -131,9 +143,10 @@ carga no DB e a latência efetiva batem com as fórmulas de §7 em cada ponto.
   reportar esse nó como `status: 'saturated'` com um valor de latência sentinela definido e
   documentado (não `NaN`/`Infinity` não tratado vazando para o consumidor) — o valor exato fica a
   cargo do `/speckit-plan`.
-- O que acontece com um design sem nenhum nó de entrada alcançável, ou grafo vazio? O engine MUST
-  retornar um `SimulationResult` válido com throughput zero e uma violação apropriada, nunca lançar
-  exceção não tratada.
+- O que acontece com um design sem nenhum nó de entrada alcançável, grafo vazio, aresta referenciando
+  um nó inexistente, ou IDs de nó duplicados? Em todos os casos o engine MUST retornar um
+  `SimulationResult` válido com throughput zero e uma `Violation` apropriada descrevendo o problema —
+  nunca lançar exceção não tratada (ver FR-019 e Clarifications).
 - O que acontece quando os pesos das arestas de split de tráfego que saem de um nó não somam 1,0 (ou
   100%)? Comportamento a ser definido — ver `[NEEDS CLARIFICATION]` abaixo.
 - O que acontece com um componente configurado com capacidade zero (ex: 0 réplicas)? O engine MUST
@@ -168,6 +181,9 @@ carga no DB e a latência efetiva batem com as fórmulas de §7 em cada ponto.
   (`h·L_cache + (1−h)·(L_cache + L_db)`), onde `h` é o hit rate configurado no cache.
 - **FR-009**: O sistema MUST detectar e reportar componentes que são ponto único de falha (SPOF) no
   caminho crítico — nó sem nenhuma redundância configurada cuja falha derrubaria o caminho inteiro.
+  Para M0, um nó com contagem de réplicas/instâncias ≥ 2 já é considerado redundante (não-SPOF),
+  independentemente de zona/região — modelagem de zona/AZ por réplica é explicitamente fora de
+  escopo do M0 (ver Clarifications).
 - **FR-010**: O sistema MUST detectar componentes desconectados do caminho de execução da requisição
   e excluí-los de qualquer cálculo de pontuação (valem zero) — regra anti-decoreba.
 - **FR-011**: O sistema MUST detectar ciclos no grafo e distinguir, no resultado, quais nós são
@@ -193,6 +209,11 @@ carga no DB e a latência efetiva batem com as fórmulas de §7 em cada ponto.
 - **FR-018**: Quando os pesos das arestas de split de tráfego que saem de um mesmo nó não somam
   100%, o sistema MUST normalizá-los proporcionalmente para somar 100% antes de propagar a carga
   (ex: pesos 30 e 30 tornam-se 50%/50%) — decisão do autor, 2026-08-11.
+- **FR-019**: O sistema MUST NUNCA lançar exceção não tratada para um `Design` estruturalmente
+  inválido (aresta referenciando um nó inexistente, IDs de nó duplicados, capacidade configurada
+  negativa, etc.) — em vez disso, MUST sempre retornar um `SimulationResult` válido contendo uma
+  `Violation` que descreve o problema estrutural encontrado (decisão do autor, 2026-08-11; generaliza
+  o comportamento já definido para grafo vazio em Edge Cases).
 
 ### Key Entities
 
