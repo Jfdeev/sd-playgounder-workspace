@@ -96,7 +96,8 @@ type SimulationResult = {
   path: PathResult;
   violations: Violation[];
   cost: { monthlyTotal: number; byNode: Record<NodeId, number> }; // FR-013
-  scores: Record<Dimension, number>; // 0..10 cada — score multidimensional, nunca nota única (§9)
+  scores: Record<Dimension, number>; // 0..10 cada — PLACEHOLDER no M0 (FR-020): sempre 0.
+                                      // Cálculo real de score por dimensão é escopo do M2 (§10).
 };
 ```
 

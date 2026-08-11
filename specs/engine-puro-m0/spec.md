@@ -23,6 +23,10 @@ custo, catálogo de ~10 componentes, e a suíte de testes com casos calculados �
 - Q: Para a detecção de SPOF no M0, quantas réplicas já bastam pra um nó não ser considerado ponto
   único de falha? → A: contagem de réplicas (c ≥ 2) já é suficiente — M0 não modela zona/região por
   réplica.
+- Q: `SimulationResult.scores` (§6) existe no tipo, mas o cálculo de score por dimensão só está
+  listado no M2 (§10) — o que `simulate()` deve fazer com esse campo no M0? → A: retorna placeholder
+  (todas as 7 dimensões zeradas); a fórmula de conversão métrica→nota 0-10 fica para o M2, sem
+  inventar regra de pontuação agora.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -214,6 +218,10 @@ carga no DB e a latência efetiva batem com as fórmulas de §7 em cada ponto.
   negativa, etc.) — em vez disso, MUST sempre retornar um `SimulationResult` válido contendo uma
   `Violation` que descreve o problema estrutural encontrado (decisão do autor, 2026-08-11; generaliza
   o comportamento já definido para grafo vazio em Edge Cases).
+- **FR-020**: O campo `scores` de `SimulationResult` MUST estar presente e tipado com as 7 dimensões
+  de §9, mas no M0 o sistema MUST retornar todas as dimensões com valor placeholder `0` — o cálculo
+  real de conversão de métrica para nota 0-10 por dimensão é escopo do M2 (`docs/product-context.md`
+  §10), não deste marco (decisão do autor, 2026-08-11).
 
 ### Key Entities
 
