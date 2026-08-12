@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-11
 
-**Status**: Ready
+**Status**: Done
 
 **Input**: User description: "M0 — Engine puro (`packages/engine`), sem nenhuma linha de UI, canvas, banco ou
 React: tipos fechados, propagação de carga pelo grafo, utilização e fila M/M/1, latência p50/p95/p99,
