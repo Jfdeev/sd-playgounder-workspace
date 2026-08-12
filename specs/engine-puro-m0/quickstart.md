@@ -41,13 +41,16 @@ const workload: Workload = { rps: 300, readWriteRatio: 0.9, payloadBytes: 2048, 
 
 const result = simulate(design, workload);
 
-console.log(result.path.bottleneckId);     // 'app-1' (500 rps/instância × 2 réplicas = 1000 > 300, então
-                                            // na verdade o gargalo aqui seria 'db-1', com 1000 rps de
-                                            // capacidade única — ajuste os números do design pra testar
-                                            // saturação de propósito)
-console.log(result.violations);            // [{ type: 'spof', nodeIds: ['db-1'], ... }] — db-1 tem
-                                            // replicas: 1, portanto é SPOF (FR-009)
+console.log(result.path.bottleneckId);     // null — toda capacidade do caminho (lb-1: 10 000,
+                                            // app-1: 2×500=1 000, db-1: 1 000) excede a carga
+                                            // ofertada (300); ajuste os números do design pra
+                                            // testar saturação de propósito.
+console.log(result.violations);            // 2 violações 'spof': lb-1 e db-1 têm 1 réplica cada
+                                            // (FR-009) — só app-1 (2 réplicas) não é SPOF.
 ```
+
+Este exemplo é validado automaticamente por `packages/engine/test/quickstart.spec.ts` — se o
+comportamento do engine mudar, esse teste (não só este arquivo) precisa ser atualizado.
 
 ## 4. Onde estão os designs de referência
 
