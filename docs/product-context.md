@@ -126,8 +126,9 @@ regra, não detalhe — é onde a maioria dos designs erra.
 | ADR-002 | **React Flow** para o canvas | nós/arestas customizados e handles tipados prontos; o produto é um grafo |
 | ADR-003 | **Modelo analítico**, não discrete-event simulation | roda em ms no browser; DES é complexidade sem ganho pedagógico proporcional |
 | ADR-004 | **Zustand + Immer** para estado do canvas | undo/redo e snapshot ficam triviais |
-| ADR-005 | **Postgres + JSONB** para o grafo | versionamento sem migração a cada componente novo |
+| ADR-005 | **Postgres + JSONB** para o grafo, hospedado no **Neon** (Postgres serverless) | versionamento sem migração a cada componente novo; Neon evita provisionar/gerenciar instância própria num produto gratuito (decisão do autor, M0.5) |
 | ADR-006 | **LLM fora do caminho crítico**, saída JSON estruturada, cache por hash do design | custo previsível num produto gratuito; e reforça §3.1 |
+| ADR-007 | **Auth.js (NextAuth)** para login, com provedores email/senha + Google OAuth | open source e gratuito (sem custo de SaaS de auth num produto sem monetização); cobre o caso comum (Google) e quem não quer conta Google (decisão do autor, M0.5) |
 
 Estrutura de monorepo esperada:
 ```
@@ -167,6 +168,20 @@ Sem React, sem canvas, sem banco. Só `packages/engine` com testes.
 bate com a conta feita à mão; simulação de grafo com 30 nós roda em < 50 ms;
 cobertura de teste do pacote ≥ 80%. Nenhum componente de UI existe ainda.
 
+### M0.5 — Landing page e conta (inserido antes do M1 — decisão do autor)
+Primeira linha de UI do produto, antes do canvas. Landing page completa de
+apresentação (hero, proposta de valor, diferenciais de §7 e comparação com os
+concorrentes de `docs/foundational-doc.md` §0, CTA de entrada) · criação de conta
+e login via Auth.js — email/senha + Google OAuth (ADR-007) — com Neon (Postgres
+serverless, ADR-005) como banco (P0). **Login sai do M4 e entra aqui** — a decisão
+é ter o produto inteiro construído dentro de um contexto autenticado desde o
+início, em vez de adicionar auth depois de M1-M3 já existirem. Sem progresso por
+conceito, histórico de versões nem biblioteca de problemas ainda — isso continua
+em M4. Sem paywall/billing (§4, inalterado).
+
+**Critério de saída de M0.5:** uma pessoa consegue criar conta, fazer login e
+logout, sem nenhuma tela do canvas/engine ainda existir.
+
 ### M1 — Canvas e submissão (P0 do produto)
 Paleta com os componentes de M0 · arrastar, conectar, configurar · arestas tipadas
 (leitura/escrita/async/replicação) · painel de configuração por nó · submeter e ver
@@ -194,11 +209,11 @@ partição, cache frio, esgotamento de pool (P0). Placar de tempo até diagnóst
 **Critério de saída de M3:** 5 cenários de incidente com causa raiz verificável, e
 o engine identifica a mesma causa que o autor plantou.
 
-### M4 — Conta, progresso e conteúdo
-Login · salvar designs com histórico de versões · progresso **por conceito**, não por
-problema · biblioteca de 12 problemas · wiki de conceitos linkada aos problemas ·
-compartilhar design por URL (P0). Widgets animados de conceito, galeria da comunidade
-com fronteira de Pareto custo × latência (P1).
+### M4 — Progresso e conteúdo
+Login já existe desde M0.5. Aqui: salvar designs com histórico de versões · progresso
+**por conceito**, não por problema · biblioteca de 12 problemas · wiki de conceitos
+linkada aos problemas · compartilhar design por URL (P0). Widgets animados de conceito,
+galeria da comunidade com fronteira de Pareto custo × latência (P1).
 
 ### M5 — Modo Campanha, multiplayer e turma
 Campanha (mesmo problema em fases, com custo de migração no score) · canvas colaborativo
