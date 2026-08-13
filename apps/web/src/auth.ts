@@ -2,7 +2,7 @@ import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from './db/client';
 import { accounts, sessions, users, verificationTokens } from './db/schema';
 import { decideAccountLinking } from './lib/account-linking';
@@ -116,10 +116,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       if (decision.action === 'link' && existing) {
-        // Vínculo manual: getUserByAccount do core encontra esta linha recém-criada e nunca
-        // chega à branch de colisão por email — allowDangerousEmailAccountLinking nunca é usado.
-        // exactOptionalPropertyTypes exige omitir (não `undefined`-preencher) campos opcionais
-        // ausentes — spread condicional em vez de atribuir `undefined` diretamente.
+        // Guarda contra 2º+ login: se esta linha (provider, providerAccountId) já existe — de um
+        // login Google anterior já vinculado — NÃO tenta inserir de novo (accounts tem PK
+        // composta nesses dois campos; um insert duplicado violaria a constraint e o signIn
+        // inteiro falharia com AccessDenied a cada login subsequente). getUserByAccount do core
+        // encontra esta linha e segue seu fluxo normal sem precisar de nenhuma ação daqui.
+        const [alreadyLinked] = await db
+          .select({ userId: accounts.userId })
+          .from(accounts)
+          .where(
+            and(
+              eq(accounts.provider, account.provider),
+              eq(accounts.providerAccountId, account.providerAccountId),
+            ),
+          )
+          .limit(1);
+
+        if (alreadyLinked) {
+          return true;
+        }
+
+        // Vínculo manual (1ª vez): getUserByAccount do core encontra esta linha recém-criada e
+        // nunca chega à branch de colisão por email — allowDangerousEmailAccountLinking nunca é
+        // usado. exactOptionalPropertyTypes exige omitir (não `undefined`-preencher) campos
+        // opcionais ausentes — spread condicional em vez de atribuir `undefined` diretamente.
         await adapter.linkAccount?.({
           userId: existing.id,
           type: 'oauth',

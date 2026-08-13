@@ -45,6 +45,10 @@ research.md §5):
 - [ ] Email de confirmação chega (se `RESEND_API_KEY` configurada) e o link confirma a conta.
 - [ ] Entrar com Google cria conta nova (se o email não bate com nenhuma existente) ou funde numa
       conta email/senha já confirmada (se bater) — e **não** funde numa não confirmada.
+- [ ] Entrar com Google **uma segunda vez** (mesma conta Google, sessão encerrada e login de novo)
+      funciona normalmente — não falha com erro genérico na 2ª tentativa em diante (regressão real
+      encontrada e corrigida durante `/speckit-implement`: o vínculo manual de conta tentava
+      inserir a mesma linha de novo a cada login, violando a constraint de `accounts`).
 - [ ] Errar a senha 5 vezes seguidas bloqueia por 15 minutos (FR-012), com mensagem genérica.
 - [ ] Logout funciona; fechar e reabrir o navegador mantém a sessão (dentro de 30 dias).
 

@@ -25,9 +25,15 @@ export function checkLoginAttempt(state: LoginAttemptState, now: Date): LoginAtt
 /**
  * Registra uma tentativa de login malsucedida (senha errada) — incrementa o contador e, ao
  * atingir o limite, ativa o bloqueio por LOCKOUT_MS (FR-012).
+ *
+ * Se um bloqueio anterior já expirou (`lockedUntil` no passado), a sequência de "tentativas
+ * malsucedidas CONSECUTIVAS" reinicia — sem isto, uma única tentativa errada depois do bloqueio
+ * expirar já reativaria o bloqueio (5 → 6 ≥ 5), o que não é "5 consecutivas" (FR-012).
  */
 export function recordFailedAttempt(state: LoginAttemptState, now: Date): LoginAttemptState {
-  const failedLoginAttempts = state.failedLoginAttempts + 1;
+  const previousAttempts =
+    state.lockedUntil !== null && now >= state.lockedUntil ? 0 : state.failedLoginAttempts;
+  const failedLoginAttempts = previousAttempts + 1;
 
   if (failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
     return {
