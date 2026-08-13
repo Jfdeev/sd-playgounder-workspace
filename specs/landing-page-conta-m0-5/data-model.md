@@ -48,6 +48,15 @@ Tabela padrão do adapter, **reaproveitada** para o token de confirmação de em
 mesmo mecanismo que o Auth.js usa para Email provider (magic link) serve como token de confirmação
 de posse de email, sem inventar uma tabela nova.
 
+**Checagem de segurança desse reaproveitamento**: o Auth.js só lê/consome (`useVerificationToken`)
+esta tabela através de um provider do tipo `email` (ex.: `Nodemailer`, `Resend` como *provider* de
+login). Este projeto usa apenas `Credentials` e `Google` como providers — nenhum provider `email` é
+registrado em `src/auth.ts` — então nada no core do Auth.js jamais lê ou apaga linhas desta tabela
+por conta própria; escrita e consumo são 100% controlados pelas rotas próprias
+(`POST /api/account/signup` escreve, `GET /api/account/confirm-email` lê e apaga). **Se um provider
+`email`/magic-link for adicionado em marco futuro, esta suposição quebra** — reavaliar nesse
+momento (mover a confirmação para uma tabela própria em vez de compartilhar `verification_token`).
+
 | Coluna | Tipo | Regras |
 |---|---|---|
 | `identifier` | `text` | o email a confirmar |

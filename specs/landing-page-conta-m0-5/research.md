@@ -32,29 +32,55 @@ com o Credentials provider (erro em tempo de configuração, não uma preferênc
 `session.updateAge` do Auth.js (renovação do JWT a cada uso — "rolling session"), não via expiração
 de linha em tabela.
 
-## 2. Vínculo de conta por email (FR-013/FR-013a) — implementação custom, não o linking automático do Auth.js
+## 2. Vínculo de conta por email (FR-013/FR-013a) — vínculo manual via `adapter.linkAccount`, nunca a flag "dangerous"
 
 **Contexto**: `/speckit-clarify` decidiu que o vínculo automático só deve ocorrer quando o email da
-conta existente já está confirmado, para evitar sequestro de conta.
+conta existente já está confirmado, para evitar sequestro de conta. Durante este `/speckit-plan`,
+verificou-se via Context7 (`packages/core/src/lib/actions/callback/handle-login.ts`) a ordem exata
+de execução do Auth.js — importante porque determina *onde* a decisão pode ser interceptada:
 
-**Decision**: **não** usar o linking automático nativo do Auth.js (a flag `allowDangerousEmailAccountLinking`
-no provider OAuth) — implementar a decisão de vínculo explicitamente num callback `signIn`
-customizado, chamando a lógica pura de `src/lib/account-linking.ts` (testável sem Auth.js/DB real):
-dado `(emailDaTentativa, contaExistente?, contaExistenteEmailConfirmado?, métodoAtual)`, retorna
-`{ vincular: boolean }`.
+1. `signIn` callback do usuário roda **primeiro** (`handleAuthorized`), antes de qualquer lógica de
+   linking do core.
+2. Só depois o core (`handleLoginOrRegister`) tenta `getUserByAccount` (busca por vínculo já
+   existente); se não achar, tenta `getUserByEmail` — e **só then** decide entre vincular (se
+   `provider.allowDangerousEmailAccountLinking === true`) ou lançar `OAuthAccountNotLinked`.
 
-**Rationale**: confirmado via Context7 que o próprio nome da flag (`allowDangerousEmailAccountLinking`)
-é um alerta deliberado dos mantenedores do Auth.js: a documentação afirma que a verificação de posse
-do email varia por provedor OAuth e não é garantida, e que ativar a flag pode ser explorado para
-sequestrar conta — exatamente o risco que o autor pediu para mitigar em `/speckit-clarify`. O
-comportamento *default* do Auth.js sem a flag é lançar `OAuthAccountNotLinked` em vez de vincular —
-mais seguro, mas não implementa a regra específica do produto (permitir vínculo quando o email JÁ
-está confirmado). Por isso a lógica de decisão fica no `signIn` callback, não numa flag do provider.
+**Decision**: a decisão de vínculo acontece inteiramente dentro do `signIn` callback, **antes** do
+core chegar à etapa 2 — a flag `allowDangerousEmailAccountLinking` nunca é ativada:
 
-**Alternatives considered**: `allowDangerousEmailAccountLinking: true` — rejeitada (vincularia
-sempre, incluindo com email não confirmado, exatamente o risco identificado em `/speckit-clarify`).
-Deixar o comportamento default (nunca vincular) — rejeitada, contradiz FR-013 (decisão explícita do
-autor de que é a mesma conta).
+- `signIn` consulta `users` pelo email do provedor (Drizzle, consulta própria) via
+  `src/lib/account-linking.ts` (lógica pura e testada — dado `existingUser?.emailVerified`, decide
+  `"link" | "reject" | "create"`).
+- **`"link"`** (usuário existente com `emailVerified` preenchido): `signIn` chama
+  `adapter.linkAccount(...)` **manualmente**, inserindo a linha em `accounts` (provider `google`,
+  `providerAccountId`, tokens) apontando para o `userId` existente, e retorna `true`. Quando o core
+  roda `getUserByAccount` logo em seguida, **já encontra** o vínculo recém-criado — nunca chega à
+  branch de colisão por email, então a flag "dangerous" nunca precisa existir.
+- **`"reject"`** (usuário existente, mas `emailVerified` é `null` — conta pendente de confirmação
+  criada por outra pessoa com o mesmo email): `signIn` retorna `false` — Auth.js converte isso em
+  `AccessDenied`, sem tentar criar nem vincular nada. Resolvido explicitamente com o autor durante
+  este plano (ver Clarifications no spec, entrada adicionada em `/speckit-plan`): **não** cria uma
+  segunda conta com o mesmo email (violaria a constraint `unique` de `users.email`, ver
+  data-model.md) — rejeita com mensagem clara orientando a confirmar a conta pendente.
+- **`"create"`** (nenhum usuário com esse email): `signIn` retorna `true` sem tocar em nada; o core
+  segue seu caminho normal (`getUserByEmail` não encontra nada, cria usuário novo) — comportamento
+  padrão do Auth.js, sem necessidade de intervenção.
+
+**Rationale**: evita ativar `allowDangerousEmailAccountLinking` (nome deliberadamente alarmante dos
+mantenedores — a documentação do Auth.js afirma que a verificação de posse de email varia por
+provedor OAuth e que a flag pode ser explorada para sequestro de conta) enquanto ainda assim
+implementa a regra específica do produto (vincular quando confirmado, nunca quando não). Vincular
+manualmente via `adapter.linkAccount` antes do core rodar é a técnica documentada pela própria
+comunidade Auth.js para linking condicional seguro, e evita duplicar/reescrever a lógica interna do
+`handleLoginOrRegister`.
+
+**Alternatives considered**: `allowDangerousEmailAccountLinking: true` no provider, com `signIn`
+apenas rejeitando o caso não-confirmado — rejeitada por ativar uma flag desnecessariamente ampla
+(afeta qualquer colisão de email pelo provider inteiro, não só o caso já filtrado pelo `signIn`) em
+favor da alternativa mais cirúrgica acima. Permitir a criação de uma segunda conta com o mesmo email
+não confirmado (índice único parcial só entre contas confirmadas) — avaliada e **rejeitada com o
+autor** durante este plano: mais complexidade de schema/adapter para deixar uma conta "fantasma"
+pendurada, sem ganho real sobre simplesmente rejeitar o login com mensagem clara.
 
 ## 3. ORM (D3): Drizzle
 
@@ -116,6 +142,28 @@ execução manual".
 **Alternatives considered**: mockar Auth.js/DB/OAuth extensivamente para perseguir uma métrica de
 cobertura em `apps/web` — rejeitado (falso senso de segurança, alto custo de manutenção do mock a
 cada mudança de versão do Auth.js).
+
+## 6. Proteção de rota (`/app`, FR-011) — checagem `auth()` no Server Component, sem `middleware.ts`
+
+**Contexto**: `bcryptjs` (hash de senha) e o `DrizzleAdapter` só rodam em runtime Node — o
+Credentials `authorize()` já roda em Node por padrão nas rotas do Auth.js. O risco apareceria só se
+um `middleware.ts` de proteção de rota fosse adicionado, porque middleware do Next.js roda em Edge
+por padrão, e o padrão oficial do Auth.js para isso é um `auth.config.ts` "fino" (sem adapter, sem
+bcrypt) separado de `auth.ts` (completo) — ver doc `edge-compatibility.mdx` (Context7).
+
+**Decision**: **não** usar `middleware.ts` neste marco. Redirecionamento de usuário não autenticado
+(FR-011, tentar ver `/app` sem sessão) e de usuário autenticado (FR-011, tentar ver `/` já logado)
+são feitos com uma chamada a `auth()` diretamente dentro do Server Component de cada página
+(`src/app/app/page.tsx` e `src/app/page.tsx`), que já roda em Node — sem necessidade do split
+Edge/Node.
+
+**Rationale**: evita a complexidade do split `auth.config.ts`/`auth.ts` inteiramente enquanto o
+número de rotas protegidas é pequeno (uma: `/app`). Reavaliar se/quando o número de rotas protegidas
+crescer o suficiente para justificar um middleware central (mesmo princípio de "nenhuma abstração
+antes de precisar" usado em M0).
+
+**Alternatives considered**: `middleware.ts` com `auth.config.ts` separado — mais correto em escala,
+mas complexidade desproporcional para uma única rota protegida neste marco.
 
 ## Resumo — todas as incógnitas do Technical Context resolvidas
 
