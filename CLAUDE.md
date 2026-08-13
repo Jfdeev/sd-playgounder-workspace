@@ -33,6 +33,6 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Plano ativo**: [specs/engine-puro-m0/plan.md](specs/engine-puro-m0/plan.md) (M0 — Engine de
-Simulação Puro, branch `feature/001-engine-core-m0`).
+**Plano ativo**: [specs/landing-page-conta-m0-5/plan.md](specs/landing-page-conta-m0-5/plan.md)
+(M0.5 — Landing Page e Conta, branch `feature/001-landing-page-auth-m05`).
 <!-- SPECKIT END -->
