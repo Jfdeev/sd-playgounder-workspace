@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+
+/* Tema único, escuro (decisão do autor — sem light mode por enquanto). Paleta padrão do
+   Tailwind v4 (zinc para superfícies/texto, violet como acento primário, emerald como acento de
+   "correção/determinismo") — sem necessidade de tokens customizados além da fonte monoespaçada
+   usada em trechos técnicos (métricas, nomes de componentes). */
+@theme {
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:
+    ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
+}
+
+body {
+  background-color: var(--color-zinc-950);
+  color: var(--color-zinc-100);
+  font-family: var(--font-sans);
+}

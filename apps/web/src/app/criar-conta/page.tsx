@@ -3,6 +3,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import Link from 'next/link';
+import { Lock, Mail } from 'lucide-react';
+import { AuthShell } from '../_components/auth-shell';
+import {
+  fieldErrorClassName,
+  googleButtonClassName,
+  inputClassName,
+  primaryButtonClassName,
+} from '../_components/form-styles';
 
 interface FieldError {
   field: 'email' | 'password';
@@ -50,40 +59,78 @@ export default function CriarContaPage() {
   }
 
   return (
-    <main>
-      <h1>Criar conta</h1>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Email
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </label>
-        {error?.field === 'email' && <p role="alert">{error.message}</p>}
+    <AuthShell
+      title="Criar conta"
+      subtitle="Grátis, sem cartão de crédito."
+      footer={
+        <>
+          Já tem conta?{' '}
+          <Link href="/entrar" className="font-medium text-violet-400 hover:text-violet-300">
+            Entrar
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <div className="relative">
+            <Mail
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-500"
+              aria-hidden
+            />
+            <input
+              type="email"
+              placeholder="voce@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={inputClassName}
+              required
+            />
+          </div>
+          {error?.field === 'email' && (
+            <p role="alert" className={fieldErrorClassName}>
+              {error.message}
+            </p>
+          )}
+        </div>
 
-        <label>
-          Senha
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-          />
-        </label>
-        {error?.field === 'password' && <p role="alert">{error.message}</p>}
+        <div>
+          <div className="relative">
+            <Lock
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-500"
+              aria-hidden
+            />
+            <input
+              type="password"
+              placeholder="Mínimo 8 caracteres"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={inputClassName}
+              required
+              minLength={8}
+            />
+          </div>
+          {error?.field === 'password' && (
+            <p role="alert" className={fieldErrorClassName}>
+              {error.message}
+            </p>
+          )}
+        </div>
 
-        <button type="submit" disabled={submitting}>
+        <button type="submit" disabled={submitting} className={primaryButtonClassName}>
           Criar conta
         </button>
       </form>
 
-      <button type="button" onClick={() => signIn('google')}>
+      <div className="my-5 flex items-center gap-3">
+        <div className="h-px flex-1 bg-zinc-800" />
+        <span className="text-xs text-zinc-600">ou</span>
+        <div className="h-px flex-1 bg-zinc-800" />
+      </div>
+
+      <button type="button" onClick={() => signIn('google')} className={googleButtonClassName}>
         Entrar com Google
       </button>
-    </main>
+    </AuthShell>
   );
 }

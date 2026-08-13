@@ -12,10 +12,14 @@ export default async function LandingPage() {
   }
 
   return (
-    <>
+    <main className="min-h-screen bg-zinc-950">
       <Hero />
-      <Differentiators />
-      <Comparison />
-    </>
+      <div className="border-t border-zinc-900">
+        <Differentiators />
+      </div>
+      <div className="border-t border-zinc-900">
+        <Comparison />
+      </div>
+    </main>
   );
 }
