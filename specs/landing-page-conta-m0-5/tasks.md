@@ -158,15 +158,15 @@ sessão persistente de 30 dias (FR-004/005/006/010/012).
 genérica (não revela existência do email); 5 tentativas erradas seguidas → bloqueio de 15min; logout
 → volta a visitante; fechar/reabrir navegador dentro de 30 dias → continua autenticado.
 
-- [ ] T032 [P] [US3] Criar `apps/web/src/lib/rate-limit.ts` — `checkLoginAttempt(state: {
+- [X] T032 [P] [US3] Criar `apps/web/src/lib/rate-limit.ts` — `checkLoginAttempt(state: {
       failedLoginAttempts: number; lockedUntil: Date | null }, now: Date): { allowed: boolean }` e
       `recordFailedAttempt(state, now): { failedLoginAttempts: number; lockedUntil: Date | null }`
       (bloqueia no 5º erro consecutivo por 15min, FR-012) e `recordSuccessfulAttempt(): {
       failedLoginAttempts: 0; lockedUntil: null }`
-- [ ] T033 [US3] `apps/web/test/rate-limit.spec.ts` — cenários: tentativas abaixo do limite
+- [X] T033 [US3] `apps/web/test/rate-limit.spec.ts` — cenários: tentativas abaixo do limite
       permitidas; 5ª tentativa errada ativa o bloqueio; tentativa durante bloqueio é negada sem
       contar como nova tentativa; bloqueio expira exatamente em 15min; sucesso reseta o contador
-- [ ] T034 [US3] Coverage pass: `rate-limit.ts` — garantir teste para cada comparação de limite/
+- [X] T034 [US3] Coverage pass: `rate-limit.ts` — garantir teste para cada comparação de limite/
       janela (5 tentativas, 15 minutos, `now < lockedUntil`)
 - [ ] T035 [US3] Completar `authorize()` do provider `Credentials` em `apps/web/src/auth.ts`:
       busca `users` por email; se não encontrado OU `lockedUntil` no futuro (T032) OU senha incorreta
