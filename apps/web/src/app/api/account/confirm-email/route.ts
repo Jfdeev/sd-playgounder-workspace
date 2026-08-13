@@ -35,5 +35,8 @@ export async function GET(request: Request): Promise<Response> {
       ),
     );
 
-  return Response.redirect(`${url.origin}/app?confirmado=1`, 302);
+  // Redireciona para /entrar (não /app): o link é aberto a partir de um cliente de email, que
+  // pode não ter a sessão do navegador onde a conta foi criada — /app bateria em "sem sessão" e
+  // jogaria a pessoa pro login sem nenhum sinal de que a confirmação funcionou.
+  return Response.redirect(`${url.origin}/entrar?confirmado=1`, 302);
 }

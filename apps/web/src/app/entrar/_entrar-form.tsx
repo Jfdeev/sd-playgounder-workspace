@@ -14,6 +14,8 @@ const LINK_INVALID_ERROR =
 const ACCOUNT_PENDING_ERROR =
   'Já existe uma conta pendente de confirmação para este email. Confira sua caixa de entrada ou entre com email e senha.';
 
+const EMAIL_CONFIRMED_MESSAGE = 'Email confirmado! Entre com sua conta abaixo.';
+
 export function EntrarForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -31,6 +33,9 @@ export function EntrarForm() {
 
     return null;
   });
+  const [notice] = useState<string | null>(() =>
+    searchParams.get('confirmado') === '1' ? EMAIL_CONFIRMED_MESSAGE : null,
+  );
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -51,6 +56,7 @@ export function EntrarForm() {
 
   return (
     <>
+      {notice && <p role="status">{notice}</p>}
       <form onSubmit={handleSubmit}>
         <label>
           Email
