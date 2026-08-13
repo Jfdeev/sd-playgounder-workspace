@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
+import { Navbar } from './_components/navbar';
 import { Hero } from './_components/hero';
 import { Differentiators } from './_components/differentiators';
+import { Footer } from './_components/footer';
 
 export default async function LandingPage() {
   const session = await auth();
@@ -11,11 +13,15 @@ export default async function LandingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950">
-      <Hero />
-      <div className="border-t border-zinc-900">
-        <Differentiators />
-      </div>
-    </main>
+    <>
+      <Navbar />
+      <main className="bg-dot-grid min-h-screen bg-zinc-950">
+        <Hero />
+        <div id="diferenciais" className="scroll-mt-16 border-t border-zinc-900">
+          <Differentiators />
+        </div>
+      </main>
+      <Footer />
+    </>
   );
 }

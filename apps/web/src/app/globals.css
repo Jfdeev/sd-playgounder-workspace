@@ -17,6 +17,13 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Grade de pontos sutil no fundo da landing — textura de "dev-tool" (referência: Vercel/Linear),
+   baixo contraste o bastante pra nunca competir com o conteúdo. */
+.bg-dot-grid {
+  background-image: radial-gradient(circle, rgba(161, 161, 170, 0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
 /* "Marching ants" — tráfego fluindo pelas conexões do diagrama de exemplo no hero
    (ArchitectureDiagram). Traço tracejado que se desloca continuamente, em vez do padrão de
    partícula única viajando pela curva (técnica visual deliberadamente diferente). */
