@@ -33,6 +33,11 @@ de conta/login via Auth.js (email/senha + Google OAuth) com Neon Postgres." (con
   conta criada por email/senha só se torna "vinculável" após confirmar o email (link enviado por
   email); login via Google (email já verificado pelo provedor) só funde com uma conta email/senha
   existente se o email dela já estiver confirmado.
+- Q: (achado durante `/speckit-plan`) A resposta anterior deixou em aberto o que acontece quando o
+  email da conta existente NÃO está confirmado e alguém tenta entrar via Google nesse mesmo email —
+  criar uma segunda conta colidiria com a regra de um email por conta. Como tratar? → A: rejeitar o
+  login via Google com mensagem clara orientando a confirmar a conta existente — não cria conta
+  duplicada, não vincula.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -63,7 +68,7 @@ valor, diferenciais e CTA estão visíveis e o CTA leva à tela de criar conta/e
    Incidente, Budget forçado + fronteira de Pareto, Import/export).
 3. **Given** a landing page carregada, **When** o visitante lê a seção de comparação, **Then** vê a
    tese central do produto (engine determinístico vs. LLM como juiz dos concorrentes listados em
-   `docs/foundational-doc.md` §0).
+   `docs/product-context.md` §1).
 4. **Given** a landing page carregada, **When** o visitante clica no CTA principal, **Then** é
    levado ao fluxo de criação de conta / login (User Story 2).
 
@@ -133,8 +138,9 @@ confirmar que continua autenticado; deslogar e confirmar que a sessão termina.
   (decisão do autor, 2026-08-12; ver Clarifications e FR-013/FR-013a).
 - O que acontece se alguém cria conta por email/senha usando o email de outra pessoa (sem ser o
   dono), e depois o dono real entra via Google nesse mesmo email? MUST NOT vincular automaticamente
-  — o email da conta email/senha ainda não está confirmado (FR-013a), então o login via Google cria
-  uma Account própria em vez de assumir a conta não confirmada (mitigação de sequestro de conta).
+  nem criar uma segunda conta com o mesmo email (email é único por conta) — o sistema MUST rejeitar
+  o login via Google com uma mensagem clara orientando a pessoa a confirmar a conta existente
+  (verificar o email) (decisão do autor, 2026-08-12; mitigação de sequestro de conta — ver FR-013a).
 - O que acontece com tentativas repetidas de login com senha errada? O sistema MUST bloquear
   temporariamente por 15 minutos após 5 tentativas malsucedidas consecutivas (decisão do autor,
   2026-08-12; ver FR-012).
@@ -150,8 +156,11 @@ confirmar que continua autenticado; deslogar e confirmar que a sessão termina.
 - **FR-001**: O sistema MUST exibir uma landing page pública (sem exigir autenticação) na rota raiz
   do produto, contendo: hero com a proposta de valor central (`docs/product-context.md` §2 — engine
   determinístico, LLM como narrador, momento "aha"), seção de diferenciais (prioridade P0/⭐ de
-  `docs/foundational-doc.md` §7), seção de comparação com os concorrentes listados em
-  `docs/foundational-doc.md` §0, e um CTA principal para criar conta/entrar.
+  `docs/foundational-doc.md` §7: Modo Campanha, Modo Incidente, Budget forçado + fronteira de
+  Pareto, Import/export), seção de comparação com os concorrentes listados em
+  `docs/product-context.md` §1 (System Design Arena, ScaleDojo, SystemSloth, Scalcraft, Codemia,
+  mockingly.ai, systemdesignsandbox.com, SystemForge, paperdraw.dev — todos usam LLM como juiz), e
+  um CTA principal para criar conta/entrar.
 - **FR-002**: O sistema MUST permitir criar uma conta com email e senha.
 - **FR-003**: O sistema MUST permitir criar conta e entrar via Google OAuth (ADR-007).
 - **FR-004**: O sistema MUST permitir entrar numa conta existente via email/senha ou Google.

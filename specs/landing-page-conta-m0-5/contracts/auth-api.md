@@ -52,22 +52,30 @@ direto do email (navegação de topo, não uma chamada de API consumida por JS).
 
 ## `signIn` callback do Auth.js (`src/auth.ts`) — não é uma rota, mas é o contrato de decisão mais importante do marco
 
-Chamado pelo Auth.js em toda tentativa de login (credentials ou Google), antes de criar
-sessão/vincular conta. Delega a decisão a `src/lib/account-linking.ts` (função pura, testada):
+Chamado pelo Auth.js **antes** de qualquer lógica interna de linking (confirmado via Context7 —
+`handleAuthorized` roda antes de `handleLoginOrRegister`, ver research.md §2). Só se aplica à
+tentativa de login **Google** (Credentials não passa por decisão de vínculo aqui — ver
+`POST /api/account/signup` para a checagem equivalente na criação). Delega a decisão a
+`src/lib/account-linking.ts` (função pura, testada):
 
 ```ts
 function decideAccountLinking(input: {
-  incomingEmail: string;
-  incomingProvider: "credentials" | "google";
-  existingUserByEmail: { emailVerified: Date | null } | null;
+  existingUserByEmail: { id: string; emailVerified: Date | null } | null;
 }): { action: "create" | "link" | "reject" }
 ```
 
-- `existingUserByEmail === null` → `"create"` (conta nova).
-- `existingUserByEmail.emailVerified !== null` → `"link"` (funde, FR-013).
-- `existingUserByEmail.emailVerified === null` → `"reject"` (não funde — FR-013a; o Auth.js segue
-  com `OAuthAccountNotLinked` para tentativa Google, ou o signup retorna `409` para tentativa
-  credentials, conforme já descrito acima).
+- `existingUserByEmail === null` → `"create"` — `signIn` retorna `true` sem tocar em nada; o Auth.js
+  segue seu fluxo padrão (cria usuário novo).
+- `existingUserByEmail.emailVerified !== null` → `"link"` (funde, FR-013) — `signIn` chama
+  `adapter.linkAccount({ provider: "google", providerAccountId, userId: existingUserByEmail.id, ...
+  tokens })` **manualmente** e retorna `true`. O `getUserByAccount` que o core roda em seguida
+  encontra esse vínculo recém-criado e nunca chega à branch de colisão por email — a flag
+  `allowDangerousEmailAccountLinking` nunca é usada (research.md §2).
+- `existingUserByEmail.emailVerified === null` → `"reject"` (FR-013a — mitigação de sequestro de
+  conta) — `signIn` retorna `false`. Auth.js converte isso em `AccessDenied` e redireciona para a
+  página de erro com mensagem clara ("já existe uma conta pendente de confirmação para este email").
+  **Não** cria uma segunda conta com o mesmo email (violaria `unique` em `users.email`) — decisão
+  confirmada com o autor durante este plano (ver Clarifications no spec).
 
 ## Rate limiting — não é uma rota, é uma verificação no `authorize()` do Credentials provider
 
