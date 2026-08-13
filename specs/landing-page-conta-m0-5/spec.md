@@ -39,6 +39,18 @@ de conta/login via Auth.js (email/senha + Google OAuth) com Neon Postgres." (con
   login via Google com mensagem clara orientando a confirmar a conta existente — não cria conta
   duplicada, não vincula.
 
+### Session 2026-08-13 (pós-implementação, revisão visual)
+
+- Q: A landing page deveria liderar com o argumento "engine determinístico vs. LLM como juiz" (badge
+  no hero + seção de comparação com concorrentes), ou com a experiência do produto? → A: com a
+  experiência — remover a seção de comparação e o badge do hero; o argumento técnico permanece
+  documentado (`docs/product-context.md` §2), mas não é mais o gancho principal da landing (FR-001
+  atualizado).
+- Q: O diagrama do hero (nós conectados, estilo canvas) ficou visualmente parecido demais com um
+  site de referência que o autor mostrou. Trocar por quê? → A: por uma visualização diferente —
+  curva de latência × carga (M/M/1), mostrando o "momento aha" do produto diretamente, sem se
+  parecer com um mockup de canvas.
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--
@@ -49,8 +61,9 @@ de conta/login via Auth.js (email/senha + Google OAuth) com Neon Postgres." (con
 ### User Story 1 - Visitante entende o produto e decide criar conta (Priority: P1)
 
 Como visitante que nunca ouviu falar do produto, eu chego na landing page, entendo em poucos
-segundos o que é o produto (arquitetura de sistemas com feedback determinístico, não LLM como juiz),
-vejo o que o diferencia dos concorrentes, e decido criar uma conta ou entrar.
+segundos o que é o produto e sua proposta de valor (montar arquiteturas, jogar tráfego real,
+descobrir o gargalo antes que ele quebre em produção), vejo os diferenciais concretos, e decido
+criar uma conta ou entrar.
 
 **Why this priority**: é a porta de entrada do produto inteiro — sem isso, ninguém chega a criar
 conta. `docs/product-context.md` §2 define o "momento aha" do produto; a landing page precisa
@@ -66,9 +79,9 @@ valor, diferenciais e CTA estão visíveis e o CTA leva à tela de criar conta/e
 2. **Given** a landing page carregada, **When** o visitante lê a seção de diferenciais, **Then** vê
    ao menos os itens de maior prioridade de `docs/foundational-doc.md` §7 (Modo Campanha, Modo
    Incidente, Budget forçado + fronteira de Pareto, Import/export).
-3. **Given** a landing page carregada, **When** o visitante lê a seção de comparação, **Then** vê a
-   tese central do produto (engine determinístico vs. LLM como juiz dos concorrentes listados em
-   `docs/product-context.md` §1).
+3. **Given** a landing page carregada, **When** o visitante vê a demonstração visual da curva de
+   carga × latência, **Then** entende de forma concreta o "momento aha" do produto
+   (`docs/product-context.md` §2) antes mesmo de criar conta.
 4. **Given** a landing page carregada, **When** o visitante clica no CTA principal, **Then** é
    levado ao fluxo de criação de conta / login (User Story 2).
 
@@ -154,13 +167,14 @@ confirmar que continua autenticado; deslogar e confirmar que a sessão termina.
 ### Functional Requirements
 
 - **FR-001**: O sistema MUST exibir uma landing page pública (sem exigir autenticação) na rota raiz
-  do produto, contendo: hero com a proposta de valor central (`docs/product-context.md` §2 — engine
-  determinístico, LLM como narrador, momento "aha"), seção de diferenciais (prioridade P0/⭐ de
-  `docs/foundational-doc.md` §7: Modo Campanha, Modo Incidente, Budget forçado + fronteira de
-  Pareto, Import/export), seção de comparação com os concorrentes listados em
-  `docs/product-context.md` §1 (System Design Arena, ScaleDojo, SystemSloth, Scalcraft, Codemia,
-  mockingly.ai, systemdesignsandbox.com, SystemForge, paperdraw.dev — todos usam LLM como juiz), e
-  um CTA principal para criar conta/entrar.
+  do produto, contendo: hero com a proposta de valor central (`docs/product-context.md` §2 —
+  momento "aha": carga sobe, latência dispara) com uma demonstração visual da curva de carga ×
+  latência, seção de diferenciais (prioridade P0/⭐ de `docs/foundational-doc.md` §7: Modo Campanha,
+  Modo Incidente, Budget forçado + fronteira de Pareto, Import/export), e um CTA principal para
+  criar conta/entrar. A landing lidera com a experiência do produto (montar, simular, achar o
+  gargalo) — o argumento técnico "engine determinístico vs. LLM como juiz" permanece documentado em
+  `docs/product-context.md` §2 mas não é o gancho principal da página (decisão do autor,
+  2026-08-13): a seção de comparação direta com concorrentes foi removida da landing.
 - **FR-002**: O sistema MUST permitir criar uma conta com email e senha.
 - **FR-003**: O sistema MUST permitir criar conta e entrar via Google OAuth (ADR-007).
 - **FR-004**: O sistema MUST permitir entrar numa conta existente via email/senha ou Google.
