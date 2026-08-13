@@ -205,6 +205,8 @@ O usuário justifica em texto as escolhas principais. O LLM avalia o **raciocín
 - **Widgets animados interativos**: hashing consistente, Raft, bloom filter, LSM tree vs. B-tree, níveis de isolamento, backoff exponencial
 - Cada problema linka os conceitos que ele exercita, e cada conceito linka os problemas onde aparece
 - Casos reais: como Netflix, Discord, iFood, Nubank resolveram — com link para o engineering blog
+  (versão carregável no canvas, como preset explicado componente a componente pelo narrador LLM,
+  é o marco **M2.5** — `docs/product-context.md` §10, decisão do autor em 2026-08-13)
 
 ---
 

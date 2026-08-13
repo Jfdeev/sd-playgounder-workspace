@@ -201,6 +201,20 @@ defesa textual do design avaliada pelo LLM (P1).
 **Critério de saída de M2:** o narrador nunca contradiz o engine em 20 submissões
 de teste consecutivas.
 
+### M2.5 — Arquiteturas de referência (inserido após M2 — decisão do autor)
+Presets de arquiteturas reais de empresas conhecidas, **pesquisadas previamente** (não
+geradas pela LLM na hora — fidelidade real, não invenção) e carregáveis no canvas como ponto
+de partida. O narrador LLM (M2) explica cada componente da arquitetura carregada — por que
+aquele componente existe ali, que problema resolve — sempre a partir de um design já
+carregado e pesquisado, nunca inventando a arquitetura em si (mesma regra do narrador: nunca
+gera número nem estrutura, só explica o que já existe). Primeira leva de presets: Netflix,
+Discord, iFood, Nubank (já citados como estudos de caso em `docs/foundational-doc.md` §5),
+mais GitHub (P0) (decisão do autor, 2026-08-13).
+
+**Critério de saída de M2.5:** uma pessoa consegue carregar ao menos 1 preset, ver a
+explicação de cada componente pela LLM, e entender por que aquela empresa fez aquela escolha
+de arquitetura.
+
 ### M3 — Primeiro diferencial: Modo Incidente
 Arquitetura pronta + alerta + métricas simuladas; o usuário diagnostica a causa raiz
 plantada e propõe o fix. Reaproveita 100% do engine. Chaos: derrubar nó, derrubar AZ,
