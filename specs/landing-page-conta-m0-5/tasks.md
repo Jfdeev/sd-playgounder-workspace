@@ -63,26 +63,26 @@ Nenhuma user story ainda é utilizável — é o alicerce comum.
 Incidente, Budget forçado + Pareto, Import/export) e comparação (concorrentes de
 `docs/product-context.md` §1) visíveis; CTA leva a `/entrar`.
 
-- [ ] T012 [US1] Ler `docs/product-context.md` §§1-2 e `docs/foundational-doc.md` §7.1-7.4
+- [X] T012 [US1] Ler `docs/product-context.md` §§1-2 e `docs/foundational-doc.md` §7.1-7.4
       integralmente antes de escrever qualquer copy (evitar parafrasear de memória — texto vai ao
       ar como conteúdo público)
-- [ ] T013 [US1] Criar `apps/web/src/app/page.tsx` — Server Component: se `auth()` retorna sessão
+- [X] T013 [US1] Criar `apps/web/src/app/page.tsx` — Server Component: se `auth()` retorna sessão
       ativa, `redirect("/app")` (FR-011); senão, renderiza a landing page
-- [ ] T014 [P] [US1] Criar seção Hero em `apps/web/src/app/_components/hero.tsx` — proposta de
+- [X] T014 [P] [US1] Criar seção Hero em `apps/web/src/app/_components/hero.tsx` — proposta de
       valor central (`docs/product-context.md` §2: engine determinístico, LLM narrador, momento
       "aha"), nome do produto "System Design Playground" (D1, decisão do autor), CTA principal para
       `/entrar`
-- [ ] T015 [P] [US1] Criar seção Diferenciais em
+- [X] T015 [P] [US1] Criar seção Diferenciais em
       `apps/web/src/app/_components/differentiators.tsx` — os 4 itens ⭐ de
       `docs/foundational-doc.md` §7.1-7.4 (Modo Campanha, Modo Incidente, Budget forçado +
       fronteira de Pareto, Import/export)
-- [ ] T016 [P] [US1] Criar seção Comparação em `apps/web/src/app/_components/comparison.tsx` — tese
+- [X] T016 [P] [US1] Criar seção Comparação em `apps/web/src/app/_components/comparison.tsx` — tese
       "engine determinístico vs. LLM como juiz", citando os concorrentes de
       `docs/product-context.md` §1 (System Design Arena, ScaleDojo, SystemSloth, Scalcraft,
       Codemia, mockingly.ai, systemdesignsandbox.com, SystemForge, paperdraw.dev) — framear como
       "nossa abordagem é diferente", nunca afirmar como fato o que cada concorrente faz
       internamente (é copy pública)
-- [ ] T017 [US1] Compor `hero`, `differentiators`, `comparison` dentro de `page.tsx` (T013)
+- [X] T017 [US1] Compor `hero`, `differentiators`, `comparison` dentro de `page.tsx` (T013)
 
 **Checkpoint**: `/` renderiza a landing completa para visitante não autenticado; US1 é
 demonstrável isoladamente (sem nenhuma conta existir ainda).
@@ -117,7 +117,7 @@ autenticado; tentar signup com email já cadastrado (confirmado) → erro claro.
 - [X] T025 [US2] `apps/web/test/email.spec.ts` — com o client do Resend mockado: chamada com sucesso
       resolve; chamada que rejeita é capturada e não propaga (a Promise de `sendConfirmationEmail`
       resolve mesmo assim)
-- [ ] T026 [US2] Implementar `apps/web/src/app/api/account/signup/route.ts` (`POST`) conforme
+- [X] T026 [US2] Implementar `apps/web/src/app/api/account/signup/route.ts` (`POST`) conforme
       contracts/auth-api.md: valida `email`/`password` (T018), verifica email existente
       (`emailVerified` preenchido → `409`; `emailVerified` null → `409` também, mensagem de conta
       pendente), cria `users` com `passwordHash`, gera `verification_token` (24h), chama
@@ -126,22 +126,22 @@ autenticado; tentar signup com email já cadastrado (confirmado) → erro claro.
       desnecessariamente; o form de `criar-conta/page.tsx`, T030, faz a autenticação chamando
       `signIn("credentials", { email, password, redirect: false })` no cliente logo após o `201`,
       dois round-trips, cada rota fazendo uma única coisa)
-- [ ] T027 [US2] Implementar `apps/web/src/app/api/account/confirm-email/route.ts` (`GET`) —
+- [X] T027 [US2] Implementar `apps/web/src/app/api/account/confirm-email/route.ts` (`GET`) —
       valida token/expiração, seta `users.emailVerified = now()`, apaga o `verification_token`
       usado, redireciona conforme contracts/auth-api.md
-- [ ] T028 [US2] Completar `signIn` callback em `apps/web/src/auth.ts` para o provider `google`:
+- [X] T028 [US2] Completar `signIn` callback em `apps/web/src/auth.ts` para o provider `google`:
       chama `decideAccountLinking` (T021) consultando `users` por email; `"link"` → `adapter.
       linkAccount(...)` manual + `return true`; `"reject"` → `return false`; `"create"` → `return
       true` sem ação (research.md §2, contracts/auth-api.md). Requer que o `DrizzleAdapter(db,
       schema)` (T009) seja atribuído a uma `const adapter` nomeada — passada tanto para `adapter:`
       na config do `NextAuth(...)` quanto usada diretamente dentro do `signIn` callback
-- [ ] T029 [US2] Configurar provider `Google` em `apps/web/src/auth.ts` com `GOOGLE_CLIENT_ID`/
+- [X] T029 [US2] Configurar provider `Google` em `apps/web/src/auth.ts` com `GOOGLE_CLIENT_ID`/
       `GOOGLE_CLIENT_SECRET` — **sem** `allowDangerousEmailAccountLinking` (research.md §2)
-- [ ] T030 [P] [US2] Criar `apps/web/src/app/criar-conta/page.tsx` — form email/senha: `POST
+- [X] T030 [P] [US2] Criar `apps/web/src/app/criar-conta/page.tsx` — form email/senha: `POST
       /api/account/signup` (T026) e, em caso de `201`, chama `signIn("credentials", { email,
       password, redirect: false })` no cliente para autenticar a sessão, depois navega para `/app`;
       botão "Entrar com Google" (`signIn("google")`); exibe erros de `400`/`409` por campo (FR-009)
-- [ ] T031 [P] [US2] Criar `apps/web/src/app/app/page.tsx` — placeholder autenticado ("dentro do
+- [X] T031 [P] [US2] Criar `apps/web/src/app/app/page.tsx` — placeholder autenticado ("dentro do
       produto", Assumptions do spec); Server Component que faz `redirect("/entrar")` se `auth()` não
       retorna sessão
 
@@ -168,15 +168,15 @@ genérica (não revela existência do email); 5 tentativas erradas seguidas → 
       contar como nova tentativa; bloqueio expira exatamente em 15min; sucesso reseta o contador
 - [X] T034 [US3] Coverage pass: `rate-limit.ts` — garantir teste para cada comparação de limite/
       janela (5 tentativas, 15 minutos, `now < lockedUntil`)
-- [ ] T035 [US3] Completar `authorize()` do provider `Credentials` em `apps/web/src/auth.ts`:
+- [X] T035 [US3] Completar `authorize()` do provider `Credentials` em `apps/web/src/auth.ts`:
       busca `users` por email; se não encontrado OU `lockedUntil` no futuro (T032) OU senha incorreta
       (`verifyPassword`, T018) → retorna `null` (mensagem genérica única em todos os 3 casos,
       FR-010/SC-003) e, quando a causa foi senha incorreta, persiste `recordFailedAttempt`; se
       correta, persiste `recordSuccessfulAttempt` e retorna o usuário
-- [ ] T036 [P] [US3] Criar `apps/web/src/app/entrar/page.tsx` — form email/senha (`signIn(
+- [X] T036 [P] [US3] Criar `apps/web/src/app/entrar/page.tsx` — form email/senha (`signIn(
       "credentials", ...)`), botão "Entrar com Google", exibe a mensagem de erro genérica em caso de
       falha, botão de logout quando já autenticado é irrelevante aqui (fica em `/app`)
-- [ ] T037 [US3] Adicionar botão "Sair" em `apps/web/src/app/app/page.tsx` (T031) chamando
+- [X] T037 [US3] Adicionar botão "Sair" em `apps/web/src/app/app/page.tsx` (T031) chamando
       `signOut()` (FR-005)
 
 **Checkpoint**: login/logout/persistência de sessão/rate limiting verificados manualmente pelo autor
@@ -184,16 +184,16 @@ genérica (não revela existência do email); 5 tentativas erradas seguidas → 
 
 ## Phase 6: Polish
 
-- [ ] T038 [P] Rodar `pnpm --filter @sdp/engine test` após o install de `apps/web` — confirmar que
+- [X] T038 [P] Rodar `pnpm --filter @sdp/engine test` após o install de `apps/web` — confirmar que
       os 121 testes e o `no-runtime-deps.spec.ts` do M0 continuam passando sem regressão de
       resolução de workspace (recomendação registrada durante `/speckit-plan`)
-- [ ] T039 [P] Adicionar `apps/web/README.md` — como preencher `.env.local`, como rodar
+- [X] T039 [P] Adicionar `apps/web/README.md` — como preencher `.env.local`, como rodar
       `drizzle-kit generate`/`migrate`, como rodar `pnpm --filter web test` e `pnpm --filter web dev`
       (resumo do quickstart.md)
-- [ ] T040 Rodar `pnpm --filter web test` com cobertura e confirmar que os 3 módulos puros
+- [X] T040 Rodar `pnpm --filter web test` com cobertura e confirmar que os 3 módulos puros
       (`password.ts`, `rate-limit.ts`, `account-linking.ts`) estão exercitados em todos os branches
       de decisão (coverage passes T020/T023/T034)
-- [ ] T041 Revisar `specs/landing-page-conta-m0-5/spec.md` — status permanece `Ready` (não `Done`):
+- [X] T041 Revisar `specs/landing-page-conta-m0-5/spec.md` — status permanece `Ready` (não `Done`):
       SC-001/SC-002 exigem verificação humana com credenciais reais que este `/speckit-implement`
       não pode executar (research.md §5, quickstart.md §4) — registrar isso explicitamente no
       relatório final do implement, não promover o Status sem essa verificação
