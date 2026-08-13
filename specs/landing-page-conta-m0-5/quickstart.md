@@ -17,8 +17,8 @@ RESEND_API_KEY=           # opcional nesta fase — sem ela, contas continuam fu
 
 ```bash
 pnpm install
-pnpm --filter web drizzle-kit generate
-pnpm --filter web drizzle-kit migrate
+pnpm --filter web db:generate
+pnpm --filter web db:migrate
 ```
 
 ## 3. Rodar os testes automatizados (módulos puros — research.md §5)
