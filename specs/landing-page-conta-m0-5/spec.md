@@ -21,6 +21,18 @@ de conta/login via Auth.js (email/senha + Google OAuth) com Neon Postgres." (con
 - Q: Precisa de rate limiting/bloqueio temporário contra tentativas repetidas de login com senha
   errada já neste marco? → A: sim, proteção básica (bloqueio temporário após N tentativas) já em
   M0.5.
+- Q: FR-012 não define o número de tentativas nem a duração do bloqueio de rate limiting. Qual usar?
+  → A: 5 tentativas malsucedidas consecutivas para a mesma conta bloqueiam novas tentativas por 15
+  minutos.
+- Q: US3 fala em sessão persistir "dentro de um período de validade" sem quantificar. Qual duração?
+  → A: 30 dias, com renovação a cada uso (rolling session) — não exige novo login a cada visita
+  dentro desse período.
+- Q: FR-013 (vínculo de conta por email) tem risco de sequestro de conta se alguém criar conta com
+  email/senha usando o email de outra pessoa sem confirmar posse, e o dono real depois entrar via
+  Google no mesmo email. Como tratar? → A: exigir confirmação de email antes de permitir o vínculo —
+  conta criada por email/senha só se torna "vinculável" após confirmar o email (link enviado por
+  email); login via Google (email já verificado pelo provedor) só funde com uma conta email/senha
+  existente se o email dela já estiver confirmado.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -71,8 +83,10 @@ confirmar que, ao final, existe uma sessão autenticada.
 **Acceptance Scenarios**:
 
 1. **Given** um visitante sem conta, **When** ele escolhe "criar conta" com email e senha válidos
-   (e senha atende aos requisitos mínimos), **Then** a conta é criada, ele é autenticado, e a senha
-   nunca é armazenada em texto puro.
+   (e senha atende aos requisitos mínimos), **Then** a conta é criada, ele é autenticado (sessão
+   ativa imediatamente, sem esperar a confirmação de email), a senha nunca é armazenada em texto
+   puro, e um email de confirmação é enviado (a conta só se torna elegível para vínculo automático
+   com outro método de login depois de confirmada — FR-013a).
 2. **Given** um visitante sem conta, **When** ele escolhe "entrar com Google" e autoriza, **Then**
    uma conta é criada automaticamente associada ao email do Google, e ele é autenticado.
 3. **Given** um visitante tentando criar conta com email/senha, **When** o email já está cadastrado,
@@ -115,10 +129,19 @@ confirmar que continua autenticado; deslogar e confirmar que a sessão termina.
   o caminho de email/senha disponível — nunca travar o fluxo inteiro por causa de um provedor.
 - O que acontece se alguém tentar criar conta com email/senha usando um email já cadastrado via
   Google (ou vice-versa)? A conta é a mesma — o login por senha e o login via Google acessam a
-  mesma Account quando o email é idêntico (decisão do autor, 2026-08-12; ver Clarifications).
+  mesma Account quando o email é idêntico E o email da conta existente já está confirmado
+  (decisão do autor, 2026-08-12; ver Clarifications e FR-013/FR-013a).
+- O que acontece se alguém cria conta por email/senha usando o email de outra pessoa (sem ser o
+  dono), e depois o dono real entra via Google nesse mesmo email? MUST NOT vincular automaticamente
+  — o email da conta email/senha ainda não está confirmado (FR-013a), então o login via Google cria
+  uma Account própria em vez de assumir a conta não confirmada (mitigação de sequestro de conta).
 - O que acontece com tentativas repetidas de login com senha errada? O sistema MUST bloquear
-  temporariamente após N tentativas malsucedidas consecutivas (decisão do autor, 2026-08-12; ver
-  FR-012).
+  temporariamente por 15 minutos após 5 tentativas malsucedidas consecutivas (decisão do autor,
+  2026-08-12; ver FR-012).
+- O que acontece se o usuário nunca clicar no link de confirmação de email? A conta continua
+  funcionando normalmente (login, logout, uso do produto) — a falta de confirmação só impede o
+  vínculo automático dessa conta com outro método de login (FR-013a); não bloqueia nenhum outro
+  fluxo deste marco.
 
 ## Requirements *(mandatory)*
 
@@ -133,8 +156,9 @@ confirmar que continua autenticado; deslogar e confirmar que a sessão termina.
 - **FR-003**: O sistema MUST permitir criar conta e entrar via Google OAuth (ADR-007).
 - **FR-004**: O sistema MUST permitir entrar numa conta existente via email/senha ou Google.
 - **FR-005**: O sistema MUST permitir encerrar a sessão (logout) a qualquer momento.
-- **FR-006**: O sistema MUST manter a sessão autenticada entre visitas, dentro de um período de
-  validade, sem exigir novo login a cada acesso.
+- **FR-006**: O sistema MUST manter a sessão autenticada entre visitas por 30 dias desde o último
+  uso (sessão renovável a cada acesso — "rolling session"), sem exigir novo login a cada acesso
+  dentro desse período.
 - **FR-007**: O sistema MUST armazenar dados de conta em Neon (Postgres serverless, ADR-005).
 - **FR-008**: O sistema MUST NUNCA armazenar senha em texto puro — apenas hash (constitution não
   cobre isso diretamente, mas é requisito de segurança elementar de qualquer criação de conta).
@@ -145,19 +169,27 @@ confirmar que continua autenticado; deslogar e confirmar que a sessão termina.
 - **FR-011**: O sistema MUST redirecionar um usuário já autenticado que acessa a landing page para
   dentro do produto, em vez de mostrar a landing de apresentação novamente.
 - **FR-012**: O sistema MUST bloquear temporariamente novas tentativas de login por email/senha
-  após um número limitado de tentativas malsucedidas consecutivas para a mesma conta (decisão do
-  autor, 2026-08-12) — proteção básica contra força bruta.
+  após 5 tentativas malsucedidas consecutivas para a mesma conta, pelo período de 15 minutos
+  (decisão do autor, 2026-08-12) — proteção básica contra força bruta.
 - **FR-013**: Quando o email de uma nova conta (por qualquer método) já corresponde a uma Account
-  existente, o sistema MUST vincular o novo método de login à Account existente, nunca criar uma
-  Account duplicada (decisão do autor, 2026-08-12).
+  existente **e o email dessa Account existente já está confirmado** (ver FR-013a), o sistema MUST
+  vincular o novo método de login à Account existente, nunca criar uma Account duplicada (decisão do
+  autor, 2026-08-12). Se o email da Account existente ainda não estiver confirmado, o novo método
+  NÃO se vincula automaticamente (ver FR-013a) — mitigação de sequestro de conta.
+- **FR-013a**: Uma Account criada via email/senha MUST exigir confirmação do email (link de
+  confirmação enviado por email) antes de se tornar elegível para vínculo automático com outro
+  método de login (FR-013). Uma Account criada/entrada via Google OAuth é considerada com email
+  confirmado automaticamente (o Google já verifica a posse do email) (decisão do autor, 2026-08-12).
 
 ### Key Entities
 
-- **Account (Conta)**: email, senha (hash) ou vínculo com provedor OAuth (Google), data de criação.
-  Um email corresponde a uma conta (ver Edge Cases — vínculo entre método email/senha e Google ainda
-  em aberto).
+- **Account (Conta)**: email, senha (hash) ou vínculo com provedor OAuth (Google), data de criação,
+  status de confirmação do email (`emailConfirmedAt`; para contas criadas via Google, confirmado
+  automaticamente no momento da criação — FR-013a). Um email corresponde a uma conta, e contas só se
+  fundem automaticamente por email quando a conta existente já está com o email confirmado (FR-013,
+  FR-013a).
 - **Session (Sessão)**: vínculo entre uma Account autenticada e o navegador do usuário, com validade
-  limitada no tempo.
+  de 30 dias desde o último uso, renovável a cada acesso (FR-006).
 
 ## Success Criteria *(mandatory)*
 
@@ -179,6 +211,9 @@ confirmar que continua autenticado; deslogar e confirmar que a sessão termina.
 - Requisitos mínimos de senha (comprimento, complexidade) seguem prática padrão de mercado (ex:
   mínimo 8 caracteres) — não especificado nos documentos de contexto, e não é uma decisão que muda o
   escopo do marco.
+- O mecanismo de envio do email de confirmação (FR-013a) — provedor de envio transacional, template
+  do email — é um detalhe de implementação a ser resolvido em `/speckit-plan` (Technical Context),
+  não uma decisão de escopo/produto.
 - Acessibilidade dos formulários (navegação por teclado, labels) segue o mesmo princípio de RNF-8
   (`docs/product-context.md` §11), que já pede navegação por teclado para o canvas — aplicado aqui
   por analogia a formulários de conta.
