@@ -3,6 +3,13 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { Lock, Mail } from 'lucide-react';
+import {
+  fieldErrorClassName,
+  googleButtonClassName,
+  inputClassName,
+  primaryButtonClassName,
+} from '../_components/form-styles';
 
 // Mensagem genérica única — nunca revela se a causa foi email inexistente, senha errada ou conta
 // bloqueada (FR-010/SC-003), consistente com GENERIC_LOGIN_ERROR em src/auth.ts.
@@ -56,33 +63,65 @@ export function EntrarForm() {
 
   return (
     <>
-      {notice && <p role="status">{notice}</p>}
-      <form onSubmit={handleSubmit}>
-        <label>
-          Email
+      {notice && (
+        <p role="status" className="mb-4 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
+          {notice}
+        </p>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="relative">
+          <Mail
+            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-500"
+            aria-hidden
+          />
           <input
             type="email"
+            placeholder="voce@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className={inputClassName}
             required
           />
-        </label>
-        <label>
-          Senha
+        </div>
+
+        <div className="relative">
+          <Lock
+            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-500"
+            aria-hidden
+          />
           <input
             type="password"
+            placeholder="Senha"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className={inputClassName}
             required
           />
-        </label>
-        {error && <p role="alert">{error}</p>}
-        <button type="submit" disabled={submitting}>
+        </div>
+
+        {error && (
+          <p role="alert" className={fieldErrorClassName}>
+            {error}
+          </p>
+        )}
+
+        <button type="submit" disabled={submitting} className={primaryButtonClassName}>
           Entrar
         </button>
       </form>
 
-      <button type="button" onClick={() => signIn('google', { callbackUrl: '/app' })}>
+      <div className="my-5 flex items-center gap-3">
+        <div className="h-px flex-1 bg-zinc-800" />
+        <span className="text-xs text-zinc-600">ou</span>
+        <div className="h-px flex-1 bg-zinc-800" />
+      </div>
+
+      <button
+        type="button"
+        onClick={() => signIn('google', { callbackUrl: '/app' })}
+        className={googleButtonClassName}
+      >
         Entrar com Google
       </button>
     </>
