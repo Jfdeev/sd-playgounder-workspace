@@ -15,7 +15,13 @@ const STAT_PILLS = [
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden px-6 pt-24 pb-20 sm:pt-32 sm:pb-28">
+    <section className="relative overflow-hidden bg-[url('/hero-bg.jpg')] bg-cover bg-center px-6 pt-24 pb-20 sm:pt-32 sm:pb-28">
+      {/* Ilustração de fundo opcional — coloque um arquivo em apps/web/public/hero-bg.jpg (ou
+          .png/.webp, ajustando a extensão acima) para ativá-la. Sem o arquivo, o CSS
+          background-image simplesmente não renderiza nada (nunca quebra como um <img> 404
+          quebraria) — o gradiente abaixo continua funcionando sozinho. Ver o prompt de geração
+          de imagem discutido com o autor (ilustração abstrata técnica, 21:9). */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-zinc-950/75" />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[32rem] bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,rgba(139,92,246,0.25),transparent_70%)]"
