@@ -32,5 +32,11 @@
 ## Notes
 
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`.
-- Todos os itens passaram. Os 2 marcadores `[NEEDS CLARIFICATION]` (vínculo de conta Google/email
-  duplicado; rate limiting de login) foram resolvidos com o autor em 2026-08-12 (FR-012, FR-013).
+- Todos os itens passaram. Os 2 marcadores `[NEEDS CLARIFICATION]` da especificação (vínculo de
+  conta Google/email duplicado; rate limiting de login) foram resolvidos com o autor em 2026-08-12
+  (FR-012, FR-013).
+- `/speckit-clarify` (2026-08-12) resolveu 3 ambiguidades adicionais que não bloqueavam a
+  especificação, mas impactavam design/testes: número de tentativas e duração do bloqueio de
+  rate limiting (FR-012: 5 tentativas / 15 min), duração da sessão (FR-006: 30 dias, rolling), e o
+  risco de sequestro de conta no vínculo por email (FR-013/FR-013a: exige confirmação de email antes
+  de vincular).
