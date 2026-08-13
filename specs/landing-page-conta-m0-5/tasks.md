@@ -16,19 +16,19 @@ config de Auth.js que US2 estabelece. Ordem de implementação: Setup → Founda
 
 ## Phase 1: Setup
 
-- [ ] T001 Criar app Next.js 15 (App Router, TypeScript strict) em `apps/web/` como workspace pnpm
+- [X] T001 Criar app Next.js 15 (App Router, TypeScript strict) em `apps/web/` como workspace pnpm
       (`apps/web/package.json` com `name: "web"`, `apps/web/tsconfig.json` estendendo o strict mode
       já usado em `packages/engine/tsconfig.json`)
-- [ ] T002 Instalar dependências em `apps/web`: `next`, `react`, `react-dom`, `next-auth@beta`
+- [X] T002 Instalar dependências em `apps/web`: `next`, `react`, `react-dom`, `next-auth@beta`
       (Auth.js v5), `@auth/drizzle-adapter`, `drizzle-orm`, `drizzle-kit`, `@neondatabase/serverless`,
       `bcryptjs`, `resend`, `zod`; devDependencies: `vitest`, `@vitest/coverage-v8`, `@types/node`,
       `@types/bcryptjs`, `typescript`
-- [ ] T003 [P] Configurar `apps/web/vitest.config.ts` (reaproveitando o padrão de
+- [X] T003 [P] Configurar `apps/web/vitest.config.ts` (reaproveitando o padrão de
       `packages/engine/vitest.config.ts`, sem threshold global de cobertura — research.md §5)
-- [ ] T004 [P] Criar `apps/web/.env.example` documentando `DATABASE_URL`, `AUTH_SECRET`,
+- [X] T004 [P] Criar `apps/web/.env.example` documentando `DATABASE_URL`, `AUTH_SECRET`,
       `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY` (com comentário indicando que
       `RESEND_API_KEY` é opcional — degradação graciosa, research.md §4)
-- [ ] T005 [P] Criar `apps/web/drizzle.config.ts` apontando para `src/db/schema.ts` e
+- [X] T005 [P] Criar `apps/web/drizzle.config.ts` apontando para `src/db/schema.ts` e
       `src/db/migrations/`, dialect `postgresql`, credenciais via `DATABASE_URL`
 
 **Checkpoint**: `pnpm --filter web install` e `pnpm --filter web typecheck` rodam sem erro (app
@@ -36,21 +36,21 @@ vazio, sem rotas ainda).
 
 ## Phase 2: Foundational (bloqueia todas as user stories)
 
-- [ ] T006 Criar `apps/web/src/db/schema.ts` com as tabelas `users`, `accounts`,
+- [X] T006 Criar `apps/web/src/db/schema.ts` com as tabelas `users`, `accounts`,
       `verification_token` (Drizzle `pg-core`) conforme data-model.md — incluindo as colunas de
       extensão do produto (`passwordHash`, `failedLoginAttempts`, `lockedUntil` em `users`)
-- [ ] T007 Criar `apps/web/src/db/client.ts` — instância Drizzle sobre `@neondatabase/serverless`
+- [X] T007 Criar `apps/web/src/db/client.ts` — instância Drizzle sobre `@neondatabase/serverless`
       lendo `DATABASE_URL` (research.md, contrato do `drizzle-team/drizzle-orm-docs` para Neon)
-- [ ] T008 Gerar a primeira migration (`drizzle-kit generate` a partir de T006) e documentar em
+- [X] T008 Gerar a primeira migration (`drizzle-kit generate` a partir de T006) e documentar em
       `apps/web/src/db/migrations/` (aplicação real (`drizzle-kit migrate`) fica para o autor rodar
       com o `DATABASE_URL` real — ver quickstart.md)
-- [ ] T009 Criar `apps/web/src/auth.ts` — config base do Auth.js v5: `DrizzleAdapter(db, schema)`,
+- [X] T009 Criar `apps/web/src/auth.ts` — config base do Auth.js v5: `DrizzleAdapter(db, schema)`,
       `session: { strategy: "jwt", maxAge: 60*60*24*30, updateAge: 60*60*24 }` (FR-006, research.md
       §1), providers `Google` e `Credentials` registrados (sem lógica de `authorize`/`signIn` ainda
       — preenchida nas fases US2/US3), export de `handlers, auth, signIn, signOut`
-- [ ] T010 Criar `apps/web/src/app/api/auth/[...nextauth]/route.ts` exportando `GET`/`POST` de
+- [X] T010 Criar `apps/web/src/app/api/auth/[...nextauth]/route.ts` exportando `GET`/`POST` de
       `handlers` (T009)
-- [ ] T011 [P] Criar `apps/web/src/app/layout.tsx` (layout raiz mínimo, sem conteúdo de produto)
+- [X] T011 [P] Criar `apps/web/src/app/layout.tsx` (layout raiz mínimo, sem conteúdo de produto)
 
 **Checkpoint**: `pnpm --filter web dev` sobe sem erro; `/api/auth/session` responde (sessão vazia).
 Nenhuma user story ainda é utilizável — é o alicerce comum.
@@ -96,25 +96,25 @@ demonstrável isoladamente (sem nenhuma conta existir ainda).
 puro, email de confirmação enviado (ou falha logada sem bloquear); criar conta via Google →
 autenticado; tentar signup com email já cadastrado (confirmado) → erro claro.
 
-- [ ] T018 [P] [US2] Criar `apps/web/src/lib/password.ts` — `hashPassword(plain): Promise<string>`
+- [X] T018 [P] [US2] Criar `apps/web/src/lib/password.ts` — `hashPassword(plain): Promise<string>`
       (bcrypt), `verifyPassword(plain, hash): Promise<boolean>`, `validatePasswordPolicy(plain):
       { valid: boolean; message?: string }` (mínimo 8 caracteres — Assumptions do spec, FR-009)
-- [ ] T019 [US2] `apps/web/test/password.spec.ts` — cenários: senha válida passa a política; senha
+- [X] T019 [US2] `apps/web/test/password.spec.ts` — cenários: senha válida passa a política; senha
       curta é rejeitada com mensagem; hash nunca igual à senha em texto puro; `verifyPassword` aceita
       hash correto e rejeita incorreto
-- [ ] T020 [US2] Coverage pass: `password.ts` — para cada decisão em `validatePasswordPolicy`
+- [X] T020 [US2] Coverage pass: `password.ts` — para cada decisão em `validatePasswordPolicy`
       (comprimento mínimo) e `verifyPassword`, garantir teste que quebra se a linha for mutada
-- [ ] T021 [P] [US2] Criar `apps/web/src/lib/account-linking.ts` — `decideAccountLinking(input: {
+- [X] T021 [P] [US2] Criar `apps/web/src/lib/account-linking.ts` — `decideAccountLinking(input: {
       existingUserByEmail: { id: string; emailVerified: Date | null } | null }): { action: "create"
       | "link" | "reject" }` conforme contracts/auth-api.md
-- [ ] T022 [US2] `apps/web/test/account-linking.spec.ts` — os 3 casos (nenhum usuário existente →
+- [X] T022 [US2] `apps/web/test/account-linking.spec.ts` — os 3 casos (nenhum usuário existente →
       `create`; usuário existente confirmado → `link`; usuário existente não confirmado → `reject`)
-- [ ] T023 [US2] Coverage pass: `account-linking.ts` — garantir que os 3 branches de
+- [X] T023 [US2] Coverage pass: `account-linking.ts` — garantir que os 3 branches de
       `decideAccountLinking` têm teste dedicado (não só o caminho feliz)
-- [ ] T024 [P] [US2] Criar `apps/web/src/lib/email.ts` — `sendConfirmationEmail(to, token):
+- [X] T024 [P] [US2] Criar `apps/web/src/lib/email.ts` — `sendConfirmationEmail(to, token):
       Promise<void>` via Resend; captura erro do SDK e loga (`console.error`) sem relançar —
       degradação graciosa (research.md §4)
-- [ ] T025 [US2] `apps/web/test/email.spec.ts` — com o client do Resend mockado: chamada com sucesso
+- [X] T025 [US2] `apps/web/test/email.spec.ts` — com o client do Resend mockado: chamada com sucesso
       resolve; chamada que rejeita é capturada e não propaga (a Promise de `sendConfirmationEmail`
       resolve mesmo assim)
 - [ ] T026 [US2] Implementar `apps/web/src/app/api/account/signup/route.ts` (`POST`) conforme
