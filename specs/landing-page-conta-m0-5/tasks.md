@@ -121,20 +121,26 @@ autenticado; tentar signup com email já cadastrado (confirmado) → erro claro.
       contracts/auth-api.md: valida `email`/`password` (T018), verifica email existente
       (`emailVerified` preenchido → `409`; `emailVerified` null → `409` também, mensagem de conta
       pendente), cria `users` com `passwordHash`, gera `verification_token` (24h), chama
-      `sendConfirmationEmail` (T024), autentica a sessão (via `signIn("credentials", ...)` do
-      Auth.js) e retorna `201`
+      `sendConfirmationEmail` (T024) e retorna `201` (**não** chama `signIn` do lado servidor —
+      `signIn` do Auth.js v5 espera controlar o redirect e re-executaria `authorize()`
+      desnecessariamente; o form de `criar-conta/page.tsx`, T030, faz a autenticação chamando
+      `signIn("credentials", { email, password, redirect: false })` no cliente logo após o `201`,
+      dois round-trips, cada rota fazendo uma única coisa)
 - [ ] T027 [US2] Implementar `apps/web/src/app/api/account/confirm-email/route.ts` (`GET`) —
       valida token/expiração, seta `users.emailVerified = now()`, apaga o `verification_token`
       usado, redireciona conforme contracts/auth-api.md
 - [ ] T028 [US2] Completar `signIn` callback em `apps/web/src/auth.ts` para o provider `google`:
       chama `decideAccountLinking` (T021) consultando `users` por email; `"link"` → `adapter.
       linkAccount(...)` manual + `return true`; `"reject"` → `return false`; `"create"` → `return
-      true` sem ação (research.md §2, contracts/auth-api.md)
+      true` sem ação (research.md §2, contracts/auth-api.md). Requer que o `DrizzleAdapter(db,
+      schema)` (T009) seja atribuído a uma `const adapter` nomeada — passada tanto para `adapter:`
+      na config do `NextAuth(...)` quanto usada diretamente dentro do `signIn` callback
 - [ ] T029 [US2] Configurar provider `Google` em `apps/web/src/auth.ts` com `GOOGLE_CLIENT_ID`/
       `GOOGLE_CLIENT_SECRET` — **sem** `allowDangerousEmailAccountLinking` (research.md §2)
-- [ ] T030 [P] [US2] Criar `apps/web/src/app/criar-conta/page.tsx` — form email/senha (chama
-      `POST /api/account/signup`), botão "Entrar com Google" (`signIn("google")`), exibe erros de
-      `400`/`409` por campo (FR-009)
+- [ ] T030 [P] [US2] Criar `apps/web/src/app/criar-conta/page.tsx` — form email/senha: `POST
+      /api/account/signup` (T026) e, em caso de `201`, chama `signIn("credentials", { email,
+      password, redirect: false })` no cliente para autenticar a sessão, depois navega para `/app`;
+      botão "Entrar com Google" (`signIn("google")`); exibe erros de `400`/`409` por campo (FR-009)
 - [ ] T031 [P] [US2] Criar `apps/web/src/app/app/page.tsx` — placeholder autenticado ("dentro do
       produto", Assumptions do spec); Server Component que faz `redirect("/entrar")` se `auth()` não
       retorna sessão
@@ -222,3 +228,9 @@ de saída; não há uma fatia menor que o satisfaça.
 
 **Incremental delivery**: implementar e commitar por fase (Setup → Foundational → US1 → US2 → US3 →
 Polish), na ordem deste documento — cada checkpoint acima é um ponto seguro para parar/retomar.
+
+**Ordem de execução real (ajustada no `/speckit-implement`)**: dentro de US2, os três módulos puros
+e seus testes (T018-T025) são implementados e commitados **antes** de T012-T017 (copy da landing),
+apesar da numeração — são a única parte deste marco verificável de fato nesta sessão (sem
+credenciais reais de Neon/Google), então ficam primeiro para que uma interrupção deixe algo durável
+e comprovadamente correto, não apenas copy de marketing sem lógica testada por trás.

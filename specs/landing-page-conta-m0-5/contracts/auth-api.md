@@ -31,9 +31,19 @@ cria contas** (confirmado em research.md — Introdução).
    (acceptance scenario 1, US2).
 
 **Responses**:
-- `201` — conta criada, sessão iniciada (cookie de sessão setado).
+- `201` — conta criada. Sessão **não** é iniciada por esta rota — o cliente autentica em seguida
+  chamando `signIn("credentials", { email, password, redirect: false })` (ver T026/T030 em
+  tasks.md; `signIn` do Auth.js v5 controla redirect e re-executa `authorize()`, então não compõe
+  bem sendo chamado a partir de dentro de um route handler que já processou o cadastro).
 - `400` — email/senha inválidos (corpo: `{ "field": "email"|"password", "message": string }`).
-- `409` — email já cadastrado.
+- `409` — email já cadastrado, com a mesma mensagem ("este email já está em uso") **independente**
+  de a conta existente estar confirmada ou não. Nota deliberada sobre FR-010/SC-003: signup, ao
+  contrário de login, precisa necessariamente informar que um email já está em uso (não dá para
+  pedir para alguém "criar conta" com um email sem dizer que já existe) — essa divulgação é
+  inerente ao próprio fluxo de cadastro, não uma violação de SC-003 (que é especificamente sobre
+  **login**, nunca revelar se um email existe). O que se evita aqui é revelar o *motivo* (confirmado
+  vs. não confirmado) — as duas situações retornam texto idêntico, para não sinalizar a terceiros
+  qual conta está vulnerável a uma tentativa futura de vínculo.
 
 ## `GET /api/account/confirm-email?token=...`
 
