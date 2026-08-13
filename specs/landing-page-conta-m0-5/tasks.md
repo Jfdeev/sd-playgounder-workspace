@@ -72,9 +72,12 @@ Incidente, Budget forçado + Pareto, Import/export) e comparação (concorrentes
       valor central (`docs/product-context.md` §2: momento "aha"), nome do produto "System Design
       Playground" (D1, decisão do autor), CTA principal para `/entrar`. **Revisado em
       2026-08-13** (ver spec.md, Session 2026-08-13): badge "engine determinístico vs. LLM como
-      juiz" removido do hero; `ArchitecturePreview` (mockup de canvas) substituído por
-      `LoadCurvePreview` (curva de latência × carga) — visual anterior ficou parecido demais com
-      um site de referência mostrado pelo autor.
+      juiz" removido do hero. Visual do diagrama passou por duas iterações: `ArchitecturePreview`
+      (mockup de canvas, estilo parecido demais com um site de referência) → `LoadCurvePreview`
+      (curva de latência × carga — perdeu a identidade de "diagrama de arquitetura", autor pediu
+      de volta) → `ArchitectureDiagram` (versão final: nós circulares com ícone real
+      lucide-react + badge de status, conexões ortogonais tracejadas com animação "marching ants"
+      via CSS — continua sendo um diagrama de SD, com linguagem visual própria).
 - [X] T015 [P] [US1] Criar seção Diferenciais em
       `apps/web/src/app/_components/differentiators.tsx` — os 4 itens ⭐ de
       `docs/foundational-doc.md` §7.1-7.4 (Modo Campanha, Modo Incidente, Budget forçado +

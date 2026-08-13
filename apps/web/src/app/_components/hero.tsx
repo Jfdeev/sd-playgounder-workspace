@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, Gauge, ShieldAlert, Sparkles } from 'lucide-react';
-import { LoadCurvePreview } from './load-curve-preview';
+import { ArchitectureDiagram } from './architecture-diagram';
 
 // Proposta de valor central (docs/product-context.md §2): momento "aha" — arrastar o slider de
 // carga e ver a utilização/latência reagir ao vivo. O argumento técnico "determinístico vs LLM
@@ -59,7 +59,7 @@ export function Hero() {
       </div>
 
       <div className="mx-auto mt-16 max-w-4xl">
-        <LoadCurvePreview />
+        <ArchitectureDiagram />
       </div>
     </section>
   );

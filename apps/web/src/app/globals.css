@@ -16,3 +16,13 @@ body {
   color: var(--color-zinc-100);
   font-family: var(--font-sans);
 }
+
+/* "Marching ants" — tráfego fluindo pelas conexões do diagrama de exemplo no hero
+   (ArchitectureDiagram). Traço tracejado que se desloca continuamente, em vez do padrão de
+   partícula única viajando pela curva (técnica visual deliberadamente diferente). */
+@keyframes flow-dash {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
