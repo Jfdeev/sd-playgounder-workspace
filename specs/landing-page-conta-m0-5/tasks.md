@@ -69,20 +69,22 @@ Incidente, Budget forçado + Pareto, Import/export) e comparação (concorrentes
 - [X] T013 [US1] Criar `apps/web/src/app/page.tsx` — Server Component: se `auth()` retorna sessão
       ativa, `redirect("/app")` (FR-011); senão, renderiza a landing page
 - [X] T014 [P] [US1] Criar seção Hero em `apps/web/src/app/_components/hero.tsx` — proposta de
-      valor central (`docs/product-context.md` §2: engine determinístico, LLM narrador, momento
-      "aha"), nome do produto "System Design Playground" (D1, decisão do autor), CTA principal para
-      `/entrar`
+      valor central (`docs/product-context.md` §2: momento "aha"), nome do produto "System Design
+      Playground" (D1, decisão do autor), CTA principal para `/entrar`. **Revisado em
+      2026-08-13** (ver spec.md, Session 2026-08-13): badge "engine determinístico vs. LLM como
+      juiz" removido do hero; `ArchitecturePreview` (mockup de canvas) substituído por
+      `LoadCurvePreview` (curva de latência × carga) — visual anterior ficou parecido demais com
+      um site de referência mostrado pelo autor.
 - [X] T015 [P] [US1] Criar seção Diferenciais em
       `apps/web/src/app/_components/differentiators.tsx` — os 4 itens ⭐ de
       `docs/foundational-doc.md` §7.1-7.4 (Modo Campanha, Modo Incidente, Budget forçado +
       fronteira de Pareto, Import/export)
-- [X] T016 [P] [US1] Criar seção Comparação em `apps/web/src/app/_components/comparison.tsx` — tese
-      "engine determinístico vs. LLM como juiz", citando os concorrentes de
-      `docs/product-context.md` §1 (System Design Arena, ScaleDojo, SystemSloth, Scalcraft,
-      Codemia, mockingly.ai, systemdesignsandbox.com, SystemForge, paperdraw.dev) — framear como
-      "nossa abordagem é diferente", nunca afirmar como fato o que cada concorrente faz
-      internamente (é copy pública)
-- [X] T017 [US1] Compor `hero`, `differentiators`, `comparison` dentro de `page.tsx` (T013)
+- [X] ~~T016 [P] [US1] Criar seção Comparação em `apps/web/src/app/_components/comparison.tsx`~~ —
+      **removida em 2026-08-13** a pedido do autor (ver spec.md, Session 2026-08-13, FR-001
+      atualizado): a landing passou a liderar com a experiência do produto, não com o argumento
+      técnico "determinístico vs. LLM". Arquivo `comparison.tsx` deletado.
+- [X] T017 [US1] Compor `hero` e `differentiators` dentro de `page.tsx` (T013) — sem `comparison`
+      (ver T016)
 
 **Checkpoint**: `/` renderiza a landing completa para visitante não autenticado; US1 é
 demonstrável isoladamente (sem nenhuma conta existir ainda).

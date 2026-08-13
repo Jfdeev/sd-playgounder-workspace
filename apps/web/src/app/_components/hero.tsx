@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { ArrowRight, Gauge, ShieldAlert, Sparkles } from 'lucide-react';
-import { ArchitecturePreview } from './architecture-preview';
+import { LoadCurvePreview } from './load-curve-preview';
 
-// Proposta de valor central (docs/product-context.md §2): engine determinístico é a fonte da
-// verdade, LLM é narrador — nunca juiz. Momento "aha": arrastar o slider de carga e ver a
-// utilização/latência reagir ao vivo. Nome do produto mantido "System Design Playground" (D1,
-// decisão do autor).
+// Proposta de valor central (docs/product-context.md §2): momento "aha" — arrastar o slider de
+// carga e ver a utilização/latência reagir ao vivo. O argumento técnico "determinístico vs LLM
+// como juiz" fica documentado (product-context.md §2, comparison removida da landing a pedido do
+// autor) — a landing lidera com a experiência (montar, simular, achar o gargalo), não com o
+// argumento de arquitetura. Nome do produto mantido "System Design Playground" (D1).
 const STAT_PILLS = [
   { icon: Gauge, label: 'p50 / p95 / p99' },
   { icon: ShieldAlert, label: 'Detecção de SPOF' },
@@ -21,11 +22,6 @@ export function Hero() {
       />
 
       <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
-        <span className="inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-500/10 px-4 py-1.5 text-sm font-medium text-violet-300">
-          <Sparkles className="size-4" aria-hidden />
-          Engine determinístico, não LLM como juiz
-        </span>
-
         <h1 className="mt-6 text-4xl font-bold tracking-tight text-white sm:text-6xl">
           System Design Playground
         </h1>
@@ -63,7 +59,7 @@ export function Hero() {
       </div>
 
       <div className="mx-auto mt-16 max-w-4xl">
-        <ArchitecturePreview />
+        <LoadCurvePreview />
       </div>
     </section>
   );
