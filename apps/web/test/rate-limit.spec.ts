@@ -47,8 +47,21 @@ describe('recordFailedAttempt', () => {
     expect(result.lockedUntil).toEqual(new Date(NOW.getTime() + 15 * 60 * 1000));
   });
 
-  it('mantém o bloqueio (e o contador crescendo) se novas tentativas erradas ocorrem já bloqueado', () => {
-    const result = recordFailedAttempt({ failedLoginAttempts: 5, lockedUntil: NOW }, NOW);
+  it('reinicia a sequência (não continua de 6) quando o bloqueio anterior já expirou (FR-012 — "consecutivas")', () => {
+    const expiredLockout = new Date(NOW.getTime() - 1);
+    const result = recordFailedAttempt(
+      { failedLoginAttempts: 5, lockedUntil: expiredLockout },
+      NOW,
+    );
+    expect(result).toEqual({ failedLoginAttempts: 1, lockedUntil: null });
+  });
+
+  it('continua incrementando (sem reiniciar) quando o bloqueio anterior ainda não expirou', () => {
+    // Cenário defensivo: na prática checkLoginAttempt já barra a tentativa antes de chegar aqui
+    // enquanto lockedUntil está no futuro — mas a função pura precisa se comportar de forma
+    // sã mesmo chamada fora dessa ordem.
+    const stillLocked = new Date(NOW.getTime() + 60_000);
+    const result = recordFailedAttempt({ failedLoginAttempts: 5, lockedUntil: stillLocked }, NOW);
     expect(result.failedLoginAttempts).toBe(6);
     expect(result.lockedUntil).toEqual(new Date(NOW.getTime() + 15 * 60 * 1000));
   });

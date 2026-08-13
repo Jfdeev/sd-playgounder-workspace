@@ -20,9 +20,15 @@ export function EntrarForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(() => {
-    const urlError = searchParams.get('erro');
-    if (urlError === 'link_invalido') return LINK_INVALID_ERROR;
-    if (urlError === 'AccessDenied') return ACCOUNT_PENDING_ERROR;
+    // 'erro' é o parâmetro das nossas próprias rotas (confirm-email); 'error' é o parâmetro que
+    // o Auth.js usa no redirect de pages.error (contracts/auth-api.md, verificado via Context7 —
+    // authjs.dev/guides/pages/error) — os dois precisam ser checados, não são o mesmo nome.
+    const ownError = searchParams.get('erro');
+    if (ownError === 'link_invalido') return LINK_INVALID_ERROR;
+
+    const authJsError = searchParams.get('error');
+    if (authJsError === 'AccessDenied') return ACCOUNT_PENDING_ERROR;
+
     return null;
   });
   const [submitting, setSubmitting] = useState(false);
