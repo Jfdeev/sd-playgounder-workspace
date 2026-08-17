@@ -17,6 +17,7 @@
   "dependencies": {
     "@auth/drizzle-adapter": "^1.7.4",
     "@neondatabase/serverless": "^0.10.4",
+    "@sdp/engine": "workspace:*",
     "@tailwindcss/postcss": "^4.3.3",
     "bcryptjs": "^2.4.3",
     "drizzle-orm": "^0.38.3",
