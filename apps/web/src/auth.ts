@@ -9,14 +9,34 @@ import { decideAccountLinking } from './lib/account-linking';
 import { checkLoginAttempt, recordFailedAttempt, recordSuccessfulAttempt } from './lib/rate-limit';
 import { verifyPassword } from './lib/password';
 
-// `const` nomeada (não inline) — reaproveitada dentro do callback `signIn` para vínculo manual de
-// conta (research.md §2, contracts/auth-api.md). Precisa ser a mesma instância passada abaixo.
-const adapter = DrizzleAdapter(db, {
+const baseAdapter = DrizzleAdapter(db, {
   usersTable: users,
   accountsTable: accounts,
   sessionsTable: sessions,
   verificationTokensTable: verificationTokens,
 });
+
+// `const` nomeada (não inline) — reaproveitada dentro do callback `signIn` para vínculo manual de
+// conta (research.md §2, contracts/auth-api.md). Precisa ser a mesma instância passada abaixo.
+//
+// linkAccount é interceptado para NUNCA persistir os tokens OAuth (access_token, refresh_token,
+// id_token, scope, session_state, expires_at) — este produto usa o Google só para autenticar
+// (confirmar identidade/email), nunca para chamar API do Google depois do login. Guardar um
+// segredo que o app nunca lê é superfície de ataque sem nenhum benefício funcional (minimização
+// de dados) — um vazamento do banco não deve incluir credenciais utilizáveis de terceiros.
+// Ponto único: cobre tanto a chamada manual abaixo (vínculo FR-013) quanto o linkAccount que o
+// próprio core do Auth.js chama automaticamente no 1º login Google (fluxo "create" padrão) —
+// nenhum dos dois caminhos precisa ser confiável individualmente pra essa garantia valer.
+const adapter = {
+  ...baseAdapter,
+  linkAccount: (account: Parameters<NonNullable<typeof baseAdapter.linkAccount>>[0]) =>
+    baseAdapter.linkAccount!({
+      userId: account.userId,
+      type: account.type,
+      provider: account.provider,
+      providerAccountId: account.providerAccountId,
+    }),
+};
 
 // Mensagem única para todas as causas de falha de login (senha errada, email inexistente, conta
 // bloqueada) — nunca revela qual delas ocorreu (FR-010/SC-003, mitigação de user enumeration).
@@ -145,22 +165,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         // Vínculo manual (1ª vez): getUserByAccount do core encontra esta linha recém-criada e
         // nunca chega à branch de colisão por email — allowDangerousEmailAccountLinking nunca é
-        // usado. exactOptionalPropertyTypes exige omitir (não `undefined`-preencher) campos
-        // opcionais ausentes — spread condicional em vez de atribuir `undefined` diretamente.
+        // usado. Só os campos de identidade — o wrapper de `adapter.linkAccount` (acima) já
+        // garante que nenhum token OAuth é persistido, então não há por que montá-los aqui.
         await adapter.linkAccount?.({
           userId: existing.id,
           type: 'oauth',
           provider: account.provider,
           providerAccountId: account.providerAccountId,
-          ...(account.refresh_token !== undefined && { refresh_token: account.refresh_token }),
-          ...(account.access_token !== undefined && { access_token: account.access_token }),
-          ...(account.expires_at !== undefined && { expires_at: account.expires_at }),
-          ...(account.token_type !== undefined && { token_type: account.token_type }),
-          ...(account.scope !== undefined && { scope: account.scope }),
-          ...(account.id_token !== undefined && { id_token: account.id_token }),
-          ...(typeof account.session_state === 'string' && {
-            session_state: account.session_state,
-          }),
         });
       }
 

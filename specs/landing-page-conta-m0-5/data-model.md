@@ -38,7 +38,7 @@ conta" depois que `signIn` callback decide vincular (research.md §2).
 | `type` | `text` | `"oauth"` \| `"credentials"` |
 | `provider` | `text` | `"google"` \| `"credentials"` |
 | `providerAccountId` | `text` | id do usuário no provedor (Google `sub`, ou o próprio `users.id` para credentials) |
-| `refresh_token`, `access_token`, `expires_at`, `id_token`, `scope`, `session_state`, `token_type` | conforme padrão Auth.js | preenchidos só para `google` |
+| `refresh_token`, `access_token`, `expires_at`, `id_token`, `scope`, `session_state`, `token_type` | conforme padrão Auth.js | **colunas existem** (exigidas pelo tipo esperado pelo `@auth/drizzle-adapter`) mas **sempre `NULL`** — decisão do autor (2026-08-14): `linkAccount` do adapter é interceptado em `src/auth.ts` para nunca persistir tokens OAuth do Google. O produto usa Google só para autenticar, nunca chama API do Google depois do login — guardar um token que o app nunca lê é superfície de ataque sem benefício (minimização de dados); um vazamento do banco não deve incluir credencial utilizável de terceiros. Colunas mantidas (não removidas do schema) só por compatibilidade de tipo com o adapter — a garantia real está no código, não no schema. |
 
 PK composta `(provider, providerAccountId)` — padrão do adapter.
 
