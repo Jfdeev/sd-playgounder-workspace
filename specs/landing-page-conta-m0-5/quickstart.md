@@ -44,7 +44,11 @@ research.md §5):
 - [ ] Criar conta com email/senha, ver a sessão ativa e a tela placeholder `/app` (US2).
 - [ ] Email de confirmação chega (se `RESEND_API_KEY` configurada) e o link confirma a conta.
 - [ ] Entrar com Google cria conta nova (se o email não bate com nenhuma existente) ou funde numa
-      conta email/senha já confirmada (se bater) — e **não** funde numa não confirmada.
+      conta email/senha já confirmada (se bater) — e **não** funde numa não confirmada. Se aparecer
+      "Erro 401: invalid_client" do Google, era um bug real (corrigido): `src/auth.ts` chamava
+      `Google({})` sem `clientId`/`clientSecret` explícitos, e o Auth.js v5 só infere
+      `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` automaticamente — não `GOOGLE_CLIENT_ID`/
+      `GOOGLE_CLIENT_SECRET` (os nomes documentados aqui). Agora passados explicitamente.
 - [ ] Entrar com Google **uma segunda vez** (mesma conta Google, sessão encerrada e login de novo)
       funciona normalmente — não falha com erro genérico na 2ª tentativa em diante (regressão real
       encontrada e corrigida durante `/speckit-implement`: o vínculo manual de conta tentava
