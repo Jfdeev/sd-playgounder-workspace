@@ -6,6 +6,7 @@ import { db } from '@/db/client';
 import { users, verificationTokens } from '@/db/schema';
 import { hashPassword, validatePasswordPolicy } from '@/lib/password';
 import { sendConfirmationEmail } from '@/lib/email';
+import { isSameOriginRequest } from '@/lib/csrf';
 
 const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
@@ -19,6 +20,14 @@ const signupSchema = z.object({
 const EMAIL_IN_USE_MESSAGE = 'Este email já está em uso.';
 
 export async function POST(request: Request): Promise<Response> {
+  // Mitigação de CSRF (esta rota não tem a proteção nativa que as rotas do Auth.js já têm) —
+  // src/lib/csrf.ts. Checado antes de qualquer leitura/escrita.
+  const requestOrigin = request.headers.get('origin');
+  const expectedOrigin = new URL(request.url).origin;
+  if (!isSameOriginRequest(requestOrigin, expectedOrigin)) {
+    return NextResponse.json({ field: 'email', message: 'Requisição inválida.' }, { status: 403 });
+  }
+
   const body: unknown = await request.json().catch(() => null);
   const parsed = signupSchema.safeParse(body);
   if (!parsed.success) {

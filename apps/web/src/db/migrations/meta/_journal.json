@@ -8,6 +8,13 @@
       "when": 1786589679445,
       "tag": "0000_messy_absorbing_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786968062224,
+      "tag": "0001_clear_talon",
+      "breakpoints": true
     }
   ]
 }
