@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   checkLoginAttempt,
+  IP_LOGIN_POLICY,
   recordFailedAttempt,
   recordSuccessfulAttempt,
 } from '../src/lib/rate-limit';
@@ -64,6 +65,26 @@ describe('recordFailedAttempt', () => {
     const result = recordFailedAttempt({ failedLoginAttempts: 5, lockedUntil: stillLocked }, NOW);
     expect(result.failedLoginAttempts).toBe(6);
     expect(result.lockedUntil).toEqual(new Date(NOW.getTime() + 15 * 60 * 1000));
+  });
+});
+
+describe('recordFailedAttempt com IP_LOGIN_POLICY (camada secundária, credential spraying)', () => {
+  it('não bloqueia abaixo do limite de IP (mais alto que o de conta)', () => {
+    const result = recordFailedAttempt(
+      { failedLoginAttempts: 10, lockedUntil: null },
+      NOW,
+      IP_LOGIN_POLICY,
+    );
+    expect(result).toEqual({ failedLoginAttempts: 11, lockedUntil: null });
+  });
+
+  it('ativa o bloqueio de IP na 20ª tentativa consecutiva, não na 5ª (diferente da política de conta)', () => {
+    const at5 = recordFailedAttempt({ failedLoginAttempts: 4, lockedUntil: null }, NOW, IP_LOGIN_POLICY);
+    expect(at5.lockedUntil).toBeNull(); // 5ª tentativa NÃO bloqueia no nível de IP
+
+    const at20 = recordFailedAttempt({ failedLoginAttempts: 19, lockedUntil: null }, NOW, IP_LOGIN_POLICY);
+    expect(at20.failedLoginAttempts).toBe(20);
+    expect(at20.lockedUntil).toEqual(new Date(NOW.getTime() + 15 * 60 * 1000));
   });
 });
 

@@ -16,6 +16,10 @@ cria contas** (confirmado em research.md — Introdução).
 ```
 
 **Regras** (aplicadas nesta ordem):
+0. Checar `Origin` do request contra a própria origem (`src/lib/csrf.ts`) — mitigação de CSRF
+   (decisão do autor, 2026-08-14; esta rota não tem a proteção nativa que as rotas do Auth.js já
+   têm). `Origin` presente e diferente → `403`. `Origin` ausente → segue (fora do escopo desta
+   mitigação, que pressupõe um browser vítima).
 1. Validar formato de `email` e política mínima de senha (`src/lib/password.ts`) — falha →
    `400` com mensagem específica por campo (FR-009).
 2. Verificar se já existe `users.email` igual:
@@ -35,6 +39,7 @@ cria contas** (confirmado em research.md — Introdução).
   chamando `signIn("credentials", { email, password, redirect: false })` (ver T026/T030 em
   tasks.md; `signIn` do Auth.js v5 controla redirect e re-executa `authorize()`, então não compõe
   bem sendo chamado a partir de dentro de um route handler que já processou o cadastro).
+- `403` — `Origin` do request não bate com a origem esperada (regra 0, CSRF).
 - `400` — email/senha inválidos (corpo: `{ "field": "email"|"password", "message": string }`).
 - `409` — email já cadastrado, com a mesma mensagem ("este email já está em uso") **independente**
   de a conta existente estar confirmada ou não. Nota deliberada sobre FR-010/SC-003: signup, ao
@@ -77,9 +82,10 @@ function decideAccountLinking(input: {
 - `existingUserByEmail === null` → `"create"` — `signIn` retorna `true` sem tocar em nada; o Auth.js
   segue seu fluxo padrão (cria usuário novo).
 - `existingUserByEmail.emailVerified !== null` → `"link"` (funde, FR-013) — `signIn` chama
-  `adapter.linkAccount({ provider: "google", providerAccountId, userId: existingUserByEmail.id, ...
-  tokens })` **manualmente** e retorna `true`. O `getUserByAccount` que o core roda em seguida
-  encontra esse vínculo recém-criado e nunca chega à branch de colisão por email — a flag
+  `adapter.linkAccount({ provider: "google", providerAccountId, userId: existingUserByEmail.id,
+  type: "oauth" })` **manualmente** (só campos de identidade — nenhum token OAuth, ver nota de
+  segurança abaixo) e retorna `true`. O `getUserByAccount` que o core roda em seguida encontra
+  esse vínculo recém-criado e nunca chega à branch de colisão por email — a flag
   `allowDangerousEmailAccountLinking` nunca é usada (research.md §2).
 - `existingUserByEmail.emailVerified === null` → `"reject"` (FR-013a — mitigação de sequestro de
   conta) — `signIn` retorna `false`. Auth.js converte isso em `AccessDenied` e redireciona para a
@@ -89,15 +95,20 @@ function decideAccountLinking(input: {
 
 ## Rate limiting — não é uma rota, é uma verificação no `authorize()` do Credentials provider
 
-Antes de validar a senha, `authorize()` chama `src/lib/rate-limit.ts` com
-`(failedLoginAttempts, lockedUntil, now)`:
-- Se `lockedUntil` está no futuro → rejeita imediatamente (mensagem genérica, FR-010), **sem**
-  verificar a senha (evita que o rate limit em si vaze se a senha estaria certa).
-- Senão, valida a senha normalmente:
-  - Errada → incrementa `failedLoginAttempts`; se atingir 5, seta `lockedUntil = now + 15min`
-    (FR-012).
-  - Certa → zera `failedLoginAttempts` e `lockedUntil`.
+Duas camadas, ambas via `src/lib/rate-limit.ts` (`checkLoginAttempt`/`recordFailedAttempt`,
+parametrizadas por `LoginAttemptPolicy` — decisão do autor, 2026-08-14):
 
-Em ambos os casos de falha (senha errada, conta bloqueada, email inexistente), a mensagem visível ao
-usuário é idêntica — "email ou senha inválidos" — nunca revela qual dos três motivos ocorreu
-(FR-010/SC-003).
+1. **IP** (`ACCOUNT_LOGIN_POLICY` não se aplica aqui — usa `IP_LOGIN_POLICY`, 20 tentativas/15min):
+   checado **primeiro**, antes de qualquer consulta a `users` — se o IP (`src/lib/client-ip.ts`,
+   `x-forwarded-for`/`x-real-ip`) já está bloqueado, nega sem sequer olhar o email. Camada contra
+   *credential spraying* (uma tentativa em muitas contas diferentes).
+2. **Conta** (`ACCOUNT_LOGIN_POLICY`, 5 tentativas/15min, FR-012 original): checado depois de
+   encontrar o usuário pelo email — se `lockedUntil` está no futuro, nega sem verificar a senha
+   (evita que o rate limit em si vaze se a senha estaria certa).
+
+Toda falha (`authorize` retorna `null`) — IP bloqueado, email inexistente, conta bloqueada, senha
+errada — incrementa o contador de **IP**; só a senha errada incrementa também o contador de
+**conta** (o único caso onde de fato existe uma conta e uma tentativa de senha para contar).
+
+Em todos os casos de falha, a mensagem visível ao usuário é idêntica — "email ou senha inválidos"
+— nunca revela qual motivo ocorreu (FR-010/SC-003).

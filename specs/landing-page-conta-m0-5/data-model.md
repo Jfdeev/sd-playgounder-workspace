@@ -86,11 +86,30 @@ usa, já que não há `session.strategy: "database"`).
 Nenhuma outra transição de estado existe neste marco (sem "desvincular", sem "reenviar confirmação"
 — fora de escopo, não pedido pela spec).
 
-## Rate limiting (FR-012) — não é uma entidade separada
+## Rate limiting (FR-012) — duas camadas, por conta e por IP
 
-Implementado como colunas do próprio `users` (`failedLoginAttempts`, `lockedUntil`) em vez de uma
-tabela de tentativas separada — decisão de simplicidade (nenhuma necessidade de histórico de
-tentativas, só o contador atual e o timestamp de desbloqueio), consistente com "nenhuma abstração
-antes de precisar". A lógica pura de decisão (quando incrementar, quando bloquear, quando resetar)
-vive em `src/lib/rate-limit.ts` e é testada isoladamente (research.md §5) — as rotas só chamam essa
-função e persistem o resultado.
+**Por conta**: colunas do próprio `users` (`failedLoginAttempts`, `lockedUntil`) — decisão de
+simplicidade original (nenhuma necessidade de histórico de tentativas, só o contador atual e o
+timestamp de desbloqueio), consistente com "nenhuma abstração antes de precisar".
+
+**Por IP** (`loginIpAttempts`, decisão do autor, 2026-08-14 — endurecimento pós-implementação):
+camada secundária contra *credential spraying* (uma tentativa em muitas contas diferentes, nenhuma
+isolada bate o limite por conta). Precisa de tabela própria — um IP tentando emails que não
+existem nunca teria uma linha de `users` pra guardar o estado.
+
+| Coluna | Tipo | Regras |
+|---|---|---|
+| `ip` | `text`, PK | extraído de `x-forwarded-for`/`x-real-ip` (`src/lib/client-ip.ts`); `"unknown"` em dev local sem proxy — todas as tentativas locais compartilham esse bucket, limitação aceita |
+| `failedAttempts` | `integer`, not null, default `0` | |
+| `lockedUntil` | `timestamp`, nullable | |
+
+Limite deliberadamente mais alto que o de conta (20 tentativas / 15min, vs. 5/15min por conta) —
+evita punir IPs compartilhados legítimos (NAT, rede corporativa/escolar) enquanto ainda pega
+volume de spray. Conta como falha de IP qualquer `authorize()` que retorna `null` (senha errada,
+email inexistente, conta já bloqueada) — não só senha errada — porque o objetivo é medir volume
+de tentativas mal-sucedidas vindas daquele IP, não o motivo específico de cada uma.
+
+Ambas as camadas reaproveitam a mesma lógica pura em `src/lib/rate-limit.ts`
+(`checkLoginAttempt`/`recordFailedAttempt`), parametrizada por uma `LoginAttemptPolicy`
+(`ACCOUNT_LOGIN_POLICY` vs. `IP_LOGIN_POLICY`) — testada isoladamente (research.md §5), as rotas
+só chamam essa função e persistem o resultado.

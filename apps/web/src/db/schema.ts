@@ -98,6 +98,19 @@ export const sessions = pgTable('session', {
   expires: timestamp('expires', { mode: 'date' }).notNull(),
 });
 
+/**
+ * Rate limiting por IP — camada secundária contra credential spraying (uma tentativa em muitas
+ * contas diferentes, nenhuma isolada bate o limite por conta de FR-012). Não dá pra reaproveitar
+ * a tabela `user` pra isto: um IP tentando emails que não existem nunca teria uma linha de conta
+ * pra guardar o estado. Chave é o IP em si, não um `userId` — decisão do autor, 2026-08-14 (ver
+ * `src/lib/rate-limit.ts`, `IP_LOGIN_POLICY`).
+ */
+export const loginIpAttempts = pgTable('loginIpAttempts', {
+  ip: text('ip').primaryKey(),
+  failedAttempts: integer('failedAttempts').notNull().default(0),
+  lockedUntil: timestamp('lockedUntil', { mode: 'date' }),
+});
+
 // Mantido só para satisfazer o tipo esperado pelo adapter em algumas versões — não usado.
 export const authenticators = pgTable(
   'authenticator',
