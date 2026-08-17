@@ -150,10 +150,12 @@ inclusive o caso de violação (`orphan-node`) exibindo mensagem legível, nunca
 **Independent Test**: sequência de edições → desfazer N vezes → canvas idêntico ao estado anterior a
 cada uma; refazer restaura; uma edição nova após um undo descarta o redo pendente.
 
-- [ ] T030 [US2] Envolver `canvas-store.ts` (T016) com o middleware `temporal` do `zundo` — histórico
+- [X] T030 [US2] Envolver `canvas-store.ts` (T016) com o middleware `temporal` do `zundo` — histórico
       de `nodes`/`edges` (research.md §3); `selectedNodeId`/`lastResult` ficam fora do histórico
-      (não fazem parte do "design" em si)
-- [ ] T031 [P] [US2] Adicionar botões de desfazer/refazer + atalhos de teclado
+      (não fazem parte do "design" em si). Achado durante a implementação: sem um `handleSet`
+      debounced, `onNodesChange` durante um drag geraria um passo de histórico por pixel — resolvido
+      com um debounce mínimo de 300ms (padrão documentado pelo próprio zundo), sem dependência nova
+- [X] T031 [P] [US2] Adicionar botões de desfazer/refazer + atalhos de teclado
       (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z) em `apps/web/src/components/canvas/canvas.tsx`, chamando
       `useCanvasStore.temporal.getState().undo()`/`redo()`
 

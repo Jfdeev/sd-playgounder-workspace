@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, type DragEvent } from 'react';
+import { useCallback, useEffect, useState, type DragEvent } from 'react';
 import {
   Background,
   Controls,
@@ -9,7 +9,7 @@ import {
   useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Play } from 'lucide-react';
+import { Play, Redo2, Undo2 } from 'lucide-react';
 import { simulate, type ComponentType } from '@sdp/engine';
 import type { Problem } from '@sdp/problems';
 import { toDesign, toWorkload } from '@/lib/canvas-to-design';
@@ -39,6 +39,24 @@ function CanvasInner({ problem }: { problem: Problem }) {
 
   const { screenToFlowPosition } = useReactFlow();
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // FR-010: desfazer/refazer — Ctrl/Cmd+Z e Ctrl/Cmd+Shift+Z, além dos botões abaixo (RNF-8).
+  // Chamar undo()/redo() sem histórico é um no-op seguro (comportamento do próprio zundo), então
+  // não é preciso rastrear pastStates/futureStates só pra desabilitar o botão.
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      const isModifierPressed = event.ctrlKey || event.metaKey;
+      if (!isModifierPressed || event.key.toLowerCase() !== 'z') return;
+      event.preventDefault();
+      if (event.shiftKey) {
+        useCanvasStore.temporal.getState().redo();
+      } else {
+        useCanvasStore.temporal.getState().undo();
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const onDragOver = useCallback((event: DragEvent) => {
     event.preventDefault();
@@ -113,7 +131,29 @@ function CanvasInner({ problem }: { problem: Problem }) {
           </ReactFlow>
         </div>
         <div className="flex items-center justify-between border-t border-zinc-800 bg-zinc-950 px-4 py-2">
-          <p className="text-xs text-zinc-500">{nodes.length} nó(s) · {edges.length} conexão(ões)</p>
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-zinc-500">{nodes.length} nó(s) · {edges.length} conexão(ões)</p>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => useCanvasStore.temporal.getState().undo()}
+                aria-label="Desfazer"
+                title="Desfazer (Ctrl/Cmd+Z)"
+                className="rounded-lg border border-zinc-800 p-1.5 text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200"
+              >
+                <Undo2 className="size-4" aria-hidden />
+              </button>
+              <button
+                type="button"
+                onClick={() => useCanvasStore.temporal.getState().redo()}
+                aria-label="Refazer"
+                title="Refazer (Ctrl/Cmd+Shift+Z)"
+                className="rounded-lg border border-zinc-800 p-1.5 text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200"
+              >
+                <Redo2 className="size-4" aria-hidden />
+              </button>
+            </div>
+          </div>
           <button
             type="button"
             onClick={handleSubmit}
