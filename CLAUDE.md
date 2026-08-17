@@ -33,6 +33,7 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Plano ativo**: [specs/landing-page-conta-m0-5/plan.md](specs/landing-page-conta-m0-5/plan.md)
-(M0.5 — Landing Page e Conta, branch `feature/001-landing-page-auth-m05`).
+**Plano ativo**: [specs/canvas-submissao-m1/plan.md](specs/canvas-submissao-m1/plan.md)
+(M1 — Canvas e submissão, branch `feature/001-canvas-submission`). M0.5 (Landing Page e Conta,
+[specs/landing-page-conta-m0-5/plan.md](specs/landing-page-conta-m0-5/plan.md)) está concluído.
 <!-- SPECKIT END -->
