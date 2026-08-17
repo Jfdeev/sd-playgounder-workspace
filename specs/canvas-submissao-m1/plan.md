@@ -35,7 +35,7 @@ servidor). O problema "Encurtador de URL" passa a existir como dado versionado e
 
 **Constraints**: cálculo 100% client-side neste marco (sem endpoint novo); `packages/engine` não muda (Constitution II — engine puro); nenhuma dependência de LLM (Constitution I seria violada por qualquer "nota" inventada na UI — FR-013 já resolve isso)
 
-**Scale/Scope**: 1 problema completo (Encurtador de URL), 11 tipos de componente + 1 nó visual (Cliente, 2 variantes), 4 tipos de aresta
+**Scale/Scope**: 1 problema completo (Encurtador de URL), 11 tipos de componente + 1 nó visual (Cliente, 3 variantes: mobile/web/desktop), 4 tipos de aresta
 
 ## Constitution Check
 
@@ -96,7 +96,7 @@ apps/web/
     ├── components/
     │   └── canvas/
     │       ├── canvas.tsx          # Client Component: <ReactFlow>, wiring com a store
-    │       ├── palette.tsx         # paleta lateral (11 tipos + Cliente mobile/desktop), drag source
+    │       ├── palette.tsx         # paleta lateral (11 tipos + Cliente mobile/web/desktop), drag source
     │       ├── nodes/               # nó customizado por tipo (ou 1 componente parametrizado por ComponentType)
     │       ├── edges/               # aresta customizada tipada (leitura/escrita/async/replicação)
     │       ├── config-panel.tsx    # painel de configuração do nó selecionado (réplicas, cacheHitRate)

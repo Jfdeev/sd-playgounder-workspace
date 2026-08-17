@@ -41,7 +41,7 @@ em `packages/engine`.
 **Decisão**: `@xyflow/react` (pacote atual do React Flow desde o rebranding para "xyflow" — o nome
 antigo `reactflow` está deprecado), versão `^12.11.3` (via WebFetch em reactflow.dev, 2026-08-17).
 
-**Nós e arestas customizados**: cada `ComponentType` (11 tipos) + o nó "Cliente" (2 variantes
+**Nós e arestas customizados**: cada `ComponentType` (11 tipos) + o nó "Cliente" (3 variantes
 visuais, não-computável — Clarifications, FR-006) é renderizado por um `nodeType` customizado do
 React Flow (`nodeTypes` prop), parametrizado pelo tipo em vez de 12 componentes separados — evita
 duplicação, já que o layout visual (ícone + nome + status) é o mesmo, só o conteúdo muda. Arestas

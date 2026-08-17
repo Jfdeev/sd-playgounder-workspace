@@ -19,10 +19,13 @@ problema do encurtador do zero, sem ajuda, e entende por que a nota foi aquela."
 
 - Q: Como o(s) nó(s) de entrada de carga (`Design.entryNodeIds`) são designados pelo usuário no
   canvas? → A: a entrada pode ser múltipla — a paleta ganha uma categoria "Cliente", com variantes
-  visuais mobile e desktop, puramente semântica (não é um `ComponentType` do engine, não tem specs
-  nem é enviada em `Design.nodes`). O usuário arrasta um ou mais nós Cliente e conecta cada um a um
-  ou mais componentes reais; todo componente real diretamente conectado a um nó Cliente vira um
-  `entryNodeId` daquela submissão (FR-006, revisado).
+  visuais mobile, web e desktop, puramente semântica (não é um `ComponentType` do engine, não tem
+  specs nem é enviada em `Design.nodes`). O usuário arrasta um ou mais nós Cliente e conecta cada
+  um a um ou mais componentes reais; todo componente real diretamente conectado a um nó Cliente
+  vira um `entryNodeId` daquela submissão (FR-006, revisado).
+- Q: (achado durante a revisão do plano) O nó Cliente tinha só 2 variantes (mobile/desktop) — faltava
+  "web" (navegador), terceira origem comum de tráfego real. → A: 3 variantes — mobile, web e desktop
+  (decisão do autor, mesma sessão; FR-006/data-model.md/tasks.md atualizados).
 - Q: Como o usuário controla a carga de trabalho (`Workload`: rps, leitura/escrita, payload, pico)
   usada na simulação? → A: fixada pelo problema — a escala descrita no enunciado do encurtador de URL
   determina o `Workload` usado; sem controle manual do usuário neste marco (FR-007, revisado).
@@ -71,7 +74,7 @@ capacidade exibida daquele nó no resultado seguinte).
 4. **Given** um nó selecionado, **When** o usuário abre o painel de configuração daquele nó,
    **Then** vê e pode editar o número de réplicas (e, se o nó for um cache, a taxa de acerto
    esperada) — nenhum outro campo de configuração é exibido neste marco.
-5. **Given** o canvas, **When** o usuário arrasta um nó "Cliente" (mobile ou desktop) da paleta e o
+5. **Given** o canvas, **When** o usuário arrasta um nó "Cliente" (mobile, web ou desktop) da paleta e o
    conecta a um ou mais componentes reais, **Then** cada componente diretamente conectado a esse
    Cliente passa a ser um ponto de entrada de carga na submissão seguinte — o nó Cliente em si não é
    configurável e não aparece no resultado do engine (é puramente visual/semântico).
@@ -191,13 +194,13 @@ e confirmar que o design reaparece exatamente como estava.
   (só para nós do tipo cache) — outros knobs descritos em `docs/foundational-doc.md` §1.2 (política
   de eviction, TTL, sharding, algoritmo de load balancer, etc.) não afetam o resultado da simulação
   neste marco e não são expostos, para não sugerir um controle que não existe.
-- **FR-006**: O sistema MUST oferecer, na paleta, uma categoria "Cliente" com duas variantes visuais
-  — mobile e desktop — que o usuário pode arrastar para o canvas livremente, em qualquer quantidade.
-  Um nó Cliente não é um componente computável (não tem specs de capacidade/latência/custo, não é
-  configurável, não entra em `Design.nodes` na submissão ao engine). Todo componente real conectado
-  diretamente a um ou mais nós Cliente MUST ser incluído em `entryNodeIds` na submissão — permitindo
-  múltiplos pontos de entrada (ex.: um Cliente mobile e um Cliente desktop entrando por API Gateways
-  diferentes).
+- **FR-006**: O sistema MUST oferecer, na paleta, uma categoria "Cliente" com três variantes visuais
+  — mobile, web e desktop — que o usuário pode arrastar para o canvas livremente, em qualquer
+  quantidade. Um nó Cliente não é um componente computável (não tem specs de capacidade/latência/
+  custo, não é configurável, não entra em `Design.nodes` na submissão ao engine). Todo componente
+  real conectado diretamente a um ou mais nós Cliente MUST ser incluído em `entryNodeIds` na
+  submissão — permitindo múltiplos pontos de entrada (ex.: um Cliente mobile e um Cliente web
+  entrando por API Gateways diferentes).
 - **FR-007**: A carga de trabalho usada na simulação (requisições por segundo, proporção de
   leitura/escrita, tamanho de payload, multiplicador de pico) MUST ser determinada pela escala
   descrita no enunciado do problema (FR-012) — o sistema MUST NOT oferecer controle manual da carga
@@ -238,7 +241,7 @@ e confirmar que o design reaparece exatamente como estava.
 
 - **Design (Canvas)**: o grafo montado pelo usuário — nós computáveis (cada um com tipo, réplicas e,
   se aplicável, taxa de acerto de cache), arestas tipadas e com peso, e um ou mais nós Cliente
-  (mobile/desktop) que determinam os pontos de entrada (FR-006) sem entrar no cálculo do engine.
+  (mobile/web/desktop) que determinam os pontos de entrada (FR-006) sem entrar no cálculo do engine.
   Estrutura editável, com histórico de undo/redo (US2) e persistência local automática (US3,
   FR-011) — sem persistência em servidor neste marco.
 - **Problema (Encurtador de URL)**: o único problema completo deste marco — enunciado, requisitos
