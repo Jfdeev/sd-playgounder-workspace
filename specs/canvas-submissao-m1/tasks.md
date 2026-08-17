@@ -206,6 +206,14 @@ restaurado idêntico; problema nunca aberto neste navegador → canvas vazio.
 - [X] T036 `pnpm --filter problems typecheck && pnpm --filter problems test && pnpm --filter web
       typecheck && pnpm --filter web test && pnpm --filter web build` — ver resultado no relatório
       final do `/speckit-implement`
+- [X] T037 Revisar `specs/canvas-submissao-m1/spec.md` — status permanece `Ready` (não `Done`),
+      mesmo padrão de T041 de M0.5: **SC-002** (identificar o gargalo em <10s olhando o canvas) e
+      **SC-006** (60fps até 50 nós) exigem verificação visual/de performance com um navegador real
+      que este ambiente de implementação não tinha disponível (sem `screenshot`/drag, sem
+      profiling) — o destaque vermelho de gargalo foi implementado e o dado que o alimenta
+      (`isBottleneck`) foi exercitado indiretamente (violação `orphan-node` confirmada na tela),
+      mas nenhum design real chegou a saturar um nó durante a verificação desta sessão. Autor
+      MUST confirmar manualmente antes de promover para `Done`.
 
 ## Dependencies
 
