@@ -85,6 +85,14 @@ deliberadamente mínimo: FR-011 pede "restaurar o design", não "restaurar o his
 ADR-004 já decidiu Zustand + Immer especificamente por simplicidade (`docs/product-context.md` §8)
 — trocar de stack de estado não é uma decisão deste marco.
 
+**Nota — duas versões de `zustand` no lockfile**: `pnpm why zustand` mostra `zustand@4.5.7` (peer
+interno do próprio `@xyflow/react`, usado só pela store *interna* do React Flow) e `zustand@5.0.15`
+(a versão direta do projeto, usada por `zundo` e por `canvas-store.ts`). São duas instâncias
+isoladas — `useCanvasStore.temporal` nunca cruza com a store interna do React Flow — então não há
+risco de estado duplicado/dessincronizado entre elas; confirmado empiricamente: undo/redo funcionou
+corretamente no browser (2→1→0→1 nós) usando exclusivamente a v5. Registrado aqui só para não
+parecer um problema não investigado caso alguém rode `pnpm why` no futuro.
+
 ## §4. `canvas → Design/Workload` — o mapeamento que precisa de teste forte
 
 **Decisão**: uma função pura `toDesign(nodes: FlowNode[], edges: FlowEdge[]): Design` e uma

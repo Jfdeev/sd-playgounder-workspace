@@ -214,6 +214,26 @@ restaurado idêntico; problema nunca aberto neste navegador → canvas vazio.
       (`isBottleneck`) foi exercitado indiretamente (violação `orphan-node` confirmada na tela),
       mas nenhum design real chegou a saturar um nó durante a verificação desta sessão. Autor
       MUST confirmar manualmente antes de promover para `Done`.
+- [X] T038 Fechar a lacuna de teste apontada em revisão pós-implementação: nenhum teste tinha
+      exercitado o *caminho de gargalo* de fato (o caso `orphan-node` de T035 tem `bottleneckId =
+      null`, o oposto do que FR-009/SC-002 descrevem). Adicionado
+      `apps/web/test/bottleneck-scenario.spec.ts` — Cliente → App Server na escala real do
+      problema (`getProblem('url-shortener')`, ~1737 rps de pico): com 1 réplica (500 rps de
+      capacidade) o App Server satura e `result.path.bottleneckId` aponta pra ele; com 4 réplicas
+      (2000 rps) não satura. Prova via `simulate()` real (sem mock) que a leitura de
+      `result.nodes[id].status`/`bottleneckId` que alimenta o destaque vermelho em
+      `component-node.tsx` está correta — só o *render* visual (cor de fato aparecendo na tela)
+      continua exigindo confirmação humana, não mais o cálculo. Também descoberto nesta revisão:
+      `canvas-types.ts` (funções `toFlowNode`/`toFlowEdge`, chamadas em todo submit) e
+      `canvas-ui-catalog.ts` (dado puro) estavam em `src/lib/**` — dentro do include do coverage —
+      mas em 0% (nunca importados por um teste), derrubando o threshold global de 90% pra 80.64%
+      sem que `pnpm test` (sem `--coverage`) acusasse nada. Adicionados
+      `apps/web/test/canvas-types.spec.ts` e `apps/web/test/canvas-ui-catalog.spec.ts` — o primeiro
+      testa a reconstrução do formato achatado a partir do formato nativo do React Flow, o segundo
+      é smoke test de completude (cada `ComponentType`/`EdgeKind`/`ClientVariant`/`NodeStatus` do
+      engine tem entrada de UI). `pnpm --filter web test:coverage` volta a 100%/100%/100%/100%.
+      Nota sobre duas versões de `zustand` no lockfile (v4 interna do `@xyflow/react` vs. v5 do
+      projeto) documentada em research.md §3 — instâncias isoladas, sem risco confirmado.
 
 ## Dependencies
 
