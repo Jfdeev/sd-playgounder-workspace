@@ -33,6 +33,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   providers: [
     Google({
+      // clientId/clientSecret explícitos: sem eles, o Auth.js v5 procura AUTH_GOOGLE_ID/
+      // AUTH_GOOGLE_SECRET por convenção (não GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET, que é o
+      // nome documentado em .env.example) — causava "invalid_client" com as env vars vazias.
+      // Non-null assertion: ausência já é reportada de forma clara pelo próprio Google (erro
+      // invalid_client) ou pelo Auth.js — não precisa de checagem redundante aqui.
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       // allowDangerousEmailAccountLinking NÃO é usado — vínculo é feito manualmente e com
       // segurança dentro do callback signIn abaixo (research.md §2).
     }),
