@@ -11,12 +11,15 @@
  *
  * `zundo` (undo/redo, FR-010) envolve a store rastreando só `nodes`/`edges` (via `partialize`) —
  * `selectedNodeId`/`lastResult` não fazem parte do "design" em si e nunca entram no histórico de
- * desfazer/refazer (research.md §3). `persist` (autosave, FR-011) ainda não foi adicionado — US3
- * (T032).
+ * desfazer/refazer (research.md §3). `persist` (autosave local, FR-011) salva só `nodes`/`edges`
+ * em `localStorage`, chaveado por problema — neste marco há só 1 problema (`url-shortener`), então
+ * a chave é literal em vez de vir de um store-factory por `problemId`; quando M4 trouxer a
+ * biblioteca de problemas, revisitar isso (virar `createCanvasStore(problemId)`).
  */
 
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
+import { persist, type PersistOptions } from 'zustand/middleware';
 import { temporal } from 'zundo';
 import {
   addEdge,
@@ -48,9 +51,9 @@ export type CanvasState = {
   applySimulationResult: (result: SimulationResult | null) => void;
 };
 
-// Só nodes/edges entram no histórico de undo/redo — selectedNodeId/lastResult são efêmeros
-// (research.md §3).
-type TemporalCanvasState = Pick<CanvasState, 'nodes' | 'edges'>;
+// Só nodes/edges entram no histórico de undo/redo e no autosave — selectedNodeId/lastResult são
+// efêmeros (research.md §3).
+type PersistedCanvasState = Pick<CanvasState, 'nodes' | 'edges'>;
 
 /**
  * Debounce mínimo (sem dependência nova) para o `handleSet` do zundo — sem isso, arrastar um nó
@@ -72,57 +75,101 @@ function debounce<Args extends unknown[]>(fn: (...args: Args) => void, waitMs: n
 // canvas-to-design.ts).
 const DEFAULT_NEW_EDGE_DATA: FlowEdgeData = { kind: 'read' };
 
-export const useCanvasStore = create<CanvasState>()(
-  temporal(
-    immer((set) => ({
-      nodes: [],
-      edges: [],
-      selectedNodeId: null,
-      lastResult: null,
+// FR-011: chave de autosave local. Literal (não um factory por problemId) por decisão de escopo —
+// ver o comentário no topo do arquivo.
+const AUTOSAVE_STORAGE_KEY = 'sdp-canvas-url-shortener';
 
-      onNodesChange: (changes) =>
-        set((state) => {
-          state.nodes = applyNodeChanges(changes, state.nodes) as CanvasNode[];
-        }),
+// Store base (Immer + zundo) definida à parte — permite que `persist`, logo abaixo, infira sua
+// lista de mutators (`temporal`/`immer`) a partir do tipo desta constante, em vez de precisar
+// declarar manualmente os 4 parâmetros de tipo de `persist<...>` (o que, especificado à mão,
+// apaga a inferência de mutators e quebra `useCanvasStore.temporal`).
+const canvasStoreCreator = temporal(
+  immer<CanvasState>((set) => ({
+    nodes: [],
+    edges: [],
+    selectedNodeId: null,
+    lastResult: null,
 
-      onEdgesChange: (changes) =>
-        set((state) => {
-          state.edges = applyEdgeChanges(changes, state.edges) as CanvasEdge[];
-        }),
+    onNodesChange: (changes) =>
+      set((state) => {
+        state.nodes = applyNodeChanges(changes, state.nodes) as CanvasNode[];
+      }),
 
-      onConnect: (connection) =>
-        set((state) => {
-          state.edges = addEdge(
-            { ...connection, type: 'typed', data: DEFAULT_NEW_EDGE_DATA },
-            state.edges,
-          ) as CanvasEdge[];
-        }),
+    onEdgesChange: (changes) =>
+      set((state) => {
+        state.edges = applyEdgeChanges(changes, state.edges) as CanvasEdge[];
+      }),
 
-      addNode: (node) =>
-        set((state) => {
-          state.nodes.push(node);
-        }),
+    onConnect: (connection) =>
+      set((state) => {
+        state.edges = addEdge(
+          { ...connection, type: 'typed', data: DEFAULT_NEW_EDGE_DATA },
+          state.edges,
+        ) as CanvasEdge[];
+      }),
 
-      updateNodeConfig: (nodeId, patch) =>
-        set((state) => {
-          const node = state.nodes.find((n) => n.id === nodeId);
-          if (!node) return;
-          Object.assign(node.data, patch);
-        }),
+    addNode: (node) =>
+      set((state) => {
+        state.nodes.push(node);
+      }),
 
-      selectNode: (nodeId) =>
-        set((state) => {
-          state.selectedNodeId = nodeId;
-        }),
+    updateNodeConfig: (nodeId, patch) =>
+      set((state) => {
+        const node = state.nodes.find((n) => n.id === nodeId);
+        if (!node) return;
+        Object.assign(node.data, patch);
+      }),
 
-      applySimulationResult: (result) =>
-        set((state) => {
-          state.lastResult = result;
-        }),
-    })),
-    {
-      partialize: (state): TemporalCanvasState => ({ nodes: state.nodes, edges: state.edges }),
-      handleSet: (handleSet) => debounce<Parameters<typeof handleSet>>((...args) => handleSet(...args), 300),
-    },
-  ),
+    selectNode: (nodeId) =>
+      set((state) => {
+        state.selectedNodeId = nodeId;
+      }),
+
+    applySimulationResult: (result) =>
+      set((state) => {
+        state.lastResult = result;
+      }),
+  })),
+  {
+    partialize: (state): PersistedCanvasState => ({ nodes: state.nodes, edges: state.edges }),
+    handleSet: (handleSet) => debounce<Parameters<typeof handleSet>>((...args) => handleSet(...args), 300),
+  },
 );
+
+// Tipada à parte por PersistOptions<CanvasState, PersistedCanvasState> explicitamente — TS não
+// consegue inferir o 2º parâmetro de `persist` (o tipo persistido, via `partialize`) quando ele
+// já está combinado com os mutators de `temporal`/`immer` (limitação conhecida da composição de
+// middlewares do Zustand); declarar o tipo aqui evita ter que especificar os 4 parâmetros de tipo
+// de `persist<...>` manualmente (o que apagaria a inferência de `useCanvasStore.temporal`).
+const persistOptions: PersistOptions<CanvasState, PersistedCanvasState> = {
+  name: AUTOSAVE_STORAGE_KEY,
+  // Edge case do spec: localStorage indisponível/cheio (ex. navegação privada com restrições)
+  // não deve quebrar o canvas — só degrada sem persistência entre sessões nessa sessão.
+  storage: {
+    getItem: (key) => {
+      try {
+        const value = localStorage.getItem(key);
+        return value ? JSON.parse(value) : null;
+      } catch {
+        return null;
+      }
+    },
+    setItem: (key, value) => {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch {
+        // silencioso — autosave é best-effort, nunca deve interromper a edição do canvas
+      }
+    },
+    removeItem: (key) => {
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        // idem
+      }
+    },
+  },
+  partialize: (state) => ({ nodes: state.nodes, edges: state.edges }),
+};
+
+export const useCanvasStore = create<CanvasState>()(persist(canvasStoreCreator, persistOptions));
