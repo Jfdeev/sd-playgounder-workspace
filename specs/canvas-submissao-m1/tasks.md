@@ -1,0 +1,223 @@
+# Tasks: M1 — Canvas e submissão
+
+**Input**: [plan.md](plan.md), [spec.md](spec.md), [research.md](research.md), [data-model.md](data-model.md),
+[contracts/canvas-engine-boundary.md](contracts/canvas-engine-boundary.md), [quickstart.md](quickstart.md)
+
+**Tests**: incluídas para os dois módulos de lógica pura (`packages/problems` catálogo,
+`apps/web/src/lib/canvas-to-design.ts`) — escopo de cobertura decidido em research.md §8 (mesmo
+padrão de M0/M0.5: não perseguir cobertura de componentes React/interação do React Flow, que é
+verificada manualmente via quickstart.md).
+
+**Organização**: por user story (US1 P1, US2 P2, US3 P3, conforme spec.md). Setup → Foundational →
+US1 → US2 → US3 → Polish. US1 é o loop de valor completo e, sozinha, já cumpre o critério de saída
+do marco (spec.md, Success Criteria) — US2/US3 são incrementos de qualidade sobre ela, cada um
+independentemente testável por cima do que já existe.
+
+## Phase 1: Setup
+
+- [ ] T001 Instalar dependências novas em `apps/web`: `@xyflow/react` `^12.11.3`, `zustand` `^5`,
+      `immer`, `zundo` `^2.3.0` (`pnpm --filter web add @xyflow/react zustand immer zundo`,
+      research.md §2/§3)
+- [ ] T002 [P] Criar `packages/problems/package.json` — `@sdp/problems`, `workspace:*`, sem build
+      step (`main`/`types` apontando para `src/index.ts`, mesmo padrão de
+      `packages/engine/package.json`); devDependencies: `vitest`, `@vitest/coverage-v8`,
+      `typescript`, `@types/node`
+- [ ] T003 [P] Criar `packages/problems/tsconfig.json` — mesmo strict mode de
+      `packages/engine/tsconfig.json`
+- [ ] T004 [P] Criar `packages/problems/vitest.config.ts` — mesmo padrão de
+      `packages/engine/vitest.config.ts`
+- [ ] T005 [P] Adicionar `"@sdp/problems": "workspace:*"` em `apps/web/package.json`
+      (`dependencies`)
+- [ ] T006 Rodar `pnpm install` na raiz do monorepo — linka `@sdp/problems` em
+      `apps/web/node_modules/@sdp/problems` (mesmo padrão confirmado nesta sessão para
+      `@sdp/engine`)
+
+**Checkpoint**: `pnpm install` limpo; `pnpm --filter web typecheck` e `pnpm --filter problems
+typecheck` rodam sem erro (pacotes ainda vazios). `next.config.ts` (`transpilePackages` +
+`webpack.resolve.extensionAlias`) já está pronto de uma sessão anterior a este `/speckit-tasks` —
+nenhuma task nova necessária para isso.
+
+## Phase 2: Foundational (bloqueia todas as user stories)
+
+- [ ] T007 [P] Criar `packages/problems/src/types.ts` — tipo `Problem` (data-model.md)
+- [ ] T008 Criar `packages/problems/src/catalog/url-shortener.ts` — problema "Encurtador de URL"
+      completo (enunciado, requisitos funcionais, requisitos não-funcionais, escala). Ler
+      `docs/foundational-doc.md` §2.1 (partes 1/3/4/5 — não as partes 2/6/7, que são M2) e §2.2
+      (linha "Encurtador de URL — Hashing, cache read-heavy, geração de ID") **integralmente antes
+      de escrever**, não parafrasear de memória — mesmo princípio de T012 de M0.5, texto vai ao ar
+      como conteúdo real do produto
+- [ ] T009 Criar `packages/problems/src/index.ts` — `getProblem(id): Problem | undefined`,
+      `ALL_PROBLEM_IDS: readonly string[]` (contracts/canvas-engine-boundary.md)
+- [ ] T010 [P] Escrever `packages/problems/test/catalog.spec.ts` — `getProblem` retorna o registro
+      certo para `"url-shortener"`; retorna `undefined` para id inexistente; `scale`/FRs/NFRs
+      presentes e não-vazios; `ALL_PROBLEM_IDS` contém exatamente 1 item
+- [ ] T011 Coverage pass: `packages/problems` catálogo — para cada branch de `getProblem` (id
+      encontrado vs. não encontrado), garantir teste que quebra se a linha for mutada; escrever os
+      testes faltantes
+
+- [ ] T012 [P] Criar `apps/web/src/lib/canvas-types.ts` — `ComputableFlowNode`, `ClientFlowNode`,
+      `FlowNode`, `FlowEdge`, `CanvasState` (data-model.md)
+- [ ] T013 Criar `apps/web/src/lib/canvas-to-design.ts` — `toDesign(nodes, edges): Design`,
+      `toWorkload(problem): Workload` (contracts/canvas-engine-boundary.md, research.md §4/§5) —
+      importa `Design`/`Workload`/`ComponentType`/`EdgeKind` de `@sdp/engine`, nunca redefine esses
+      tipos
+- [ ] T014 Escrever `apps/web/test/canvas-to-design.spec.ts` — casos do contrato (regras 1-6 de
+      contracts/canvas-engine-boundary.md): nó Cliente sem conexão é ignorado (nenhum
+      `entryNodeId`); dois nós Cliente conectados ao mesmo componente real → 1 `entryNodeId` sem
+      duplicata; dois Clientes conectados a dois componentes diferentes → 2 `entryNodeIds`; nós/
+      arestas Cliente nunca aparecem em `Design.nodes`/`Design.edges`; pesos de aresta repassados
+      sem normalização própria; entrada malformada (aresta apontando para id inexistente, canvas
+      vazio) nunca lança exceção; `toWorkload` é determinística para o problema do encurtador
+- [ ] T015 Coverage pass: `canvas-to-design.ts` — para cada decision point (filtro por `kind`,
+      construção do conjunto de `entryNodeIds`, cálculo de `rps` a partir de `dau`), garantir teste
+      que quebra se a linha for mutada; escrever os testes faltantes
+
+- [ ] T016 Criar `apps/web/src/stores/canvas-store.ts` — store Zustand + Immer: `nodes`, `edges`,
+      `selectedNodeId`, `lastResult: SimulationResult | null`; ações `onNodesChange`,
+      `onEdgesChange`, `onConnect` (padrão oficial de integração Zustand + React Flow, research.md
+      §2), `addNode`, `updateNodeConfig`, `selectNode`, `applySimulationResult`. Sem `zundo`
+      (undo/redo) nem `persist` (autosave) ainda — adicionados em US2 (T030) e US3 (T032)
+
+**Checkpoint**: `packages/problems` e o mapper (`canvas-to-design.ts`) compilam e passam em todos
+os testes (`pnpm --filter problems test`, `pnpm --filter web test`). Nenhuma user story ainda é
+utilizável — sem UI de canvas.
+
+## Phase 3: User Story 1 — Montar e simular o desafio do encurtador de URL, do zero (P1)
+
+**Goal**: loop completo — ler o problema, arrastar/conectar/configurar componentes, submeter, ver o
+resultado do engine com o gargalo destacado — sem ajuda externa (spec.md, critério de saída).
+
+**Independent Test**: com uma conta autenticada e nenhum design em andamento, abrir o problema,
+montar Cliente → API Gateway → App Server, configurar réplicas do App Server, submeter, e confirmar
+que o resultado reflete a topologia (mudar réplicas muda a capacidade exibida na submissão seguinte).
+
+- [ ] T017 [US1] Criar `apps/web/src/app/app/[problemId]/page.tsx` — Server Component: `auth()`
+      (redirect para `/entrar` se sem sessão, mesmo padrão do placeholder de M0.5),
+      `getProblem(problemId)` de `@sdp/problems` (`notFound()` do Next se `undefined`), renderiza
+      `<ProblemBrief problem={problem} />` (T020) + `<Canvas problem={problem} />` (T025, Client
+      Component)
+- [ ] T018 [US1] Reescrever `apps/web/src/app/app/page.tsx` — Server Component que faz
+      `redirect(`/app/${ALL_PROBLEM_IDS[0]}`)` (1 problema neste marco; remove o placeholder "Você
+      está dentro do..." de M0.5, que cumpriu seu propósito)
+- [ ] T019 [P] [US1] Criar `apps/web/src/app/app/layout.tsx` — header mínimo com o email da sessão
+      + `<SignOutButton />` (reaproveita `apps/web/src/app/app/_sign-out-button.tsx`, já existente
+      de M0.5, movido de `page.tsx` para o layout)
+- [ ] T020 [P] [US1] Criar `apps/web/src/components/canvas/problem-brief.tsx` — enunciado,
+      requisitos funcionais, requisitos não-funcionais e escala do `Problem` (FR-012), exibido
+      antes/acima do canvas
+- [ ] T021 [P] [US1] Criar `apps/web/src/components/canvas/nodes/component-node.tsx` — nó
+      customizado do React Flow parametrizado por `ComponentType` (ícone lucide-react + nome +
+      badge de status/gargalo vindo de `data.result` quando existir — destaque vermelho quando
+      `data.result.isBottleneck`, FR-009)
+- [ ] T022 [P] [US1] Criar `apps/web/src/components/canvas/nodes/client-node.tsx` — nó customizado
+      para o Cliente (variantes mobile/desktop), sem badge de status nem configuração (FR-006)
+- [ ] T023 [P] [US1] Criar `apps/web/src/components/canvas/edges/typed-edge.tsx` — aresta
+      customizada por `EdgeKind` (cor/traço distinto para leitura/escrita/assíncrona/replicação),
+      marcador de seta (`MarkerType.ArrowClosed`)
+- [ ] T024 [P] [US1] Criar `apps/web/src/components/canvas/palette.tsx` — lista os 11
+      `ComponentType` + Cliente (mobile/desktop); `onDragStart` marca o tipo arrastado via
+      `event.dataTransfer.setData` (research.md §2)
+- [ ] T025 [US1] Criar `apps/web/src/components/canvas/canvas.tsx` — Client Component: `<ReactFlow>`
+      ligado à store (T016) via `useStore`, `nodeTypes`/`edgeTypes` (T021-T023), `onDragOver`/
+      `onDrop` criando o nó via `screenToFlowPosition` (research.md §2), seleção de nó atualiza
+      `selectedNodeId`
+- [ ] T026 [US1] Criar `apps/web/src/components/canvas/config-panel.tsx` — painel do nó
+      selecionado: campo de réplicas com validação de entrada (FR-014 — impede confirmar valor < 1
+      ou não-numérico diretamente no campo) e, quando o nó for `cache`, campo de taxa de acerto;
+      nada exibido quando o nó selecionado é um Cliente (FR-006)
+- [ ] T027 [US1] Criar `apps/web/src/components/canvas/result-panel.tsx` — renderiza
+      `SimulationResult`: utilização/status por nó, latência p50/p95/p99 do caminho crítico,
+      throughput, custo por nó e total, violações com a mensagem já produzida pelo engine;
+      **explicitamente sem nenhum campo de nota/score/veredito** (FR-013)
+- [ ] T028 [US1] Adicionar submissão em `canvas.tsx`/`canvas-store.ts` — botão "submeter" chama
+      `toDesign`/`toWorkload` (T013) e `simulate()` de `@sdp/engine`, guarda o `SimulationResult` em
+      `lastResult` (T016) via `applySimulationResult`, propaga o status/gargalo por nó para
+      `data.result` de cada `component-node` (T021), abre o `result-panel` (T027)
+- [ ] T029 [US1] Tratar submissão de canvas vazio em `canvas-store.ts`/`result-panel.tsx` —
+      mensagem clara ("adicione componentes antes de submeter") em vez de chamar o engine com um
+      `Design` vazio sem feedback (Edge Case do spec)
+
+**Checkpoint**: quickstart.md "Verificar o loop principal (US1)" passa de ponta a ponta —
+inclusive o caso de violação (`orphan-node`) exibindo mensagem legível, nunca um erro técnico cru
+(FR-016).
+
+## Phase 4: User Story 2 — Corrigir o design sem perder o trabalho (P2)
+
+**Goal**: desfazer/refazer edições do canvas, em ordem, histórico linear.
+
+**Independent Test**: sequência de edições → desfazer N vezes → canvas idêntico ao estado anterior a
+cada uma; refazer restaura; uma edição nova após um undo descarta o redo pendente.
+
+- [ ] T030 [US2] Envolver `canvas-store.ts` (T016) com o middleware `temporal` do `zundo` — histórico
+      de `nodes`/`edges` (research.md §3); `selectedNodeId`/`lastResult` ficam fora do histórico
+      (não fazem parte do "design" em si)
+- [ ] T031 [P] [US2] Adicionar botões de desfazer/refazer + atalhos de teclado
+      (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z) em `apps/web/src/components/canvas/canvas.tsx`, chamando
+      `useCanvasStore.temporal.getState().undo()`/`redo()`
+
+**Checkpoint**: quickstart.md "Verificar undo/redo (US2)" passa de ponta a ponta.
+
+## Phase 5: User Story 3 — Retomar um design depois de fechar o navegador (P3)
+
+**Goal**: autosave local via `localStorage`, chaveado por `problemId`, restaurado automaticamente.
+
+**Independent Test**: montar design parcial → fechar/reabrir a aba no mesmo navegador → design
+restaurado idêntico; problema nunca aberto neste navegador → canvas vazio.
+
+- [ ] T032 [US3] Adicionar middleware `persist` (`zustand/middleware`) a `canvas-store.ts` (T016) —
+      persiste só `nodes`/`edges` (não `selectedNodeId`/`lastResult`/histórico de undo), chave
+      derivada de `problemId` (FR-011); `storage` com fallback silencioso se `localStorage`
+      indisponível/cheio (try/catch — Edge Case do spec: o canvas continua funcionando nessa
+      sessão, só sem persistência entre sessões)
+- [ ] T033 [US3] Hidratar a store a partir do `localStorage` ao montar
+      `apps/web/src/components/canvas/canvas.tsx` para o `problemId` da rota atual
+
+**Checkpoint**: quickstart.md "Verificar autosave (US3)" passa de ponta a ponta.
+
+## Phase 6: Polish & Cross-Cutting
+
+- [ ] T034 [P] Navegação por teclado no canvas inteiro (adicionar via paleta, selecionar, conectar,
+      configurar, desfazer/refazer) — RNF-8/FR-015, verificado manualmente (o React Flow já cobre
+      parte nativamente; completar onde faltar: paleta — T024 — e painel de configuração — T026)
+- [ ] T035 Rodar `quickstart.md` de ponta a ponta manualmente (US1+US2+US3) e registrar qualquer
+      ajuste necessário
+- [ ] T036 `pnpm --filter problems typecheck && pnpm --filter problems test && pnpm --filter web
+      typecheck && pnpm --filter web test && pnpm --filter web build` — tudo limpo antes de
+      considerar o marco concluído
+
+## Dependencies
+
+- **Setup (T001-T006)** → bloqueia tudo.
+- **Foundational (T007-T016)** → bloqueia US1/US2/US3 (catálogo de problemas, mapper canvas→engine,
+  store base).
+- **US1 (T017-T029)** → depende só do Foundational; é o loop de valor completo e, sozinha, já
+  cumpre o critério de saída do marco.
+- **US2 (T030-T031)** → depende de US1 (envolve a store que US1 já usa; sem canvas funcional não há
+  o que desfazer).
+- **US3 (T032-T033)** → depende de US1 (mesmo motivo); independente de US2 no sentido de que
+  `persist` e `temporal` são middlewares Zustand que compõem sem interferir um no outro, mas os
+  dois modificam `canvas-store.ts` — fazer US2 antes de US3 evita editar o mesmo arquivo fora de
+  ordem.
+- **Polish (T034-T036)** → depende de US1+US2+US3 completos.
+
+## Parallel Example
+
+Dentro do Foundational: T007 (`types.ts`) e T012 (`canvas-types.ts`) são paralelas entre si
+(pacotes diferentes); depois de T013 (`canvas-to-design.ts`) existir, T014 e T015 dependem dela mas
+são sequenciais entre si (T015 precisa saber o que T014 já cobriu). Dentro de US1: T019-T024 (seis
+componentes independentes — layout, problem-brief, os dois tipos de nó, a aresta, a paleta) são
+paralelas entre si, convergindo em T025 (`canvas.tsx`, que os importa todos).
+
+## Implementation Strategy
+
+**MVP scope**: **Setup + Foundational + US1** — sozinha, US1 já cumpre o critério de saída do marco
+(spec.md: "uma pessoa que nunca viu o produto resolve o problema do encurtador do zero, sem ajuda,
+e entende por que o resultado foi aquele"). US2 (undo/redo) e US3 (autosave) são P0 no
+`docs/product-context.md` §10 — não são opcionais para o marco terminar — mas são incrementos de
+qualidade que não bloqueiam a demonstração do loop de valor central.
+
+**Incremental delivery**: implementar e commitar por fase (Setup → Foundational → US1 → US2 → US3 →
+Polish), na ordem deste documento — cada checkpoint é um ponto seguro para parar/retomar. Dentro do
+Foundational, os dois módulos puros com teste (T007-T015: catálogo de problemas, mapper
+canvas-to-design) são a parte mais fácil de verificar sem depender de nenhuma interação manual no
+browser — fazer e commitar primeiro, antes de qualquer componente React.
