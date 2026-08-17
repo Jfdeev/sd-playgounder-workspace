@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   // @sdp/engine é consumido como TS cru via workspace (sem build step, ver package.json —
   // main/types apontam direto pra src/index.ts). Next não transpila TS de fora de apps/web por
   // padrão; isso é o que faz esse import funcionar (spike de risco do M1, ver plan.md research.md).
-  transpilePackages: ["@sdp/engine"],
+  transpilePackages: ["@sdp/engine", "@sdp/problems"],
   webpack(config) {
     // packages/engine usa imports relativos com extensão .js (convenção do moduleResolution
     // NodeNext do TS, mesmo apontando pra arquivos .ts) — webpack não resolve isso por padrão

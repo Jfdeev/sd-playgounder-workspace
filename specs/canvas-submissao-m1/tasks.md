@@ -15,22 +15,22 @@ independentemente testável por cima do que já existe.
 
 ## Phase 1: Setup
 
-- [ ] T001 Instalar dependências novas em `apps/web`: `@xyflow/react` `^12.11.3`, `zustand` `^5`,
+- [X] T001 Instalar dependências novas em `apps/web`: `@xyflow/react` `^12.11.3`, `zustand` `^5`,
       `immer`, `zundo` `^2.3.0` (`pnpm --filter web add @xyflow/react zustand immer zundo`,
       research.md §2/§3)
-- [ ] T002 [P] Criar `packages/problems/package.json` — `@sdp/problems`, `workspace:*`, sem build
+- [X] T002 [P] Criar `packages/problems/package.json` — `@sdp/problems`, `workspace:*`, sem build
       step (`main`/`types` apontando para `src/index.ts`, mesmo padrão de
       `packages/engine/package.json`); devDependencies: `vitest`, `@vitest/coverage-v8`,
       `typescript`, `@types/node`
-- [ ] T003 [P] Criar `packages/problems/tsconfig.json` — mesmo strict mode de
+- [X] T003 [P] Criar `packages/problems/tsconfig.json` — mesmo strict mode de
       `packages/engine/tsconfig.json`
-- [ ] T004 [P] Criar `packages/problems/vitest.config.ts` — mesmo padrão de
+- [X] T004 [P] Criar `packages/problems/vitest.config.ts` — mesmo padrão de
       `packages/engine/vitest.config.ts`
-- [ ] T005 [P] Adicionar `"@sdp/problems": "workspace:*"` em `apps/web/package.json`
+- [X] T005 [P] Adicionar `"@sdp/problems": "workspace:*"` em `apps/web/package.json`
       (`dependencies`)
-- [ ] T006 Rodar `pnpm install` na raiz do monorepo — linka `@sdp/problems` em
+- [X] T006 Rodar `pnpm install` na raiz do monorepo — linka `@sdp/problems` em
       `apps/web/node_modules/@sdp/problems` (mesmo padrão confirmado nesta sessão para
-      `@sdp/engine`)
+      `@sdp/engine`). `next.config.ts`: `@sdp/problems` adicionado a `transpilePackages`.
 
 **Checkpoint**: `pnpm install` limpo; `pnpm --filter web typecheck` e `pnpm --filter problems
 typecheck` rodam sem erro (pacotes ainda vazios). `next.config.ts` (`transpilePackages` +
@@ -39,44 +39,46 @@ nenhuma task nova necessária para isso.
 
 ## Phase 2: Foundational (bloqueia todas as user stories)
 
-- [ ] T007 [P] Criar `packages/problems/src/types.ts` — tipo `Problem` (data-model.md)
-- [ ] T008 Criar `packages/problems/src/catalog/url-shortener.ts` — problema "Encurtador de URL"
+- [X] T007 [P] Criar `packages/problems/src/types.ts` — tipo `Problem` (data-model.md)
+- [X] T008 Criar `packages/problems/src/catalog/url-shortener.ts` — problema "Encurtador de URL"
       completo (enunciado, requisitos funcionais, requisitos não-funcionais, escala). Ler
       `docs/foundational-doc.md` §2.1 (partes 1/3/4/5 — não as partes 2/6/7, que são M2) e §2.2
       (linha "Encurtador de URL — Hashing, cache read-heavy, geração de ID") **integralmente antes
       de escrever**, não parafrasear de memória — mesmo princípio de T012 de M0.5, texto vai ao ar
       como conteúdo real do produto
-- [ ] T009 Criar `packages/problems/src/index.ts` — `getProblem(id): Problem | undefined`,
+- [X] T009 Criar `packages/problems/src/index.ts` — `getProblem(id): Problem | undefined`,
       `ALL_PROBLEM_IDS: readonly string[]` (contracts/canvas-engine-boundary.md)
-- [ ] T010 [P] Escrever `packages/problems/test/catalog.spec.ts` — `getProblem` retorna o registro
+- [X] T010 [P] Escrever `packages/problems/test/catalog.spec.ts` — `getProblem` retorna o registro
       certo para `"url-shortener"`; retorna `undefined` para id inexistente; `scale`/FRs/NFRs
       presentes e não-vazios; `ALL_PROBLEM_IDS` contém exatamente 1 item
-- [ ] T011 Coverage pass: `packages/problems` catálogo — para cada branch de `getProblem` (id
-      encontrado vs. não encontrado), garantir teste que quebra se a linha for mutada; escrever os
-      testes faltantes
+- [X] T011 Coverage pass: `packages/problems` catálogo — 100% statements/branches/functions/lines
+      confirmado via `pnpm --filter @sdp/problems test:coverage`; `getProblem` não tem branch
+      explícito além do lookup (found/not-found), já coberto pelos 2 casos de T010
 
-- [ ] T012 [P] Criar `apps/web/src/lib/canvas-types.ts` — `ComputableFlowNode`, `ClientFlowNode`,
-      `FlowNode`, `FlowEdge`, `CanvasState` (data-model.md)
-- [ ] T013 Criar `apps/web/src/lib/canvas-to-design.ts` — `toDesign(nodes, edges): Design`,
+- [X] T012 [P] Criar `apps/web/src/lib/canvas-types.ts` — `ComputableFlowNode`, `ClientFlowNode`,
+      `FlowNode`, `FlowEdge` (data-model.md), mais `FlowNodeData`/`FlowEdgeData`/`toFlowNode`/
+      `toFlowEdge` (payload de `data` dos nós/arestas nativos do React Flow — refinamento
+      necessário para não duplicar `id`/`position` entre o nó do React Flow e o `data`, achado ao
+      integrar com a store em T016)
+- [X] T013 Criar `apps/web/src/lib/canvas-to-design.ts` — `toDesign(nodes, edges): Design`,
       `toWorkload(problem): Workload` (contracts/canvas-engine-boundary.md, research.md §4/§5) —
       importa `Design`/`Workload`/`ComponentType`/`EdgeKind` de `@sdp/engine`, nunca redefine esses
       tipos
-- [ ] T014 Escrever `apps/web/test/canvas-to-design.spec.ts` — casos do contrato (regras 1-6 de
-      contracts/canvas-engine-boundary.md): nó Cliente sem conexão é ignorado (nenhum
-      `entryNodeId`); dois nós Cliente conectados ao mesmo componente real → 1 `entryNodeId` sem
-      duplicata; dois Clientes conectados a dois componentes diferentes → 2 `entryNodeIds`; nós/
-      arestas Cliente nunca aparecem em `Design.nodes`/`Design.edges`; pesos de aresta repassados
-      sem normalização própria; entrada malformada (aresta apontando para id inexistente, canvas
-      vazio) nunca lança exceção; `toWorkload` é determinística para o problema do encurtador
-- [ ] T015 Coverage pass: `canvas-to-design.ts` — para cada decision point (filtro por `kind`,
-      construção do conjunto de `entryNodeIds`, cálculo de `rps` a partir de `dau`), garantir teste
-      que quebra se a linha for mutada; escrever os testes faltantes
+- [X] T014 Escrever `apps/web/test/canvas-to-design.spec.ts` — 17 testes cobrindo as regras 1-6 do
+      contrato: nó Cliente sem conexão ignorado; múltiplos Clientes → 1 `entryNodeId` sem
+      duplicata / 2 `entryNodeIds` para componentes diferentes; nós/arestas Cliente nunca em
+      `Design.nodes`/`Design.edges`; peso bruto repassado sem normalização própria; entrada
+      malformada nunca lança exceção; `toWorkload` determinística
+- [X] T015 Coverage pass: `canvas-to-design.ts` — 100% statements/branches/functions/lines
+      (`pnpm --filter web test:coverage`)
 
-- [ ] T016 Criar `apps/web/src/stores/canvas-store.ts` — store Zustand + Immer: `nodes`, `edges`,
+- [X] T016 Criar `apps/web/src/stores/canvas-store.ts` — store Zustand + Immer: `nodes`/`edges`
+      tipados como `Node<FlowNodeData>`/`Edge<FlowEdgeData>` nativos do React Flow (research.md
+      §2 — position/seleção ficam no próprio React Flow, nunca duplicados em `data`),
       `selectedNodeId`, `lastResult: SimulationResult | null`; ações `onNodesChange`,
-      `onEdgesChange`, `onConnect` (padrão oficial de integração Zustand + React Flow, research.md
-      §2), `addNode`, `updateNodeConfig`, `selectNode`, `applySimulationResult`. Sem `zundo`
-      (undo/redo) nem `persist` (autosave) ainda — adicionados em US2 (T030) e US3 (T032)
+      `onEdgesChange`, `onConnect`, `addNode`, `updateNodeConfig`, `selectNode`,
+      `applySimulationResult`. Sem `zundo` (undo/redo) nem `persist` (autosave) ainda —
+      adicionados em US2 (T030) e US3 (T032)
 
 **Checkpoint**: `packages/problems` e o mapper (`canvas-to-design.ts`) compilam e passam em todos
 os testes (`pnpm --filter problems test`, `pnpm --filter web test`). Nenhuma user story ainda é
