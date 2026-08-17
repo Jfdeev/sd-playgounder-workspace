@@ -16,6 +16,9 @@ importers:
       '@neondatabase/serverless':
         specifier: ^0.10.4
         version: 0.10.4
+      '@sdp/engine':
+        specifier: workspace:*
+        version: link:../../packages/engine
       '@tailwindcss/postcss':
         specifier: ^4.3.3
         version: 4.3.3
