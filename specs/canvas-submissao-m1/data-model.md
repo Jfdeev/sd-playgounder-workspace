@@ -49,7 +49,7 @@ type ComputableFlowNode = {
 type ClientFlowNode = {
   id: string;
   kind: 'client';
-  variant: 'mobile' | 'desktop';
+  variant: 'mobile' | 'web' | 'desktop';
   position: { x: number; y: number };
   // sem replicas, sem cacheHitRate — não é computável (FR-006)
 };

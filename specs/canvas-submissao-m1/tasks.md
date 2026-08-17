@@ -110,12 +110,12 @@ que o resultado reflete a topologia (mudar réplicas muda a capacidade exibida n
       badge de status/gargalo vindo de `data.result` quando existir — destaque vermelho quando
       `data.result.isBottleneck`, FR-009)
 - [ ] T022 [P] [US1] Criar `apps/web/src/components/canvas/nodes/client-node.tsx` — nó customizado
-      para o Cliente (variantes mobile/desktop), sem badge de status nem configuração (FR-006)
+      para o Cliente (variantes mobile/web/desktop), sem badge de status nem configuração (FR-006)
 - [ ] T023 [P] [US1] Criar `apps/web/src/components/canvas/edges/typed-edge.tsx` — aresta
       customizada por `EdgeKind` (cor/traço distinto para leitura/escrita/assíncrona/replicação),
       marcador de seta (`MarkerType.ArrowClosed`)
 - [ ] T024 [P] [US1] Criar `apps/web/src/components/canvas/palette.tsx` — lista os 11
-      `ComponentType` + Cliente (mobile/desktop); `onDragStart` marca o tipo arrastado via
+      `ComponentType` + Cliente (mobile/web/desktop); `onDragStart` marca o tipo arrastado via
       `event.dataTransfer.setData` (research.md §2)
 - [ ] T025 [US1] Criar `apps/web/src/components/canvas/canvas.tsx` — Client Component: `<ReactFlow>`
       ligado à store (T016) via `useStore`, `nodeTypes`/`edgeTypes` (T021-T023), `onDragOver`/

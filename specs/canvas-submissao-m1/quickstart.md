@@ -22,7 +22,7 @@ Abrir `http://localhost:3000/entrar`, logar (email/senha ou Google — M0.5), se
 ## Verificar o loop principal (US1)
 
 1. A tela mostra o enunciado do problema (FR-012) antes do canvas.
-2. Arrastar um nó "Cliente" (mobile ou desktop) da paleta para o canvas.
+2. Arrastar um nó "Cliente" (mobile, web ou desktop) da paleta para o canvas.
 3. Arrastar um "API Gateway" e um "App Server"; conectar Cliente → API Gateway → App Server.
 4. Selecionar o App Server, abrir o painel de configuração, ajustar réplicas.
 5. Clicar "submeter" — confirmar que o resultado mostra utilização, latência do caminho, custo, e

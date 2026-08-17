@@ -32,7 +32,7 @@
 
 ## Notes
 
-- Resolvido em `/speckit-clarify` (sessão 2026-08-17): FR-006 (nó Cliente mobile/desktop,
+- Resolvido em `/speckit-clarify` (sessão 2026-08-17): FR-006 (nó Cliente mobile/web/desktop,
   não-computável, define `entryNodeIds` por conexão direta), FR-007 (carga fixada pelo problema, sem
   controle manual neste marco), FR-013 (critério de saída de M1 reformulado em
   `docs/product-context.md` §10 para falar do resultado técnico, não de "nota").
