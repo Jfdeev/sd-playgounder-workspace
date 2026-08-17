@@ -13,8 +13,8 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain — 3 marcadores em aberto (FR-006, FR-007, FR-013),
-      dentro do limite de 3; resolver via `/speckit-clarify`.
+- [x] No [NEEDS CLARIFICATION] markers remain — os 3 marcadores (FR-006, FR-007, FR-013) foram
+      resolvidos em `/speckit-clarify` (sessão 2026-08-17, ver seção Clarifications do spec.md).
 - [x] Requirements are testable and unambiguous (exceto os 3 marcadores pendentes)
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -32,9 +32,8 @@
 
 ## Notes
 
-- Os 3 marcadores [NEEDS CLARIFICATION] (FR-006 — designação de nó de entrada; FR-007 — controle de
-  carga de trabalho; FR-013 — tensão entre "nota" do critério de saída e scores placeholder) são
-  decisões genuínas de produto, sem default razoável, identificadas por investigação prévia do
-  código do engine (`packages/engine/src/types.ts`, `src/index.ts`) antes de escrever esta spec —
-  não repetir a investigação, só resolver com o autor via `/speckit-clarify`.
-- Item pendente bloqueia `/speckit-plan` até `/speckit-clarify` resolver os 3 marcadores.
+- Resolvido em `/speckit-clarify` (sessão 2026-08-17): FR-006 (nó Cliente mobile/desktop,
+  não-computável, define `entryNodeIds` por conexão direta), FR-007 (carga fixada pelo problema, sem
+  controle manual neste marco), FR-013 (critério de saída de M1 reformulado em
+  `docs/product-context.md` §10 para falar do resultado técnico, não de "nota").
+- Spec promovida para `Ready` — liberada para `/speckit-plan`.

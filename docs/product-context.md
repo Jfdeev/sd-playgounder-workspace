@@ -190,7 +190,9 @@ o resultado do engine · gargalo destacado em vermelho · undo/redo · autosave 
 export PNG (P1). Minimapa, agrupamento por região (P2).
 
 **Critério de saída de M1:** uma pessoa que nunca viu o produto resolve o problema
-do encurtador do zero, sem ajuda, e entende por que a nota foi aquela.
+do encurtador do zero, sem ajuda, e entende por que o resultado foi aquele (gargalo,
+latência, custo, violações estruturais — score por dimensão é escopo de M2; decisão
+do autor, 2026-08-17, `specs/canvas-submissao-m1/spec.md`).
 
 ### M2 — Avaliação e biblioteca
 Rubrica por problema · narrador LLM explicando o resultado do engine (nunca gerando
