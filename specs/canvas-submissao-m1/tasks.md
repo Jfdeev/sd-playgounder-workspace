@@ -168,13 +168,19 @@ cada uma; refazer restaura; uma edição nova após um undo descarta o redo pend
 **Independent Test**: montar design parcial → fechar/reabrir a aba no mesmo navegador → design
 restaurado idêntico; problema nunca aberto neste navegador → canvas vazio.
 
-- [ ] T032 [US3] Adicionar middleware `persist` (`zustand/middleware`) a `canvas-store.ts` (T016) —
-      persiste só `nodes`/`edges` (não `selectedNodeId`/`lastResult`/histórico de undo), chave
-      derivada de `problemId` (FR-011); `storage` com fallback silencioso se `localStorage`
-      indisponível/cheio (try/catch — Edge Case do spec: o canvas continua funcionando nessa
-      sessão, só sem persistência entre sessões)
-- [ ] T033 [US3] Hidratar a store a partir do `localStorage` ao montar
-      `apps/web/src/components/canvas/canvas.tsx` para o `problemId` da rota atual
+- [X] T032 [US3] Adicionar middleware `persist` (`zustand/middleware`) a `canvas-store.ts` (T016) —
+      persiste só `nodes`/`edges` (não `selectedNodeId`/`lastResult`/histórico de undo); chave
+      literal `sdp-canvas-url-shortener` (FR-011 pede "derivada de problemId" — como M1 só tem 1
+      problema, a chave já É essa derivação, sem precisar virar store-factory ainda; comentário no
+      arquivo aponta revisitar em M4); `storage` com fallback silencioso se `localStorage`
+      indisponível/cheio (try/catch — Edge Case do spec). Achado durante a implementação: o TS não
+      infere o tipo persistido de `persist` quando composto com `temporal`/`immer` — resolvido
+      tipando `persistOptions` explicitamente como `PersistOptions<CanvasState,
+      PersistedCanvasState>` em vez de especificar os 4 parâmetros de `persist<...>` (o que apagaria
+      a inferência de `useCanvasStore.temporal`)
+- [X] T033 [US3] Hidratar a store a partir do `localStorage` — automático pelo próprio middleware
+      `persist` do Zustand ao montar (sem `skipHydration`); nenhum código adicional necessário em
+      `canvas.tsx`
 
 **Checkpoint**: quickstart.md "Verificar autosave (US3)" passa de ponta a ponta.
 
