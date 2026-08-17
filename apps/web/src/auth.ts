@@ -16,17 +16,6 @@ const baseAdapter = DrizzleAdapter(db, {
   verificationTokensTable: verificationTokens,
 });
 
-// `const` nomeada (não inline) — reaproveitada dentro do callback `signIn` para vínculo manual de
-// conta (research.md §2, contracts/auth-api.md). Precisa ser a mesma instância passada abaixo.
-//
-// linkAccount é interceptado para NUNCA persistir os tokens OAuth (access_token, refresh_token,
-// id_token, scope, session_state, expires_at) — este produto usa o Google só para autenticar
-// (confirmar identidade/email), nunca para chamar API do Google depois do login. Guardar um
-// segredo que o app nunca lê é superfície de ataque sem nenhum benefício funcional (minimização
-// de dados) — um vazamento do banco não deve incluir credenciais utilizáveis de terceiros.
-// Ponto único: cobre tanto a chamada manual abaixo (vínculo FR-013) quanto o linkAccount que o
-// próprio core do Auth.js chama automaticamente no 1º login Google (fluxo "create" padrão) —
-// nenhum dos dois caminhos precisa ser confiável individualmente pra essa garantia valer.
 const adapter = {
   ...baseAdapter,
   linkAccount: (account: Parameters<NonNullable<typeof baseAdapter.linkAccount>>[0]) =>
@@ -38,14 +27,10 @@ const adapter = {
     }),
 };
 
-// Mensagem única para todas as causas de falha de login (senha errada, email inexistente, conta
-// bloqueada) — nunca revela qual delas ocorreu (FR-010/SC-003, mitigação de user enumeration).
 const GENERIC_LOGIN_ERROR = 'Email ou senha inválidos.';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter,
-  // Exigido pelo Credentials provider — Auth.js lança `UnsupportedStrategy` sem isto
-  // (research.md §1). Sessão de 30 dias renovável a cada acesso (FR-006).
   session: {
     strategy: 'jwt',
     maxAge: 60 * 60 * 24 * 30,
@@ -53,15 +38,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   providers: [
     Google({
-      // clientId/clientSecret explícitos: sem eles, o Auth.js v5 procura AUTH_GOOGLE_ID/
-      // AUTH_GOOGLE_SECRET por convenção (não GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET, que é o
-      // nome documentado em .env.example) — causava "invalid_client" com as env vars vazias.
-      // Non-null assertion: ausência já é reportada de forma clara pelo próprio Google (erro
-      // invalid_client) ou pelo Auth.js — não precisa de checagem redundante aqui.
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      // allowDangerousEmailAccountLinking NÃO é usado — vínculo é feito manualmente e com
-      // segurança dentro do callback signIn abaixo (research.md §2).
     }),
     Credentials({
       credentials: {
@@ -74,8 +52,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!email || !password) return null;
 
         const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
-        // Email inexistente: segue o mesmo caminho de falha genérica abaixo (não revela
-        // existência do email, FR-010) — não retorna cedo com uma causa diferenciável.
+
         if (!user || !user.passwordHash) return null;
 
         const now = new Date();
@@ -84,7 +61,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           now,
         );
         if (!attemptCheck.allowed) {
-          // Bloqueado: nega sem sequer checar a senha (evita vazar se a senha estaria certa).
           return null;
         }
 
@@ -143,11 +119,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       if (decision.action === 'link' && existing) {
-        // Guarda contra 2º+ login: se esta linha (provider, providerAccountId) já existe — de um
-        // login Google anterior já vinculado — NÃO tenta inserir de novo (accounts tem PK
-        // composta nesses dois campos; um insert duplicado violaria a constraint e o signIn
-        // inteiro falharia com AccessDenied a cada login subsequente). getUserByAccount do core
-        // encontra esta linha e segue seu fluxo normal sem precisar de nenhuma ação daqui.
         const [alreadyLinked] = await db
           .select({ userId: accounts.userId })
           .from(accounts)
@@ -163,10 +134,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return true;
         }
 
-        // Vínculo manual (1ª vez): getUserByAccount do core encontra esta linha recém-criada e
-        // nunca chega à branch de colisão por email — allowDangerousEmailAccountLinking nunca é
-        // usado. Só os campos de identidade — o wrapper de `adapter.linkAccount` (acima) já
-        // garante que nenhum token OAuth é persistido, então não há por que montá-los aqui.
         await adapter.linkAccount?.({
           userId: existing.id,
           type: 'oauth',
@@ -175,7 +142,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
       }
 
-      // "create": nenhuma ação — o fluxo padrão do Auth.js cria o usuário normalmente.
       return true;
     },
   },
