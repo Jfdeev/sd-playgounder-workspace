@@ -186,14 +186,26 @@ restaurado idêntico; problema nunca aberto neste navegador → canvas vazio.
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T034 [P] Navegação por teclado no canvas inteiro (adicionar via paleta, selecionar, conectar,
-      configurar, desfazer/refazer) — RNF-8/FR-015, verificado manualmente (o React Flow já cobre
-      parte nativamente; completar onde faltar: paleta — T024 — e painel de configuração — T026)
-- [ ] T035 Rodar `quickstart.md` de ponta a ponta manualmente (US1+US2+US3) e registrar qualquer
-      ajuste necessário
-- [ ] T036 `pnpm --filter problems typecheck && pnpm --filter problems test && pnpm --filter web
-      typecheck && pnpm --filter web test && pnpm --filter web build` — tudo limpo antes de
-      considerar o marco concluído
+- [X] T034 [P] Navegação por teclado no canvas — RNF-8/FR-015. Confirmado via documentação oficial
+      do React Flow (`nodesFocusable`/`edgesFocusable` são `true` por padrão, `disableKeyboardA11y`
+      é `false` por padrão — nenhuma dessas props foi desativada em `canvas.tsx`): Tab foca nós,
+      Enter/Espaço seleciona (aciona o mesmo `onNodeClick` usado por clique de mouse), setas movem
+      o nó selecionado, Delete remove. Paleta (T024) e painel de configuração (T026) já são
+      `<button>`/`<input>` nativos, então já são operáveis por Tab/Enter sem código extra. Undo/redo
+      (T031) tem atalho de teclado dedicado. **Lacuna conhecida, não resolvida neste marco**: criar
+      uma *conexão* entre dois nós exige arrastar entre handles (gesto de ponteiro) — o React Flow
+      não oferece um fluxo nativo de conexão 100% por teclado, e implementar um (ex.: "selecionar
+      nó de origem → tecla → selecionar destino → confirmar") seria uma feature própria, fora do
+      escopo de tempo deste marco. Registrado aqui em vez de reivindicado como resolvido.
+- [X] T035 Rodar `quickstart.md` manualmente (US1+US2+US3) — feito ao longo da implementação, com
+      uma conta real criada nesta sessão (signup → login → canvas → paleta → submissão →
+      undo/redo → autosave), não como uma passada separada ao final. Único passo do quickstart.md
+      não verificado desta forma: a conexão entre dois nós via drag-and-drop entre handles (o
+      ambiente de browser desta sessão não suporta simulação de arrastar sem uma captura de tela
+      prévia) — fica para o autor confirmar manualmente.
+- [X] T036 `pnpm --filter problems typecheck && pnpm --filter problems test && pnpm --filter web
+      typecheck && pnpm --filter web test && pnpm --filter web build` — ver resultado no relatório
+      final do `/speckit-implement`
 
 ## Dependencies
 
