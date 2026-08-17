@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-17
 
-**Status**: Draft
+**Status**: Ready
 
 **Input**: User description: "M1 — Canvas e submissão (P0 do produto), conforme
 `docs/product-context.md` §10: paleta com os componentes de M0 · arrastar, conectar, configurar ·
@@ -12,6 +12,25 @@ arestas tipadas (leitura/escrita/async/replicação) · painel de configuração
 o resultado do engine · gargalo destacado em vermelho · undo/redo · autosave local · 1 problema
 completo (encurtador de URL). Critério de saída: uma pessoa que nunca viu o produto resolve o
 problema do encurtador do zero, sem ajuda, e entende por que a nota foi aquela."
+
+## Clarifications
+
+### Session 2026-08-17
+
+- Q: Como o(s) nó(s) de entrada de carga (`Design.entryNodeIds`) são designados pelo usuário no
+  canvas? → A: a entrada pode ser múltipla — a paleta ganha uma categoria "Cliente", com variantes
+  visuais mobile e desktop, puramente semântica (não é um `ComponentType` do engine, não tem specs
+  nem é enviada em `Design.nodes`). O usuário arrasta um ou mais nós Cliente e conecta cada um a um
+  ou mais componentes reais; todo componente real diretamente conectado a um nó Cliente vira um
+  `entryNodeId` daquela submissão (FR-006, revisado).
+- Q: Como o usuário controla a carga de trabalho (`Workload`: rps, leitura/escrita, payload, pico)
+  usada na simulação? → A: fixada pelo problema — a escala descrita no enunciado do encurtador de URL
+  determina o `Workload` usado; sem controle manual do usuário neste marco (FR-007, revisado).
+- Q: O critério de saída de M1 (`docs/product-context.md` §10) diz "entende por que a nota foi
+  aquela", mas o score por dimensão só existe a partir de M2 (`SimulationResult.scores` é placeholder
+  zerado). Como resolver? → A: reformular o critério de saída para falar do resultado técnico
+  (gargalo/latência/custo/violações) em vez de "nota" — `docs/product-context.md` §10 atualizado na
+  mesma sessão (FR-013, revisado).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -52,17 +71,22 @@ capacidade exibida daquele nó no resultado seguinte).
 4. **Given** um nó selecionado, **When** o usuário abre o painel de configuração daquele nó,
    **Then** vê e pode editar o número de réplicas (e, se o nó for um cache, a taxa de acerto
    esperada) — nenhum outro campo de configuração é exibido neste marco.
-5. **Given** um design com pelo menos um nó de entrada alcançável, **When** o usuário aciona
-   "submeter", **Then** vê o resultado do engine: utilização e status (saudável/atenção/saturado) de
-   cada nó, o caminho crítico com latência p50/p95/p99, o throughput real, o custo mensal (por nó e
-   total), e qualquer violação estrutural com a mensagem gerada pelo engine.
-6. **Given** um resultado com um nó identificado como gargalo, **When** o usuário olha o canvas,
+5. **Given** o canvas, **When** o usuário arrasta um nó "Cliente" (mobile ou desktop) da paleta e o
+   conecta a um ou mais componentes reais, **Then** cada componente diretamente conectado a esse
+   Cliente passa a ser um ponto de entrada de carga na submissão seguinte — o nó Cliente em si não é
+   configurável e não aparece no resultado do engine (é puramente visual/semântico).
+6. **Given** um design com pelo menos um nó Cliente conectado a um componente real, **When** o
+   usuário aciona "submeter", **Then** vê o resultado do engine: utilização e status
+   (saudável/atenção/saturado) de cada nó, o caminho crítico com latência p50/p95/p99, o throughput
+   real, o custo mensal (por nó e total), e qualquer violação estrutural com a mensagem gerada pelo
+   engine.
+7. **Given** um resultado com um nó identificado como gargalo, **When** o usuário olha o canvas,
    **Then** aquele nó está destacado visualmente em vermelho, sem precisar abrir um painel separado
    para descobrir qual é.
-7. **Given** um design com um problema estrutural (ex.: nó sem redundância marcado como ponto único
-   de falha, nó inalcançável a partir da entrada, ou um ciclo), **When** o usuário submete, **Then**
-   o sistema nunca trava nem mostra um erro técnico cru — mostra a violação com uma mensagem legível,
-   no mesmo resultado.
+8. **Given** um design com um problema estrutural (ex.: nó sem redundância marcado como ponto único
+   de falha, nó inalcançável a partir de qualquer Cliente, ou um ciclo), **When** o usuário submete,
+   **Then** o sistema nunca trava nem mostra um erro técnico cru — mostra a violação com uma mensagem
+   legível, no mesmo resultado.
 
 ---
 
@@ -136,6 +160,12 @@ e confirmar que o design reaparece exatamente como estava.
   o mesmo par de nós no mesmo sentido? MUST impedir a ação diretamente no canvas (auto-conexão) ou
   MUST deixar o engine sinalizar como ciclo/estrutura inválida quando aplicável (conexão duplicada não
   é, por si, uma violação do engine — apenas redundante).
+- O que acontece se um nó Cliente não estiver conectado a nenhum componente real? MUST ser ignorado
+  silenciosamente na submissão (nenhum efeito, nenhuma violação) — um Cliente solto não é uma entrada.
+- O que acontece se um componente real não estiver alcançável a partir de nenhum nó Cliente (nem
+  direta, nem indiretamente por outros componentes)? É coberto pela violação já existente do engine
+  para nó órfão (`orphan-node`) — nenhuma regra nova é necessária além de FR-006 definir corretamente
+  quais nós entram em `entryNodeIds`.
 
 ## Requirements *(mandatory)*
 
@@ -144,9 +174,10 @@ e confirmar que o design reaparece exatamente como estava.
 - **FR-001**: O sistema MUST exibir uma paleta com exatamente os componentes já suportados pelo
   engine (`packages/engine`, M0): load balancer, API gateway, app server, worker, cache, SQL
   primary, SQL replica, NoSQL key-value, fila, object storage e CDN — nenhum outro tipo de
-  componente é oferecido neste marco, mesmo que `docs/foundational-doc.md` §1.1 descreva uma paleta
-  maior (decisão de escopo: `docs/product-context.md` §10 diz "paleta com os componentes de M0", e
-  produt-context vence em caso de conflito).
+  componente computável é oferecido neste marco, mesmo que `docs/foundational-doc.md` §1.1 descreva
+  uma paleta maior (decisão de escopo: `docs/product-context.md` §10 diz "paleta com os componentes
+  de M0", e product-context vence em caso de conflito). A única exceção é o nó Cliente de FR-006 —
+  não é um componente computável do engine, é um marcador visual de origem de carga.
 - **FR-002**: O sistema MUST permitir arrastar um componente da paleta para o canvas, criando um nó
   daquele tipo com valores padrão de configuração.
 - **FR-003**: O sistema MUST permitir conectar dois nós do canvas com uma aresta direcionada,
@@ -160,15 +191,17 @@ e confirmar que o design reaparece exatamente como estava.
   (só para nós do tipo cache) — outros knobs descritos em `docs/foundational-doc.md` §1.2 (política
   de eviction, TTL, sharding, algoritmo de load balancer, etc.) não afetam o resultado da simulação
   neste marco e não são expostos, para não sugerir um controle que não existe.
-- **FR-006**: O sistema MUST permitir designar qual(is) nó(s) do canvas são pontos de entrada de
-  carga externa. [NEEDS CLARIFICATION: mecanismo de designação do(s) nó(s) de entrada — implícito
-  (todo nó sem aresta de entrada é considerado entrada), marcação explícita num nó existente, ou um
-  nó fixo "Cliente" sempre presente como origem de todo design?]
-- **FR-007**: O sistema MUST permitir ao usuário controlar a carga de trabalho usada na simulação
-  (requisições por segundo, e demais parâmetros de carga que o engine consome).
-  [NEEDS CLARIFICATION: a carga é fixada pelo enunciado do problema (escala descrita no problema do
-  encurtador de URL) sem controle manual do usuário neste marco, ou o usuário manipula a carga
-  ativamente (ex.: um slider de RPS) e vê o resultado mudar em tempo real?]
+- **FR-006**: O sistema MUST oferecer, na paleta, uma categoria "Cliente" com duas variantes visuais
+  — mobile e desktop — que o usuário pode arrastar para o canvas livremente, em qualquer quantidade.
+  Um nó Cliente não é um componente computável (não tem specs de capacidade/latência/custo, não é
+  configurável, não entra em `Design.nodes` na submissão ao engine). Todo componente real conectado
+  diretamente a um ou mais nós Cliente MUST ser incluído em `entryNodeIds` na submissão — permitindo
+  múltiplos pontos de entrada (ex.: um Cliente mobile e um Cliente desktop entrando por API Gateways
+  diferentes).
+- **FR-007**: A carga de trabalho usada na simulação (requisições por segundo, proporção de
+  leitura/escrita, tamanho de payload, multiplicador de pico) MUST ser determinada pela escala
+  descrita no enunciado do problema (FR-012) — o sistema MUST NOT oferecer controle manual da carga
+  de trabalho ao usuário neste marco.
 - **FR-008**: O sistema MUST calcular o resultado da submissão usando exclusivamente o engine
   determinístico (`packages/engine`) — nunca uma estimativa aproximada ou gerada por LLM — e MUST
   exibir, no mínimo: utilização e status de cada nó, caminho crítico com latência p50/p95/p99,
@@ -189,14 +222,9 @@ e confirmar que o design reaparece exatamente como estava.
   solução de referência — são escopo de M2, não deste marco).
 - **FR-013**: O resultado exibido após a submissão MUST se limitar ao que o engine de fato calcula
   neste marco (utilização, gargalo, latência, custo, violações) e MUST NOT apresentar uma nota ou
-  pontuação, já que o cálculo de score por dimensão só existe a partir de M2.
-  [NEEDS CLARIFICATION: o critério de saída do marco, em `docs/product-context.md` §10, diz que a
-  pessoa "entende por que a nota foi aquela" — mas `SimulationResult.scores` é um placeholder (todas
-  as 7 dimensões zeradas) até M2. Como a tela de resultado deste marco deve comunicar "por que o
-  resultado foi aquele" sem uma nota real: reformular o critério de saída para falar do resultado
-  técnico (gargalo/latência/custo/violações), ou incluir algum tipo de veredito qualitativo simples
-  neste marco (ex.: "passa"/"não passa" conforme violações, sem número) como um substituto provisório
-  da nota?]
+  pontuação — nem mesmo um veredito provisório do tipo "passa"/"não passa" — já que o cálculo de
+  score por dimensão só existe a partir de M2 (decisão do autor, 2026-08-17: o critério de saída do
+  marco em `docs/product-context.md` §10 foi reformulado para não mencionar "nota").
 - **FR-014**: O sistema MUST impedir que o usuário digite um número de réplicas inválido (não é
   possível confirmar um valor menor que 1, ou não-numérico) diretamente no campo de configuração.
 - **FR-015**: O sistema MUST permitir navegar e operar o canvas inteiramente por teclado (adicionar,
@@ -208,10 +236,11 @@ e confirmar que o design reaparece exatamente como estava.
 
 ### Key Entities
 
-- **Design (Canvas)**: o grafo montado pelo usuário — nós (cada um com tipo, réplicas e, se
-  aplicável, taxa de acerto de cache), arestas tipadas e com peso, e o(s) nó(s) de entrada
-  (mecanismo definido pela clarificação de FR-006). Estrutura editável, com histórico de undo/redo
-  (US2) e persistência local automática (US3, FR-011) — sem persistência em servidor neste marco.
+- **Design (Canvas)**: o grafo montado pelo usuário — nós computáveis (cada um com tipo, réplicas e,
+  se aplicável, taxa de acerto de cache), arestas tipadas e com peso, e um ou mais nós Cliente
+  (mobile/desktop) que determinam os pontos de entrada (FR-006) sem entrar no cálculo do engine.
+  Estrutura editável, com histórico de undo/redo (US2) e persistência local automática (US3,
+  FR-011) — sem persistência em servidor neste marco.
 - **Problema (Encurtador de URL)**: o único problema completo deste marco — enunciado, requisitos
   funcionais e não-funcionais, e escala esperada (FR-012). Vive como dado versionado em
   `packages/problems` (ainda não criado), não hardcoded na UI.
