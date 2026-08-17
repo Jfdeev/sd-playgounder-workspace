@@ -68,7 +68,10 @@ export const useCanvasStore = create<CanvasState>()(
 
     onConnect: (connection) =>
       set((state) => {
-        state.edges = addEdge({ ...connection, data: DEFAULT_NEW_EDGE_DATA }, state.edges) as CanvasEdge[];
+        state.edges = addEdge(
+          { ...connection, type: 'typed', data: DEFAULT_NEW_EDGE_DATA },
+          state.edges,
+        ) as CanvasEdge[];
       }),
 
     addNode: (node) =>

@@ -5,9 +5,12 @@
  * (DesignNode/DesignEdge). Ver specs/canvas-submissao-m1/data-model.md.
  */
 
-import type { ComponentType, EdgeKind } from '@sdp/engine';
+import type { ComponentType, EdgeKind, NodeStatus } from '@sdp/engine';
 
 export type ClientVariant = 'mobile' | 'web' | 'desktop';
+
+/** Resumo do resultado do engine para este nó, anexado após uma submissão (FR-008/FR-009) — metadado de UI, nunca lido pelo mapper (`canvas-to-design.ts`). */
+export type NodeResultSummary = { status: NodeStatus; isBottleneck: boolean };
 
 export type ComputableFlowNode = {
   id: string;
@@ -17,6 +20,8 @@ export type ComputableFlowNode = {
   replicas: number;
   /** Só relevante quando componentType === 'cache'. */
   cacheHitRate?: number;
+  /** Preenchido após submeter (T028); ausente antes da primeira submissão. */
+  result?: NodeResultSummary;
 };
 
 export type ClientFlowNode = {

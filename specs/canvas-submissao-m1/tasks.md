@@ -93,49 +93,49 @@ resultado do engine com o gargalo destacado — sem ajuda externa (spec.md, crit
 montar Cliente → API Gateway → App Server, configurar réplicas do App Server, submeter, e confirmar
 que o resultado reflete a topologia (mudar réplicas muda a capacidade exibida na submissão seguinte).
 
-- [ ] T017 [US1] Criar `apps/web/src/app/app/[problemId]/page.tsx` — Server Component: `auth()`
+- [X] T017 [US1] Criar `apps/web/src/app/app/[problemId]/page.tsx` — Server Component: `auth()`
       (redirect para `/entrar` se sem sessão, mesmo padrão do placeholder de M0.5),
       `getProblem(problemId)` de `@sdp/problems` (`notFound()` do Next se `undefined`), renderiza
       `<ProblemBrief problem={problem} />` (T020) + `<Canvas problem={problem} />` (T025, Client
       Component)
-- [ ] T018 [US1] Reescrever `apps/web/src/app/app/page.tsx` — Server Component que faz
+- [X] T018 [US1] Reescrever `apps/web/src/app/app/page.tsx` — Server Component que faz
       `redirect(`/app/${ALL_PROBLEM_IDS[0]}`)` (1 problema neste marco; remove o placeholder "Você
       está dentro do..." de M0.5, que cumpriu seu propósito)
-- [ ] T019 [P] [US1] Criar `apps/web/src/app/app/layout.tsx` — header mínimo com o email da sessão
+- [X] T019 [P] [US1] Criar `apps/web/src/app/app/layout.tsx` — header mínimo com o email da sessão
       + `<SignOutButton />` (reaproveita `apps/web/src/app/app/_sign-out-button.tsx`, já existente
       de M0.5, movido de `page.tsx` para o layout)
-- [ ] T020 [P] [US1] Criar `apps/web/src/components/canvas/problem-brief.tsx` — enunciado,
+- [X] T020 [P] [US1] Criar `apps/web/src/components/canvas/problem-brief.tsx` — enunciado,
       requisitos funcionais, requisitos não-funcionais e escala do `Problem` (FR-012), exibido
       antes/acima do canvas
-- [ ] T021 [P] [US1] Criar `apps/web/src/components/canvas/nodes/component-node.tsx` — nó
+- [X] T021 [P] [US1] Criar `apps/web/src/components/canvas/nodes/component-node.tsx` — nó
       customizado do React Flow parametrizado por `ComponentType` (ícone lucide-react + nome +
       badge de status/gargalo vindo de `data.result` quando existir — destaque vermelho quando
       `data.result.isBottleneck`, FR-009)
-- [ ] T022 [P] [US1] Criar `apps/web/src/components/canvas/nodes/client-node.tsx` — nó customizado
+- [X] T022 [P] [US1] Criar `apps/web/src/components/canvas/nodes/client-node.tsx` — nó customizado
       para o Cliente (variantes mobile/web/desktop), sem badge de status nem configuração (FR-006)
-- [ ] T023 [P] [US1] Criar `apps/web/src/components/canvas/edges/typed-edge.tsx` — aresta
+- [X] T023 [P] [US1] Criar `apps/web/src/components/canvas/edges/typed-edge.tsx` — aresta
       customizada por `EdgeKind` (cor/traço distinto para leitura/escrita/assíncrona/replicação),
       marcador de seta (`MarkerType.ArrowClosed`)
-- [ ] T024 [P] [US1] Criar `apps/web/src/components/canvas/palette.tsx` — lista os 11
+- [X] T024 [P] [US1] Criar `apps/web/src/components/canvas/palette.tsx` — lista os 11
       `ComponentType` + Cliente (mobile/web/desktop); `onDragStart` marca o tipo arrastado via
       `event.dataTransfer.setData` (research.md §2)
-- [ ] T025 [US1] Criar `apps/web/src/components/canvas/canvas.tsx` — Client Component: `<ReactFlow>`
+- [X] T025 [US1] Criar `apps/web/src/components/canvas/canvas.tsx` — Client Component: `<ReactFlow>`
       ligado à store (T016) via `useStore`, `nodeTypes`/`edgeTypes` (T021-T023), `onDragOver`/
       `onDrop` criando o nó via `screenToFlowPosition` (research.md §2), seleção de nó atualiza
       `selectedNodeId`
-- [ ] T026 [US1] Criar `apps/web/src/components/canvas/config-panel.tsx` — painel do nó
+- [X] T026 [US1] Criar `apps/web/src/components/canvas/config-panel.tsx` — painel do nó
       selecionado: campo de réplicas com validação de entrada (FR-014 — impede confirmar valor < 1
       ou não-numérico diretamente no campo) e, quando o nó for `cache`, campo de taxa de acerto;
       nada exibido quando o nó selecionado é um Cliente (FR-006)
-- [ ] T027 [US1] Criar `apps/web/src/components/canvas/result-panel.tsx` — renderiza
+- [X] T027 [US1] Criar `apps/web/src/components/canvas/result-panel.tsx` — renderiza
       `SimulationResult`: utilização/status por nó, latência p50/p95/p99 do caminho crítico,
       throughput, custo por nó e total, violações com a mensagem já produzida pelo engine;
       **explicitamente sem nenhum campo de nota/score/veredito** (FR-013)
-- [ ] T028 [US1] Adicionar submissão em `canvas.tsx`/`canvas-store.ts` — botão "submeter" chama
+- [X] T028 [US1] Adicionar submissão em `canvas.tsx`/`canvas-store.ts` — botão "submeter" chama
       `toDesign`/`toWorkload` (T013) e `simulate()` de `@sdp/engine`, guarda o `SimulationResult` em
       `lastResult` (T016) via `applySimulationResult`, propaga o status/gargalo por nó para
       `data.result` de cada `component-node` (T021), abre o `result-panel` (T027)
-- [ ] T029 [US1] Tratar submissão de canvas vazio em `canvas-store.ts`/`result-panel.tsx` —
+- [X] T029 [US1] Tratar submissão de canvas vazio em `canvas-store.ts`/`result-panel.tsx` —
       mensagem clara ("adicione componentes antes de submeter") em vez de chamar o engine com um
       `Design` vazio sem feedback (Edge Case do spec)
 
