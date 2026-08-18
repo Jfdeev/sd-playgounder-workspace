@@ -236,6 +236,22 @@ e confirmar que o design reaparece exatamente como estava.
 - **FR-016**: O sistema MUST NUNCA travar nem mostrar um erro técnico cru para nenhuma entrada de
   design malformada (canvas vazio, sem entrada alcançável, com ciclo) — sempre um resultado com
   mensagem legível, consistente com a garantia do engine de nunca lançar exceção (FR-019 de M0).
+- **FR-017** *(adicionado pós-Ready, feedback direto do autor)*: O sistema MUST recusar, no próprio
+  gesto de conectar, uma aresta entre dois tipos de componente cuja combinação não faz sentido
+  arquitetural (ex.: Load Balancer → SQL Primary) — o engine roda sem erro nesse caso (FR-016/FR-019
+  de M0) mas produz um resultado plausível e errado. A regra é puramente de UX (`apps/web`,
+  `packages/engine` não muda) e vive em `connection-rules.ts`: cada tipo de componente só alcança um
+  conjunto fixo de tipos de destino, derivado do papel de cada componente em system design e do
+  comportamento real do engine (ex.: Cache só conecta a um banco, porque é isso que dá sentido à
+  redução por taxa de acerto no caminho — `packages/engine/src/graph/propagate.ts`). O painel de
+  configuração do nó selecionado MUST mostrar a quais tipos ele pode se conectar.
+- **FR-018** *(adicionado pós-Ready, feedback direto do autor)*: O sistema MUST exibir, para cada
+  componente da paleta e para cada nó já colocado no canvas, uma explicação textual do que aquele
+  componente faz — visível ao passar o mouse na paleta, ao passar o mouse no nó, e por completo no
+  painel de configuração ao selecionar o nó (o único dos três caminhos garantidamente acessível por
+  teclado). Não introduz nenhum controle novo que o engine não lê (mantém FR-005) — quando a
+  explicação menciona um conceito não modelado nesta versão (ex.: algoritmo de Load Balancer), o
+  texto MUST deixar isso explícito, para nunca sugerir um comportamento que a simulação não aplica.
 
 ### Key Entities
 

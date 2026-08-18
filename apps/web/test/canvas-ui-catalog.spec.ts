@@ -30,11 +30,12 @@ describe('canvas-ui-catalog', () => {
   const ALL_EDGE_KINDS = ['read', 'write', 'async', 'replication'] as const;
   const ALL_NODE_STATUSES = ['healthy', 'warning', 'saturated'] as const;
 
-  it('COMPONENT_UI tem uma entrada com label e icon para cada um dos 11 ComponentType', () => {
+  it('COMPONENT_UI tem uma entrada com label, icon e description para cada um dos 11 ComponentType', () => {
     expect(Object.keys(COMPONENT_UI).sort()).toEqual([...ALL_COMPONENT_TYPES].sort());
     for (const type of ALL_COMPONENT_TYPES) {
       expect(COMPONENT_UI[type].label).toBeTruthy();
       expect(COMPONENT_UI[type].icon).toBeDefined();
+      expect(COMPONENT_UI[type].description.length).toBeGreaterThan(20);
     }
   });
 
@@ -43,6 +44,7 @@ describe('canvas-ui-catalog', () => {
     for (const variant of ALL_CLIENT_VARIANTS) {
       expect(CLIENT_UI[variant].label).toBeTruthy();
       expect(CLIENT_UI[variant].icon).toBeDefined();
+      expect(CLIENT_UI[variant].description.length).toBeGreaterThan(20);
     }
   });
 

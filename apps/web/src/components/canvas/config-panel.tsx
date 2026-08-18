@@ -3,6 +3,7 @@
 import { useState, type ChangeEvent } from 'react';
 import { useCanvasStore } from '@/stores/canvas-store';
 import { COMPONENT_UI, CLIENT_UI } from '@/lib/canvas-ui-catalog';
+import { getAllowedTargets } from '@/lib/connection-rules';
 
 /**
  * Painel de configuração do nó selecionado (FR-005) — limitado aos campos que o engine
@@ -28,13 +29,12 @@ export function ConfigPanel() {
   }
 
   if (node.data.kind === 'client') {
+    const clientUi = CLIENT_UI[node.data.variant];
     return (
       <aside className="w-64 shrink-0 border-l border-zinc-800 bg-zinc-950 p-4">
-        <h2 className="mb-1 text-sm font-semibold text-zinc-200">{CLIENT_UI[node.data.variant].label}</h2>
-        <p className="text-xs text-zinc-500">
-          Nó de entrada — puramente visual, sem configuração. Todo componente conectado
-          diretamente a ele vira um ponto de entrada de carga na submissão.
-        </p>
+        <h2 className="mb-1 text-sm font-semibold text-zinc-200">{clientUi.label}</h2>
+        <p className="mb-3 text-xs text-zinc-500">{clientUi.description}</p>
+        <ConnectivityHint kind="client" />
       </aside>
     );
   }
@@ -59,9 +59,12 @@ export function ConfigPanel() {
     }
   }
 
+  const componentUi = COMPONENT_UI[node.data.componentType];
+
   return (
     <aside className="w-64 shrink-0 border-l border-zinc-800 bg-zinc-950 p-4">
-      <h2 className="mb-3 text-sm font-semibold text-zinc-200">{COMPONENT_UI[node.data.componentType].label}</h2>
+      <h2 className="mb-1 text-sm font-semibold text-zinc-200">{componentUi.label}</h2>
+      <p className="mb-3 text-xs text-zinc-500">{componentUi.description}</p>
 
       <label className="mb-1 block text-xs font-medium text-zinc-400" htmlFor="replicas-input">
         Réplicas
@@ -101,6 +104,27 @@ export function ConfigPanel() {
           />
         </>
       )}
+
+      <ConnectivityHint kind={node.data.componentType} />
     </aside>
+  );
+}
+
+/**
+ * Mostra pra que tipos de componente o nó selecionado pode se conectar (connection-rules.ts) —
+ * ajuda a entender por que uma tentativa de ligação foi recusada no canvas (`isValidConnection`),
+ * sem precisar adivinhar a regra.
+ */
+function ConnectivityHint({ kind }: { kind: Parameters<typeof getAllowedTargets>[0] }) {
+  const allowedTargets = getAllowedTargets(kind);
+
+  return (
+    <p className="mt-4 border-t border-zinc-800 pt-3 text-xs text-zinc-500">
+      {allowedTargets.length === 0 ? (
+        'Não inicia conexões — só recebe.'
+      ) : (
+        <>Conecta a: {allowedTargets.map((type) => COMPONENT_UI[type].label).join(', ')}.</>
+      )}
+    </p>
   );
 }
