@@ -1,7 +1,7 @@
 'use client';
 
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Info } from 'lucide-react';
 import { COMPONENT_UI, NODE_STATUS_UI } from '@/lib/canvas-ui-catalog';
 import type { CanvasNode } from '@/stores/canvas-store';
 
@@ -9,11 +9,15 @@ import type { CanvasNode } from '@/stores/canvas-store';
  * Nó customizado para os 11 `ComponentType` do engine — um único componente parametrizado pelo
  * tipo, em vez de 11 componentes quase idênticos (o layout visual é o mesmo, só ícone/nome/specs
  * mudam). O gargalo (FR-009) é destacado diretamente aqui via `data.result.isBottleneck`.
+ *
+ * Handles nas laterais (Left = entrada, Right = saída), não em cima/embaixo — o canvas lê como um
+ * diagrama de fluxo horizontal (Cliente à esquerda, dados/armazenamento à direita), consistente
+ * com a direção em que os componentes são normalmente desenhados em system design.
  */
 export function ComponentNode({ data, selected }: NodeProps<CanvasNode>) {
   if (data.kind !== 'component') return null;
 
-  const { label, icon: Icon } = COMPONENT_UI[data.componentType];
+  const { label, icon: Icon, description } = COMPONENT_UI[data.componentType];
   const statusUi = data.result ? NODE_STATUS_UI[data.result.status] : null;
   const isBottleneck = data.result?.isBottleneck ?? false;
 
@@ -27,7 +31,7 @@ export function ComponentNode({ data, selected }: NodeProps<CanvasNode>) {
             : (statusUi?.colorClass.split(' ')[0] ?? 'border-zinc-700')
       }`}
     >
-      <Handle type="target" position={Position.Top} className="!bg-zinc-500" />
+      <Handle type="target" position={Position.Left} className="!bg-zinc-500" />
       <div className="flex items-center gap-2">
         <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-violet-500/10 text-violet-400">
           <Icon className="size-4" aria-hidden />
@@ -41,6 +45,9 @@ export function ComponentNode({ data, selected }: NodeProps<CanvasNode>) {
               : ''}
           </p>
         </div>
+        <span title={description}>
+          <Info className="size-3.5 shrink-0 text-zinc-600" aria-hidden />
+        </span>
         {isBottleneck && <AlertTriangle className="size-4 shrink-0 text-red-400" aria-label="Gargalo" />}
       </div>
       {statusUi && (
@@ -48,7 +55,7 @@ export function ComponentNode({ data, selected }: NodeProps<CanvasNode>) {
           {statusUi.label}
         </span>
       )}
-      <Handle type="source" position={Position.Bottom} className="!bg-zinc-500" />
+      <Handle type="source" position={Position.Right} className="!bg-zinc-500" />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
   useReactFlow,
+  type IsValidConnection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Play, Redo2, Undo2 } from 'lucide-react';
@@ -14,7 +15,8 @@ import { simulate, type ComponentType } from '@sdp/engine';
 import type { Problem } from '@sdp/problems';
 import { toDesign, toWorkload } from '@/lib/canvas-to-design';
 import { toFlowEdge, toFlowNode, type ClientVariant } from '@/lib/canvas-types';
-import { useCanvasStore, type CanvasNode } from '@/stores/canvas-store';
+import { connectableKindOf, isValidCanvasConnection } from '@/lib/connection-rules';
+import { useCanvasStore, type CanvasEdge, type CanvasNode } from '@/stores/canvas-store';
 import { ClientNode } from './nodes/client-node';
 import { ComponentNode } from './nodes/component-node';
 import { TypedEdge } from './edges/typed-edge';
@@ -62,6 +64,20 @@ function CanvasInner({ problem }: { problem: Problem }) {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
   }, []);
+
+  // Impede no canvas as ligações que o engine roda sem erro mas não fazem sentido arquitetural
+  // (ex.: Load Balancer → SQL Primary) — regra pedagógica pura, vive em connection-rules.ts,
+  // nunca em packages/engine (que não tem noção de topologia "certa"). React Flow chama isto a
+  // cada tentativa de arrastar uma conexão; retornar false recusa antes de onConnect disparar.
+  const isValidConnection = useCallback<IsValidConnection<CanvasEdge>>(
+    (connection) => {
+      const sourceNode = nodes.find((n) => n.id === connection.source);
+      const targetNode = nodes.find((n) => n.id === connection.target);
+      if (!sourceNode || !targetNode) return false;
+      return isValidCanvasConnection(connectableKindOf(sourceNode.data), connectableKindOf(targetNode.data));
+    },
+    [nodes],
+  );
 
   // Drag-and-drop da paleta pro canvas (research.md §2) — o payload arrastado é "component:tipo"
   // ou "client:variante" (palette.tsx); screenToFlowPosition cuida de zoom/pan automaticamente.
@@ -119,6 +135,7 @@ function CanvasInner({ problem }: { problem: Problem }) {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            isValidConnection={isValidConnection}
             onNodeClick={(_, node) => selectNode(node.id)}
             onPaneClick={() => selectNode(null)}
             nodeTypes={nodeTypes}

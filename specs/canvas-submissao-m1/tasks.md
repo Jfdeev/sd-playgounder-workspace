@@ -235,6 +235,59 @@ restaurado idêntico; problema nunca aberto neste navegador → canvas vazio.
       Nota sobre duas versões de `zustand` no lockfile (v4 interna do `@xyflow/react` vs. v5 do
       projeto) documentada em research.md §3 — instâncias isoladas, sem risco confirmado.
 
+## Phase 9: Refinamento pós-Ready — conectividade e explicação por componente
+
+Feedback direto do autor após revisão visual do canvas em M1 já `Ready`: (1) handles dos nós no
+topo/embaixo liam mal — deveriam ficar nas laterais, como um fluxo horizontal; (2) cada card
+precisa explicar o que o componente faz; (3) o Load Balancer (e os demais) devem só se conectar a
+componentes com quem faz sentido arquitetural (ex.: LB só liga a servidores) — o engine roda sem
+erro num LB→SQL Primary (FR-019/nunca lança), mas produz um número plausível e errado, exatamente
+o tipo de bug silencioso que a Constitution VI existe pra evitar.
+
+- [X] T039 Handles de `component-node.tsx` e `client-node.tsx` movidos de `Position.Top`/`Position.Bottom`
+      pra `Position.Left`/`Position.Right` — o canvas agora lê como um fluxo horizontal
+      (Cliente à esquerda, dado/armazenamento à direita). `typed-edge.tsx` não precisou de mudança
+      (`sourcePosition`/`targetPosition` já vêm como props do React Flow, derivados do handle).
+      Confirmado ao vivo no browser: `.react-flow__handle-left`/`-right` no DOM real, nenhum
+      `-top`/`-bottom` restante.
+- [X] T040 Descrição pedagógica adicionada a cada um dos 11 `ComponentType` + 3 `ClientVariant` em
+      `apps/web/src/lib/canvas-ui-catalog.ts` (campo `description`) — grounded na doc do produto
+      (`docs/foundational-doc.md` §1.2, ex. estratégias de LB) e no comportamento real do engine
+      (ex. a explicação do Cache menciona que a taxa de acerto só reduz carga de quem vem depois
+      dele no mesmo caminho — `packages/engine/src/graph/propagate.ts`). Surfaced em 3 lugares que
+      reusam o mesmo dado (sem duplicar texto): tooltip nativo (`title`) na paleta, ícone
+      `Info`+tooltip no próprio nó, e texto completo no `ConfigPanel` ao selecionar o nó — o único
+      caminho totalmente acessível por teclado, já que tooltip nativo via `title` não é
+      confiavelmente alcançável por foco de teclado em todo browser. Confirmado ao vivo: o texto
+      aparece correto tanto no accessible name da paleta quanto no `ConfigPanel`.
+- [X] T041 Nova regra de conectividade pedagógica em `apps/web/src/lib/connection-rules.ts`
+      (`isValidCanvasConnection`/`getAllowedTargets`, função pura) — matriz "origem → destinos
+      permitidos" pros 11 `ComponentType` + Cliente, derivada de: (a) convenção padrão de system
+      design pro papel de cada componente, (b) o modelo real do engine (`propagateLoad` trata toda
+      aresta igual, só por peso — nunca por `kind` — então Cache precisa de aresta de saída pra um
+      banco pra que a redução por hit rate represente algo; SQL Replica/NoSQL/Object Storage nunca
+      iniciam conexão, são sempre folha), (c) o exemplo explícito do autor (Load Balancer só liga a
+      App Server/Worker). Fica inteiramente em `apps/web` — `packages/engine` não muda, a regra é
+      puramente de UX/pedagógica, nunca imposta pelo engine (FR-019 continua valendo: um design
+      "sem sentido" que já existia antes desta mudança continua rodando sem erro se alguém o criar
+      por outro caminho, ex. import futuro). Wired via a prop `isValidConnection` do `<ReactFlow>`
+      em `canvas.tsx` — React Flow só chama `onConnect` se `isValidConnection` retornar `true`.
+      13 testes novos em `apps/web/test/connection-rules.spec.ts` (100% de cobertura), cobrindo
+      cada regra citada acima mais duas propriedades de completude da matriz: todo `ComponentType`
+      é alcançável por pelo menos uma origem, e todo tipo não-folha origina pelo menos uma conexão
+      válida (nenhum componente fica "preso" sem uso possível no canvas).
+      **Gap de verificação conhecido** (mesmo padrão de T035/T037 de M1 original): o
+      aceitar/recusar de fato durante um gesto de arrastar não pôde ser confirmado ao vivo nesta
+      sessão — o Browser pane não estava sendo pintado (nós ficam com `visibility: hidden`
+      permanente porque o React Flow considera o viewport não inicializado sem compositing ativo),
+      então nem uma tentativa de conexão válida nem inválida disparou via simulação de eventos de
+      ponteiro. A lógica em si está 100% coberta por teste unitário e o wiring (`isValidConnection`
+      lendo `nodes` da store e chamando `isValidCanvasConnection`) foi revisado e compila limpo,
+      mas o comportamento fim-a-fim de arrastar-e-ser-recusado exige confirmação humana com um
+      navegador real antes de considerar este gap fechado.
+- [X] T042 `pnpm --filter web typecheck && pnpm --filter web test:coverage && pnpm --filter web build`
+      — limpo (78 testes, 100%/100%/100%/100% em `src/lib/**`, build de produção sem erro).
+
 ## Dependencies
 
 - **Setup (T001-T006)** → bloqueia tudo.

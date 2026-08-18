@@ -30,11 +30,12 @@ function buildNodeData(kind: 'component' | 'client', typeOrVariant: ComponentTyp
 type PaletteItemProps = {
   label: string;
   icon: LucideIcon;
+  description: string;
   onDragStart: (event: DragEvent<HTMLButtonElement>) => void;
   onClick: () => void;
 };
 
-function PaletteItem({ label, icon: Icon, onDragStart, onClick }: PaletteItemProps) {
+function PaletteItem({ label, icon: Icon, description, onDragStart, onClick }: PaletteItemProps) {
   return (
     <button
       type="button"
@@ -42,7 +43,7 @@ function PaletteItem({ label, icon: Icon, onDragStart, onClick }: PaletteItemPro
       onDragStart={onDragStart}
       onClick={onClick}
       className="flex w-full items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-left text-sm text-zinc-200 transition hover:border-violet-500 hover:bg-zinc-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-500"
-      title={`Arraste para o canvas, ou clique para adicionar (${label})`}
+      title={`${label}\n\n${description}\n\nArraste para o canvas, ou clique para adicionar.`}
     >
       <Icon className="size-4 shrink-0 text-violet-400" />
       <span className="truncate">{label}</span>
@@ -84,6 +85,7 @@ export function Palette() {
               key={variant}
               label={CLIENT_UI[variant].label}
               icon={CLIENT_UI[variant].icon}
+              description={CLIENT_UI[variant].description}
               onDragStart={(e) => handleDragStart(e, `client:${variant}`)}
               onClick={() => addViaClick(buildNodeData('client', variant))}
             />
@@ -98,6 +100,7 @@ export function Palette() {
               key={type}
               label={COMPONENT_UI[type].label}
               icon={COMPONENT_UI[type].icon}
+              description={COMPONENT_UI[type].description}
               onDragStart={(e) => handleDragStart(e, `component:${type}`)}
               onClick={() => addViaClick(buildNodeData('component', type))}
             />
