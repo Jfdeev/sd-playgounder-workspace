@@ -288,6 +288,33 @@ o tipo de bug silencioso que a Constitution VI existe pra evitar.
 - [X] T042 `pnpm --filter web typecheck && pnpm --filter web test:coverage && pnpm --filter web build`
       — limpo (78 testes, 100%/100%/100%/100% em `src/lib/**`, build de produção sem erro).
 
+## Phase 10: Refinamento pós-Ready — navegação do canvas e exclusão de nó
+
+Mais feedback direto do autor: minimapa no canto inferior direito, remover os `Controls` (zoom/fit
+view) do canto inferior esquerdo, e um botão explícito de excluir componente na side bar direita
+(`ConfigPanel`) — hoje só dava pra excluir via tecla Backspace/Delete com o nó focado (FR-015),
+sem afordância visual.
+
+- [X] T043 `<MiniMap pannable zoomable />` adicionado dentro do `<ReactFlow>` em `canvas.tsx` —
+      posição padrão do componente já é `bottom-right` (P2 do product-context.md §10, "Minimapa,
+      agrupamento por região (P2)" — item já documentado como escopo, só não tinha sido feito
+      ainda). `className="!bg-zinc-900"` pra combinar com o tema escuro do resto do canvas (o
+      fundo branco padrão do React Flow destoava).
+- [X] T044 `<Controls />` removido de `canvas.tsx` (zoom/pan continuam funcionando via mouse/touch
+      nativos do React Flow — só o widget de botões some). Não afeta FR-015 (a lista de operações
+      exigidas por teclado — adicionar/selecionar/conectar/configurar/desfazer/refazer — nunca
+      incluiu zoom/fit view).
+- [X] T045 Botão "Excluir componente" adicionado em `config-panel.tsx` (`DeleteNodeButton`,
+      reusado nos dois branches — Cliente e componente) — usa `useReactFlow().deleteElements`
+      (a mesma API que o atalho de teclado do React Flow já usa por baixo dos panos), então
+      arestas conectadas ao nó excluído somem junto, sem duplicar essa lógica de conectividade
+      no código do app. Limpa `selectedNodeId` após excluir, pra o painel voltar ao estado "nenhum
+      nó selecionado" em vez de referenciar um nó que não existe mais.
+- [X] T046 `pnpm --filter web typecheck && pnpm --filter web test:coverage && pnpm --filter web build`
+      — limpo (78 testes, 100%/100%/100%/100% em `src/lib/**`, build de produção sem erro). Sem
+      testes novos: as três mudanças são wiring de componente React/React Flow puro (sem lógica
+      nova em `src/lib/**`), mesmo limite de cobertura já estabelecido em research.md §5 de M0.5.
+
 ## Dependencies
 
 - **Setup (T001-T006)** → bloqueia tudo.
