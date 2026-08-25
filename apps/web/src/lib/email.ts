@@ -1,6 +1,13 @@
 import { Resend } from 'resend';
 
-const FROM_ADDRESS = 'System Design Playground <noreply@systemdesignplayground.dev>';
+// BUGFIX (2026-08-25): `systemdesignplayground.dev` nunca foi verificado como domínio de envio
+// no Resend (confirmado via GET /domains da própria API do Resend: retorna `[]`, zero domínios) —
+// todo envio falhava sempre, silenciosamente, capturado pelo try/catch abaixo (nunca chegava a
+// nenhuma caixa de entrada desde M0.5). `onboarding@resend.dev` é o remetente sandbox do próprio
+// Resend, funciona sem verificação de domínio, mas só entrega pro email da conta Resend dona da
+// API key — suficiente para dev/teste local. Trocar por um domínio próprio verificado antes de
+// qualquer usuário real além do autor depender do link de confirmação.
+const FROM_ADDRESS = 'System Design Playground <onboarding@resend.dev>';
 
 function buildConfirmationUrl(baseUrl: string, token: string): string {
   return `${baseUrl}/api/account/confirm-email?token=${encodeURIComponent(token)}`;
