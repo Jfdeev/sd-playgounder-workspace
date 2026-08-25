@@ -3,6 +3,7 @@
 import { AlertTriangle, DollarSign, Gauge, TrendingUp } from 'lucide-react';
 import type { SimulationResult } from '@sdp/engine';
 import { NODE_STATUS_UI, COMPONENT_UI } from '@/lib/canvas-ui-catalog';
+import { formatViolationMessage } from '@/lib/violation-messages';
 import { useCanvasStore } from '@/stores/canvas-store';
 
 /**
@@ -79,7 +80,7 @@ export function ResultPanel({ result, submitError }: { result: SimulationResult 
           {result.violations.map((violation, i) => (
             <p key={i} className="flex items-start gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 p-2 text-xs text-amber-300">
               <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-              {violation.message}
+              {formatViolationMessage(violation.message, violation.nodeIds, nodeLabel)}
             </p>
           ))}
         </div>

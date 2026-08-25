@@ -339,6 +339,28 @@ O comentário do próprio código já dizia "o usuário troca o tipo depois pelo
       código novo é wiring de store/componente, `canvas-store.ts` não faz parte do escopo de
       cobertura de `src/lib/**`).
 
+## Phase 12: Bugfix — violação mostrando NodeId bruto (UUID) em vez de nome legível
+
+Achado ao investigar o relato do autor ("Nó 'e5bbd976-...' é ponto único de falha — o usuário
+dificilmente vai perceber qual nó é esse"): `Violation.message` (packages/engine) embute o `NodeId`
+bruto no texto — correto do ponto de vista do engine (mensagem legível *pro engine*, gerada por ele,
+nunca por LLM), mas `result-panel.tsx` já tinha um helper `nodeLabel()` funcionando pro gargalo e
+pros cards por nó, só nunca tinha sido aplicado a `violation.message`.
+
+- [X] T051 Novo `apps/web/src/lib/violation-messages.ts` — `formatViolationMessage(message,
+      nodeIds, labelOf)`, função pura: substitui cada `NodeId` (já vem estruturado em
+      `Violation.nodeIds`, não precisa de regex) pelo rótulo amigável, sem re-derivar o texto da
+      violação (evita duplicar a lógica de FR-009/FR-010/FR-011 do engine na UI — proibido por
+      `docs/product-context.md` §5). 5 testes novos em `apps/web/test/violation-messages.spec.ts`
+      (100% de cobertura): substituição única, múltipla (ciclo), lista vazia, fallback quando o nó
+      não é encontrado no canvas atual, e nenhuma substituição parcial acidental quando o id repete
+      na mensagem.
+- [X] T052 `result-panel.tsx`: `{violation.message}` trocado por
+      `{formatViolationMessage(violation.message, violation.nodeIds, nodeLabel)}` — reusa o mesmo
+      `nodeLabel` já usado pro gargalo/cards, sem duplicar lookup.
+- [X] T053 `pnpm --filter web typecheck && pnpm --filter web test:coverage && pnpm --filter web build`
+      — limpo (83 testes, 100%/100%/100%/100% em `src/lib/**`, build de produção sem erro).
+
 ## Dependencies
 
 - **Setup (T001-T006)** → bloqueia tudo.
