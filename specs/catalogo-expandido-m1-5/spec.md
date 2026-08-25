@@ -4,7 +4,21 @@
 
 **Created**: 2026-08-25
 
-**Status**: Draft
+**Status**: Ready
+
+## Clarifications
+
+### Session 2026-08-25
+
+- Q: Fasear a entrega (US1 → revisão → US2 → revisão → US3) ou tudo de uma vez? → A: fases
+  sequenciais, mesmo ritmo de M1 (Setup→US1→US2→US3, revisão do autor entre cada fase antes de
+  avançar pra próxima).
+- Q: Observability (Metrics/Logs/Tracing/Alerting/Health Check) não processa requisição do jeito
+  que o engine simula hoje — qual tratamento? → A: `ComponentType` real, com specs simbólicas
+  plausíveis (mesmo padrão ilustrativo D5 já usado pelos 11 componentes de M0/M1) — nunca nó
+  puramente decorativo.
+- Q: Network (VPC/Subnet/NAT Gateway/VPN/Service Mesh) é mais topologia/segurança do que nó no
+  caminho — mesma pergunta. → A: `ComponentType` real, mesmo critério do Observability.
 
 **Input**: User description: "M1.5 — Catálogo expandido de componentes do canvas. Marco inserido no
 roadmap entre M1 (já concluído, Ready) e M2 — mesmo padrão de inserção por decisão do autor já
@@ -126,29 +140,37 @@ decorativo.
 
 ### User Story 3 - Observability e Network (Priority: P3)
 
-[NEEDS CLARIFICATION: Observability (Metrics/Logs/Tracing/Alerting/Health Check) e Network
-(VPC/Subnet/NAT Gateway/VPN/Service Mesh) têm semântica muito diferente do modelo "capacidade ao
-longo do caminho da requisição" que o engine já implementa (product-context.md §7) — não é óbvio
-que eles processem uma requisição do usuário da mesma forma que um App Server ou um SQL Database.
-Qual tratamento cada categoria recebe: (a) ComponentType real simulável, com specs simbólicas; (b)
-nó estrutural/visual, fora de `Design.nodes`, como o nó Cliente hoje; ou (c) fica de fora deste
-marco inteiramente? Ver Question 2/3 abaixo.]
+Como alguém montando um design mais realista, eu tenho, na paleta, os componentes novos das
+categorias Observability (Metrics, Logs, Tracing, Alerting, Health Check) e Network (VPC, Subnet,
+NAT Gateway, VPN, Service Mesh) — cada um como `ComponentType` real, com specs simbólicas
+plausíveis (Clarifications, 2026-08-25), participando da simulação como qualquer outro componente.
 
-**Why this priority**: depende da resposta às perguntas de clarificação acima — o tratamento decide
-até se esta user story tem alguma implementação de engine, então fica por último e sem detalhamento
-de acceptance scenarios até a clarificação ser resolvida.
+**Why this priority**: são as duas categorias com a semântica mais distante do modelo atual de
+"capacidade ao longo do caminho" (product-context.md §7) — decidir specs simbólicas plausíveis pra
+elas é mais arriscado de acertar de primeira que US2, por isso vem depois, com sua própria revisão.
 
-**Independent Test**: a definir após a clarificação.
+**Independent Test**: arrastar um componente novo desta fase (ex. Service Mesh) pro canvas, ligá-lo
+num caminho válido, submeter, e ver um resultado do engine reagindo à configuração dele — mesma
+prova de US2, aplicada aos 10 componentes desta fase.
+
+**Acceptance Scenarios**:
+
+1. **Given** um componente de Observability ou Network (ex. NAT Gateway) no caminho de uma
+   requisição, **When** eu submeto o design, **Then** o resultado mostra utilização/latência/custo
+   calculados pra aquele nó.
+2. **Given** VPC/Subnet (topologicamente um container, não um hop de processamento), **When** eu
+   configuro réplicas nele, **Then** ele nunca aparece como gargalo em designs razoáveis — a spec
+   ilustrativa reflete que esses dois componentes raramente são o fator limitante na prática.
 
 ### Edge Cases
 
 - O que acontece com um design salvo (autosave, US3 de M1) antes deste incremento, que só usa os
   11 componentes antigos? MUST continuar carregando e simulando normalmente — nenhum componente
   existente muda de `ComponentType`, só de categoria visual na paleta (US1).
-- Um componente novo sem nenhuma spec de capacidade plausível (ex. "Tool Registry" — cadastro de
-  ferramentas, não claramente um nó que processa requisição com latência própria) força a mesma
-  pergunta de tratamento (a/b/c) que Observability/Network — resolvido caso a caso na clarificação,
-  não assumido aqui.
+- Componentes sem uma noção óbvia de "capacidade de processar requisição" (ex. Tool Registry —
+  cadastro de ferramentas; VPC/Subnet — container de rede) MUST, mesmo assim, ganhar specs
+  simbólicas plausíveis (Clarifications, 2026-08-25) — nunca ficam de fora da simulação, mas a
+  spec escolhida reflete que eles raramente (ou nunca) são o fator limitante de um design real.
 
 ## Requirements *(mandatory)*
 
@@ -166,16 +188,22 @@ de acceptance scenarios até a clarificação ser resolvida.
 - **FR-004**: Cada componente novo MUST ter uma descrição pedagógica (`canvas-ui-catalog.ts`),
   surfaced nos mesmos três lugares já existentes (tooltip da paleta, ícone no nó, texto completo no
   painel de configuração ao selecionar).
-- **FR-005**: O tratamento de Observability MUST ser [NEEDS CLARIFICATION: ver Question 2 —
-  ComponentType real / nó estrutural / fora de escopo].
-- **FR-006**: O tratamento de Network MUST ser [NEEDS CLARIFICATION: ver Question 3 — ComponentType
-  real / nó estrutural / fora de escopo].
-- **FR-007**: A entrega deste marco MUST seguir [NEEDS CLARIFICATION: ver Question 1 — uma única
-  fase (US1+US2+US3 juntas) ou fases sequenciais com revisão do autor entre elas].
+- **FR-005**: Os 5 componentes de Observability (Metrics, Logs, Tracing, Alerting, Health Check)
+  MUST ser `ComponentType` reais, com specs simbólicas plausíveis — mesmo padrão ilustrativo de
+  FR-002, participando da simulação como qualquer outro componente (Clarifications, 2026-08-25).
+- **FR-006**: Os 5 componentes de Network (VPC, Subnet, NAT Gateway, VPN, Service Mesh) MUST ser
+  `ComponentType` reais, com specs simbólicas plausíveis — mesmo critério de FR-005. Para VPC/Subnet
+  especificamente (topologicamente containers, não hops de processamento), a spec MUST refletir
+  capacidade alta o bastante para nunca virarem gargalo em designs razoáveis, em vez de um número
+  arbitrário que poderia distorcer o resultado da simulação.
+- **FR-007**: A entrega deste marco MUST seguir fases sequenciais com revisão do autor entre elas —
+  US1 (reorganizar paleta) → revisão → US2 (23 componentes novos "limpos") → revisão → US3 (10
+  componentes de Observability/Network) — mesmo ritmo Setup→US1→US2→US3 já usado em M1
+  (Clarifications, 2026-08-25).
 - **FR-008**: Nenhum componente exposto na paleta MUST sugerir uma capacidade que o engine não
-  computa de fato — um componente sem ComponentType real (se a resposta de FR-005/FR-006 for "fora
-  de escopo") simplesmente não aparece na paleta neste marco, em vez de aparecer decorativo/inerte
-  (mesmo princípio de FR-005 do M1: nunca expor um controle que não existe de verdade).
+  computa de fato — como toda categoria deste marco vira `ComponentType` real (FR-002/FR-005/
+  FR-006), este requisito garante que nenhuma fase futura reintroduza um componente puramente
+  decorativo sem specs reais (mesmo princípio de FR-005 do M1).
 
 ### Key Entities
 

@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,5 +31,5 @@
 
 ## Notes
 
-- 3 marcadores [NEEDS CLARIFICATION] pendentes (FR-005, FR-006, FR-007) — resolvidos via
-  `/speckit-clarify` antes de promover o Status pra `Ready`.
+- Os 3 marcadores [NEEDS CLARIFICATION] (FR-005, FR-006, FR-007) foram resolvidos em
+  `## Clarifications` (sessão 2026-08-25) — Status promovido pra `Ready`.
