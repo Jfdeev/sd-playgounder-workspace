@@ -35,6 +35,7 @@ function CanvasInner({ problem }: { problem: Problem }) {
   const onConnect = useCanvasStore((s) => s.onConnect);
   const addNode = useCanvasStore((s) => s.addNode);
   const selectNode = useCanvasStore((s) => s.selectNode);
+  const selectEdge = useCanvasStore((s) => s.selectEdge);
   const updateNodeConfig = useCanvasStore((s) => s.updateNodeConfig);
   const applySimulationResult = useCanvasStore((s) => s.applySimulationResult);
   const lastResult = useCanvasStore((s) => s.lastResult);
@@ -137,6 +138,7 @@ function CanvasInner({ problem }: { problem: Problem }) {
             onConnect={onConnect}
             isValidConnection={isValidConnection}
             onNodeClick={(_, node) => selectNode(node.id)}
+            onEdgeClick={(_, edge) => selectEdge(edge.id)}
             onPaneClick={() => selectNode(null)}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}

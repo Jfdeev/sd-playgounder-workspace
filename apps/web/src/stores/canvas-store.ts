@@ -41,13 +41,17 @@ export type CanvasState = {
   nodes: CanvasNode[];
   edges: CanvasEdge[];
   selectedNodeId: string | null;
+  selectedEdgeId: string | null;
   lastResult: SimulationResult | null;
   onNodesChange: (changes: NodeChange<CanvasNode>[]) => void;
   onEdgesChange: (changes: EdgeChange<CanvasEdge>[]) => void;
   onConnect: (connection: Connection) => void;
   addNode: (node: CanvasNode) => void;
   updateNodeConfig: (nodeId: string, patch: Partial<FlowNodeData>) => void;
+  updateEdgeConfig: (edgeId: string, patch: Partial<FlowEdgeData>) => void;
+  clearEdgeWeight: (edgeId: string) => void;
   selectNode: (nodeId: string | null) => void;
+  selectEdge: (edgeId: string | null) => void;
   applySimulationResult: (result: SimulationResult | null) => void;
 };
 
@@ -88,6 +92,7 @@ const canvasStoreCreator = temporal(
     nodes: [],
     edges: [],
     selectedNodeId: null,
+    selectedEdgeId: null,
     lastResult: null,
 
     onNodesChange: (changes) =>
@@ -120,9 +125,41 @@ const canvasStoreCreator = temporal(
         Object.assign(node.data, patch);
       }),
 
+    // FR-003: fecha o gap de o tipo da aresta (leitura/escrita/assíncrona/replicação) e o peso
+    // (FR-004) nunca terem tido um jeito de ser alterados depois de criar a conexão — toda aresta
+    // nascia (e ficava pra sempre) 'read', apesar do comentário de DEFAULT_NEW_EDGE_DATA acima já
+    // prometer "o usuário troca o tipo depois pelo próprio canvas".
+    updateEdgeConfig: (edgeId, patch) =>
+      set((state) => {
+        const edge = state.edges.find((e) => e.id === edgeId);
+        if (!edge || !edge.data) return;
+        Object.assign(edge.data, patch);
+      }),
+
+    // Volta ao peso implícito (igual entre irmãs) — `delete`, não `Object.assign({weight:
+    // undefined})`, porque `exactOptionalPropertyTypes` (tsconfig) distingue "propriedade ausente"
+    // de "propriedade presente com valor undefined"; um patch genérico não conseguiria expressar
+    // essa remoção sem violar o tipo de `FlowEdgeData['weight']` (`number`, não `number|undefined`).
+    clearEdgeWeight: (edgeId) =>
+      set((state) => {
+        const edge = state.edges.find((e) => e.id === edgeId);
+        if (!edge?.data) return;
+        delete edge.data.weight;
+      }),
+
+    // Seleção de nó e de aresta são sempre mutuamente exclusivas (inclusive ao limpar seleção —
+    // selectNode(null) no clique do pane vazio também limpa uma aresta selecionada) — o
+    // ConfigPanel mostra um ou outro, nunca os dois ao mesmo tempo.
     selectNode: (nodeId) =>
       set((state) => {
         state.selectedNodeId = nodeId;
+        state.selectedEdgeId = null;
+      }),
+
+    selectEdge: (edgeId) =>
+      set((state) => {
+        state.selectedEdgeId = edgeId;
+        state.selectedNodeId = null;
       }),
 
     applySimulationResult: (result) =>
