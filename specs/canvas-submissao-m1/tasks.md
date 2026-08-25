@@ -315,6 +315,30 @@ sem afordância visual.
       testes novos: as três mudanças são wiring de componente React/React Flow puro (sem lógica
       nova em `src/lib/**`), mesmo limite de cobertura já estabelecido em research.md §5 de M0.5.
 
+## Phase 11: Bugfix — FR-003/FR-004 nunca tiveram um editor de aresta
+
+Achado ao investigar a pergunta do autor "por que 'leitura' aparece no meio dos nós?": FR-003
+("MUST permitir conectar dois nós... escolhendo um entre quatro tipos") e FR-004 (peso por aresta)
+prometiam uma escolha que nunca existiu na UI — toda aresta nascia (e ficava pra sempre) com
+`kind: 'read'` (`DEFAULT_NEW_EDGE_DATA` em `canvas-store.ts`), sem nenhum jeito de trocar depois.
+O comentário do próprio código já dizia "o usuário troca o tipo depois pelo próprio canvas (FR-003)"
+— uma afirmação que nunca foi implementada.
+
+- [X] T047 Store (`canvas-store.ts`): `selectedEdgeId` + `selectEdge`/`updateEdgeConfig` (mesmo
+      padrão de `selectedNodeId`/`selectNode`/`updateNodeConfig`) e `clearEdgeWeight` (ação
+      separada — `exactOptionalPropertyTypes` impede um patch genérico expressar "propriedade
+      ausente" via `{weight: undefined}`, já que `FlowEdgeData['weight']` é `number`, não
+      `number | undefined`; `clearEdgeWeight` usa `delete` no draft do Immer em vez disso). Seleção
+      de nó e de aresta são mutuamente exclusivas (`selectNode`/`selectEdge` sempre zeram a outra).
+- [X] T048 `canvas.tsx`: `onEdgeClick` wired pra `selectEdge(edge.id)`.
+- [X] T049 `config-panel.tsx`: novo branch `EdgeConfigPanel`, renderizado quando uma aresta está
+      selecionada — 4 botões de tipo (leitura/escrita/assíncrona/replicação, `EDGE_KIND_UI`) e um
+      input de peso opcional com botão "Limpar" (volta ao peso implícito).
+- [X] T050 `pnpm --filter web typecheck && pnpm --filter web test:coverage && pnpm --filter web build`
+      — limpo (78 testes, 100%/100%/100%/100%). Sem testes novos: mesma justificativa de T046 (o
+      código novo é wiring de store/componente, `canvas-store.ts` não faz parte do escopo de
+      cobertura de `src/lib/**`).
+
 ## Dependencies
 
 - **Setup (T001-T006)** → bloqueia tudo.
