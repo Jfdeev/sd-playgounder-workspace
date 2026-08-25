@@ -33,7 +33,9 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Plano ativo**: [specs/canvas-submissao-m1/plan.md](specs/canvas-submissao-m1/plan.md)
-(M1 — Canvas e submissão, branch `feature/001-canvas-submission`). M0.5 (Landing Page e Conta,
-[specs/landing-page-conta-m0-5/plan.md](specs/landing-page-conta-m0-5/plan.md)) está concluído.
+**Plano ativo**: [specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md)
+(M1.5 — Catálogo expandido de componentes do canvas, branch `feature/001-expanded-component-catalog`).
+M1 (Canvas e submissão, [specs/canvas-submissao-m1/plan.md](specs/canvas-submissao-m1/plan.md)) e
+M0.5 (Landing Page e Conta, [specs/landing-page-conta-m0-5/plan.md](specs/landing-page-conta-m0-5/plan.md))
+estão concluídos.
 <!-- SPECKIT END -->
