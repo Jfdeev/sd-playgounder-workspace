@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type DragEvent } from 'react';
 import {
   Background,
-  Controls,
+  MiniMap,
   ReactFlow,
   ReactFlowProvider,
   useReactFlow,
@@ -144,7 +144,7 @@ function CanvasInner({ problem }: { problem: Problem }) {
             fitView
           >
             <Background />
-            <Controls />
+            <MiniMap pannable zoomable className="!bg-zinc-900" />
           </ReactFlow>
         </div>
         <div className="flex items-center justify-between border-t border-zinc-800 bg-zinc-950 px-4 py-2">

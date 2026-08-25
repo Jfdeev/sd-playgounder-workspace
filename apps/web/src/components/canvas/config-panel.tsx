@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, type ChangeEvent } from 'react';
+import { useReactFlow } from '@xyflow/react';
+import { Trash2 } from 'lucide-react';
 import { useCanvasStore } from '@/stores/canvas-store';
 import { COMPONENT_UI, CLIENT_UI } from '@/lib/canvas-ui-catalog';
 import { getAllowedTargets } from '@/lib/connection-rules';
@@ -35,6 +37,7 @@ export function ConfigPanel() {
         <h2 className="mb-1 text-sm font-semibold text-zinc-200">{clientUi.label}</h2>
         <p className="mb-3 text-xs text-zinc-500">{clientUi.description}</p>
         <ConnectivityHint kind="client" />
+        <DeleteNodeButton nodeId={selectedNodeId} />
       </aside>
     );
   }
@@ -106,6 +109,7 @@ export function ConfigPanel() {
       )}
 
       <ConnectivityHint kind={node.data.componentType} />
+      <DeleteNodeButton nodeId={selectedNodeId} />
     </aside>
   );
 }
@@ -126,5 +130,33 @@ function ConnectivityHint({ kind }: { kind: Parameters<typeof getAllowedTargets>
         <>Conecta a: {allowedTargets.map((type) => COMPONENT_UI[type].label).join(', ')}.</>
       )}
     </p>
+  );
+}
+
+/**
+ * Exclui o nó selecionado — afordância explícita no painel, complementar (não substitui) o
+ * atalho de teclado já suportado nativamente pelo React Flow (Backspace/Delete com o nó
+ * focado, FR-015/RNF-8). Usa `deleteElements`, a mesma API que o atalho de teclado usa por
+ * baixo dos panos — remove o nó E qualquer aresta conectada a ele, sem duplicar essa lógica de
+ * conectividade aqui.
+ */
+function DeleteNodeButton({ nodeId }: { nodeId: string }) {
+  const { deleteElements } = useReactFlow();
+  const selectNode = useCanvasStore((s) => s.selectNode);
+
+  async function handleDelete() {
+    await deleteElements({ nodes: [{ id: nodeId }] });
+    selectNode(null);
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleDelete}
+      className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-red-900/50 bg-red-950/30 px-3 py-1.5 text-sm font-medium text-red-400 transition hover:border-red-700 hover:bg-red-950/60"
+    >
+      <Trash2 className="size-4" aria-hidden />
+      Excluir componente
+    </button>
   );
 }
