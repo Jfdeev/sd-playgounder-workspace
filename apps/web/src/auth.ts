@@ -2,7 +2,7 @@ import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { db } from './db/client';
 import { accounts, loginIpAttempts, sessions, users, verificationTokens } from './db/schema';
 import { decideAccountLinking } from './lib/account-linking';
@@ -165,48 +165,70 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // não passa por decisão de vínculo aqui (a checagem equivalente é feita no signup,
     // POST /api/account/signup). Roda ANTES de qualquer lógica interna de linking do Auth.js
     // (handleAuthorized → handleLoginOrRegister, research.md §2).
-    async signIn({ user, account }) {
+    //
+    // BUGFIX (2026-08-25): um login de RETORNO com uma identidade Google já vinculada caía na
+    // mesma decisão de fusão de FR-013/FR-013a — e como `emailVerified` nunca era de fato
+    // carimbado na criação de uma conta via Google (ver abaixo), `decideAccountLinking` via
+    // `emailVerified: null` e sempre devolvia 'reject', travando pra sempre o segundo login em
+    // diante com "conta pendente de confirmação" numa conta que, na verdade, já era a própria
+    // conta Google do usuário. Corrigido checando primeiro se este (provider, providerAccountId)
+    // já está vinculado a algum usuário — se estiver, é só um login de retorno, sem decisão de
+    // fusão nenhuma a tomar, e a checagem via `decideAccountLinking` (que existe pra decidir se
+    // uma conta Google NOVA deve se fundir com uma conta email/senha existente) nem entra em jogo.
+    async signIn({ user, account, profile }) {
       if (account?.provider !== 'google' || !user.email) {
         return true;
       }
 
-      const [existing] = await db
-        .select({ id: users.id, emailVerified: users.emailVerified })
-        .from(users)
-        .where(eq(users.email, user.email))
+      const [linkedAccount] = await db
+        .select({ userId: accounts.userId })
+        .from(accounts)
+        .where(
+          and(
+            eq(accounts.provider, account.provider),
+            eq(accounts.providerAccountId, account.providerAccountId),
+          ),
+        )
         .limit(1);
 
-      const decision = decideAccountLinking({ existingUserByEmail: existing ?? null });
-
-      if (decision.action === 'reject') {
-        // Não cria uma segunda conta com o mesmo email (violaria unique em users.email) — rejeita
-        // com AccessDenied; a página de erro (pages.error, abaixo) orienta a confirmar a conta
-        // pendente (decisão do autor, /speckit-plan).
-        return false;
-      }
-
-      if (decision.action === 'link' && existing) {
-        const [alreadyLinked] = await db
-          .select({ userId: accounts.userId })
-          .from(accounts)
-          .where(
-            and(
-              eq(accounts.provider, account.provider),
-              eq(accounts.providerAccountId, account.providerAccountId),
-            ),
-          )
+      if (!linkedAccount) {
+        const [existing] = await db
+          .select({ id: users.id, emailVerified: users.emailVerified })
+          .from(users)
+          .where(eq(users.email, user.email))
           .limit(1);
 
-        if (alreadyLinked) {
-          return true;
+        const decision = decideAccountLinking({ existingUserByEmail: existing ?? null });
+
+        if (decision.action === 'reject') {
+          // Não cria uma segunda conta com o mesmo email (violaria unique em users.email) —
+          // rejeita com AccessDenied; a página de erro (pages.error, abaixo) orienta a confirmar
+          // a conta pendente (decisão do autor, /speckit-plan).
+          return false;
         }
 
-        await adapter.linkAccount?.({
-          userId: existing.id,
-          type: 'oauth',
-          provider: account.provider,
-          providerAccountId: account.providerAccountId,
-        });
+        if (decision.action === 'link' && existing) {
+          await adapter.linkAccount?.({
+            userId: existing.id,
+            type: 'oauth',
+            provider: account.provider,
+            providerAccountId: account.providerAccountId,
+          });
+        }
+      }
+
+      // FR-013a: "uma Account criada/entrada via Google OAuth é considerada com email confirmado
+      // automaticamente" — mas o adapter padrão do Auth.js NÃO carimba `emailVerified` sozinho ao
+      // criar o usuário; é responsabilidade do app ler `profile.email_verified` (a checagem que o
+      // próprio Google já fez) e persistir isso (authjs.dev/getting-started/providers/google,
+      // confirmado via Context7). Sem este passo, FR-013a nunca era cumprida de fato — é a causa
+      // raiz do bug acima. Idempotente (`isNull`): nunca sobrescreve uma data de confirmação já
+      // registrada por outro caminho.
+      if (profile?.['email_verified'] && user.id) {
+        await db
+          .update(users)
+          .set({ emailVerified: new Date() })
+          .where(and(eq(users.id, user.id), isNull(users.emailVerified)));
       }
 
       return true;
