@@ -10,7 +10,7 @@ import {
   type IsValidConnection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Play, Redo2, Undo2 } from 'lucide-react';
+import { Play, Redo2, Trash2, Undo2 } from 'lucide-react';
 import { simulate, type ComponentType } from '@sdp/engine';
 import type { Problem } from '@sdp/problems';
 import { toDesign, toWorkload } from '@/lib/canvas-to-design';
@@ -34,6 +34,7 @@ function CanvasInner({ problem }: { problem: Problem }) {
   const onEdgesChange = useCanvasStore((s) => s.onEdgesChange);
   const onConnect = useCanvasStore((s) => s.onConnect);
   const addNode = useCanvasStore((s) => s.addNode);
+  const clearCanvas = useCanvasStore((s) => s.clearCanvas);
   const selectNode = useCanvasStore((s) => s.selectNode);
   const selectEdge = useCanvasStore((s) => s.selectEdge);
   const updateNodeConfig = useCanvasStore((s) => s.updateNodeConfig);
@@ -125,6 +126,16 @@ function CanvasInner({ problem }: { problem: Problem }) {
     }
   }
 
+  // Lixeira do canvas (pedido direto do autor) — destrutivo, então pede confirmação antes; a
+  // ação em si ainda é desfazível por Ctrl/Cmd+Z (clearCanvas entra no histórico do zundo).
+  function handleClearCanvas() {
+    if (nodes.length === 0 && edges.length === 0) return;
+    const confirmed = window.confirm('Apagar todo o canvas? Remove todos os componentes e conexões (dá pra desfazer com Ctrl/Cmd+Z).');
+    if (!confirmed) return;
+    clearCanvas();
+    setSubmitError(null);
+  }
+
   return (
     <div className="flex min-h-0 flex-1">
       <Palette />
@@ -170,6 +181,15 @@ function CanvasInner({ problem }: { problem: Problem }) {
                 className="rounded-lg border border-zinc-800 p-1.5 text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200"
               >
                 <Redo2 className="size-4" aria-hidden />
+              </button>
+              <button
+                type="button"
+                onClick={handleClearCanvas}
+                aria-label="Apagar todo o canvas"
+                title="Apagar todo o canvas"
+                className="rounded-lg border border-zinc-800 p-1.5 text-zinc-400 transition hover:border-red-500 hover:text-red-400"
+              >
+                <Trash2 className="size-4" aria-hidden />
               </button>
             </div>
           </div>
