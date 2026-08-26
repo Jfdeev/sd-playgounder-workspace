@@ -4,6 +4,7 @@ import type { DragEvent } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type { ComponentType } from '@sdp/engine';
 import { COMPONENT_UI, CLIENT_UI } from '@/lib/canvas-ui-catalog';
+import { CATEGORY_OF, PALETTE_CATEGORY_ORDER, type PaletteCategory } from '@/lib/component-categories';
 import type { ClientVariant, FlowNodeData } from '@/lib/canvas-types';
 import { useCanvasStore, type CanvasNode } from '@/stores/canvas-store';
 
@@ -51,10 +52,25 @@ function PaletteItem({ label, icon: Icon, description, onDragStart, onClick }: P
   );
 }
 
+// Todos os ComponentType agrupados por categoria, na ordem de COMPONENT_UI — calculado uma vez
+// fora do componente (não depende de estado, mesmo dado a cada render).
+const COMPONENT_TYPES_BY_CATEGORY: ReadonlyMap<PaletteCategory, ComponentType[]> = (() => {
+  const map = new Map<PaletteCategory, ComponentType[]>();
+  for (const type of Object.keys(COMPONENT_UI) as ComponentType[]) {
+    const category = CATEGORY_OF[type];
+    const list = map.get(category) ?? [];
+    list.push(type);
+    map.set(category, list);
+  }
+  return map;
+})();
+
 /**
- * Paleta lateral (FR-001/FR-006) — os 11 ComponentType do engine + Cliente (mobile/web/desktop).
- * onDragStart marca o payload arrastado (research.md §2); onClick é o fallback acessível por
- * teclado (FR-015/RNF-8) — adiciona o nó direto, sem precisar de drag-and-drop.
+ * Paleta lateral (FR-001/FR-006) — todo componente do engine + Cliente (mobile/web/desktop),
+ * agrupados nas 9 categorias de `component-categories.ts` (M1.5, FR-001), na ordem de
+ * `PALETTE_CATEGORY_ORDER`. onDragStart marca o payload arrastado (research.md §2 de M1); onClick
+ * é o fallback acessível por teclado (FR-015/RNF-8) — adiciona o nó direto, sem precisar de
+ * drag-and-drop.
  */
 export function Palette() {
   const nodes = useCanvasStore((state) => state.nodes);
@@ -77,36 +93,42 @@ export function Palette() {
 
   return (
     <aside className="flex w-56 shrink-0 flex-col gap-4 overflow-y-auto border-r border-zinc-800 bg-zinc-950 p-3">
-      <div>
-        <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">Cliente</h2>
-        <div className="flex flex-col gap-1.5">
-          {(Object.keys(CLIENT_UI) as ClientVariant[]).map((variant) => (
-            <PaletteItem
-              key={variant}
-              label={CLIENT_UI[variant].label}
-              icon={CLIENT_UI[variant].icon}
-              description={CLIENT_UI[variant].description}
-              onDragStart={(e) => handleDragStart(e, `client:${variant}`)}
-              onClick={() => addViaClick(buildNodeData('client', variant))}
-            />
-          ))}
-        </div>
-      </div>
-      <div>
-        <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">Componentes</h2>
-        <div className="flex flex-col gap-1.5">
-          {(Object.keys(COMPONENT_UI) as ComponentType[]).map((type) => (
-            <PaletteItem
-              key={type}
-              label={COMPONENT_UI[type].label}
-              icon={COMPONENT_UI[type].icon}
-              description={COMPONENT_UI[type].description}
-              onDragStart={(e) => handleDragStart(e, `component:${type}`)}
-              onClick={() => addViaClick(buildNodeData('component', type))}
-            />
-          ))}
-        </div>
-      </div>
+      {PALETTE_CATEGORY_ORDER.map((category) => {
+        // Categoria "Client" é especial: suas entradas vêm de CLIENT_UI (variantes), não de
+        // COMPONENT_UI — todo o resto vem de COMPONENT_TYPES_BY_CATEGORY.
+        const isClientCategory = category === 'Client';
+        const componentTypes = COMPONENT_TYPES_BY_CATEGORY.get(category) ?? [];
+        if (!isClientCategory && componentTypes.length === 0) return null;
+
+        return (
+          <div key={category}>
+            <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">{category}</h2>
+            <div className="flex flex-col gap-1.5">
+              {isClientCategory &&
+                (Object.keys(CLIENT_UI) as ClientVariant[]).map((variant) => (
+                  <PaletteItem
+                    key={variant}
+                    label={CLIENT_UI[variant].label}
+                    icon={CLIENT_UI[variant].icon}
+                    description={CLIENT_UI[variant].description}
+                    onDragStart={(e) => handleDragStart(e, `client:${variant}`)}
+                    onClick={() => addViaClick(buildNodeData('client', variant))}
+                  />
+                ))}
+              {componentTypes.map((type) => (
+                <PaletteItem
+                  key={type}
+                  label={COMPONENT_UI[type].label}
+                  icon={COMPONENT_UI[type].icon}
+                  description={COMPONENT_UI[type].description}
+                  onDragStart={(e) => handleDragStart(e, `component:${type}`)}
+                  onClick={() => addViaClick(buildNodeData('component', type))}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </aside>
   );
 }

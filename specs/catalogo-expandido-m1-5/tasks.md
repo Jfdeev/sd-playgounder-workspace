@@ -87,7 +87,11 @@ durante a implementação. Grupos nomeados usados abaixo:
 **Purpose**: confirmar baseline verde antes de tocar em qualquer arquivo — plan.md já estabeleceu
 que não há dependência nova pra instalar.
 
-- [ ] T001 Baseline: rodar `pnpm -w typecheck`, `pnpm --filter engine test`, `pnpm --filter web test:coverage` e `pnpm --filter web build` na branch atual e confirmar tudo verde antes de começar a alterar `types.ts`/`components.ts`/`connection-rules.ts`/`canvas-ui-catalog.ts`
+- [X] T001 Baseline: `tsc` limpo, 75/75 testes relevantes verdes (93.72%/98.18% cobertura em
+      `src/lib/**`), `pnpm --filter web build` limpo. Única exceção: `test/password.spec.ts`
+      (3 casos) apresenta timeout intermitente sob paralelismo+coverage — flake pré-existente,
+      não relacionado a esta feature, confirmado reproduzível em isolamento (passa 8/8) e
+      sinalizado à parte (não é bloqueio pra prosseguir).
 
 ---
 
@@ -110,16 +114,16 @@ dos 11 componentes existentes sob a categoria correta (quickstart.md, seção US
 
 ### Implementation for User Story 1
 
-- [ ] T002 [US1] Criar `apps/web/src/lib/component-categories.ts`: `type PaletteCategory` (9 valores — Client, Traffic & Edge, Compute, Storage, Messaging, Observability, Network, AI & Agents, External), `PALETTE_CATEGORY_ORDER: readonly PaletteCategory[]` nessa ordem, `CATEGORY_OF: Record<ConnectableKind, PaletteCategory>` com as 12 entradas de hoje (`client` + os 11 `ComponentType` de M1) — mapeamento exato em `data-model.md`
-- [ ] T003 [US1] Reescrever `apps/web/src/components/canvas/palette.tsx`: substituir os 2 `<div>` fixos (Cliente/Componentes) por um `map` sobre `PALETTE_CATEGORY_ORDER`, filtrando `CATEGORY_OF` pra cada seção; cada `PaletteItem` continua vindo de `COMPONENT_UI`/`CLIENT_UI` como hoje (nenhuma mudança de props do componente)
+- [X] T002 [US1] Criar `apps/web/src/lib/component-categories.ts`: `type PaletteCategory` (9 valores — Client, Traffic & Edge, Compute, Storage, Messaging, Observability, Network, AI & Agents, External), `PALETTE_CATEGORY_ORDER: readonly PaletteCategory[]` nessa ordem, `CATEGORY_OF: Record<ConnectableKind, PaletteCategory>` com as 12 entradas de hoje (`client` + os 11 `ComponentType` de M1) — mapeamento exato em `data-model.md`
+- [X] T003 [US1] Reescrever `apps/web/src/components/canvas/palette.tsx`: substituir os 2 `<div>` fixos (Cliente/Componentes) por um `map` sobre `PALETTE_CATEGORY_ORDER`, filtrando `CATEGORY_OF` pra cada seção (categorias sem componente ainda, ex. Observability/Network/AI & Agents/External antes de US2/US3, não renderizam seção vazia); cada `PaletteItem` continua vindo de `COMPONENT_UI`/`CLIENT_UI` como hoje (nenhuma mudança de props do componente)
 
 ### Tests for User Story 1
 
-- [ ] T004 [P] [US1] Criar `apps/web/test/component-categories.spec.ts`: teste de completude (todo `ConnectableKind` atual mapeia pra uma das 9 `PaletteCategory` válidas) + teste de que `PALETTE_CATEGORY_ORDER` tem exatamente as 9 categorias na mesma ordem da tabela de `spec.md`
+- [X] T004 [P] [US1] Criar `apps/web/test/component-categories.spec.ts`: teste de completude (todo `ConnectableKind` atual mapeia pra uma das 9 `PaletteCategory` válidas) + teste de que `PALETTE_CATEGORY_ORDER` tem exatamente as 9 categorias na mesma ordem da tabela de `spec.md` — 4 testes, 100% cobertura em `component-categories.ts`
 
 ### Verificação manual
 
-- [ ] T005 [US1] Rodar `pnpm --filter web dev`, seguir quickstart.md seção US1 (9 cabeçalhos na ordem certa, Cache sob Storage, Load Balancer sob Traffic & Edge, um design salvo antes deste incremento ainda carrega e simula)
+- [X] T005 [US1] `tsc` limpo; `pnpm --filter web test:coverage` — 79/79 testes relevantes verdes (94.23%/98.18% cobertura em `src/lib/**`, sem regressão; `password.spec.ts` segue com o flake pré-existente sinalizado em T001, não relacionado); `pnpm --filter web build` limpo. Verificação visual no browser (checklist completo de quickstart.md) bloqueada por auth — rota `/app/[problemId]` exige login e não há credencial de teste disponível pra simular (mesmo gap já documentado em T035/T037/T041/T053 de M1); revisão visual fica pro autor no checkpoint abaixo.
 
 **⏸️ PARAR — revisão do autor (FR-007) antes de avançar pra US2.**
 
