@@ -352,6 +352,28 @@ pros cards por nó, só nunca tinha sido aplicado a `violation.message`.
       `Violation.nodeIds`, não precisa de regex) pelo rótulo amigável, sem re-derivar o texto da
       violação (evita duplicar a lógica de FR-009/FR-010/FR-011 do engine na UI — proibido por
       `docs/product-context.md` §5). 5 testes novos em `apps/web/test/violation-messages.spec.ts`
+
+## Phase 13: Refinamento pós-Ready — lixeira do canvas
+
+Pedido direto do autor: um jeito explícito de apagar todo o design de uma vez (antes só dava pra
+excluir nó por nó via `DeleteNodeButton`/Backspace).
+
+- [X] T052 Nova ação `clearCanvas` em `canvas-store.ts` — zera `nodes`/`edges`, e também
+      `selectedNodeId`/`selectedEdgeId`/`lastResult` (referenciariam nós que não existem mais).
+      Como qualquer outra mutação de nodes/edges, entra no histórico do `zundo` — Ctrl/Cmd+Z desfaz
+      normalmente, sem lógica extra.
+- [X] T053 Botão de lixeira (`Trash2`, `lucide-react`) na toolbar inferior de `canvas.tsx`, ao lado
+      de Desfazer/Refazer — pede confirmação (`window.confirm`, sem dependência de modal nova, sem
+      padrão de dialog pré-existente no projeto) antes de chamar `clearCanvas`, e é no-op se o
+      canvas já está vazio.
+- [X] T054 `pnpm --filter web typecheck` limpo; `pnpm --filter web test:coverage` — 75/75 testes
+      passando fora de `password.spec.ts` (flake pré-existente de timeout sob paralelismo/coverage,
+      não relacionado a esta mudança — sinalizado à parte, não corrigido aqui), 93.72%/98.18% de
+      cobertura em `src/lib/**` (sem regressão); `pnpm --filter web build` limpo. Sem teste novo:
+      `clearCanvas`/o botão são wiring de store/React puro, mesmo limite de cobertura já
+      estabelecido em research.md §5 de M0.5. Verificação visual no browser bloqueada por auth
+      (rota do canvas exige login — sem credencial pra simular, mesmo padrão de gap já documentado
+      em T035/T037/T041).
       (100% de cobertura): substituição única, múltipla (ciclo), lista vazia, fallback quando o nó
       não é encontrado no canvas atual, e nenhuma substituição parcial acidental quando o id repete
       na mensagem.

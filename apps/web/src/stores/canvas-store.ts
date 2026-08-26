@@ -47,6 +47,7 @@ export type CanvasState = {
   onEdgesChange: (changes: EdgeChange<CanvasEdge>[]) => void;
   onConnect: (connection: Connection) => void;
   addNode: (node: CanvasNode) => void;
+  clearCanvas: () => void;
   updateNodeConfig: (nodeId: string, patch: Partial<FlowNodeData>) => void;
   updateEdgeConfig: (edgeId: string, patch: Partial<FlowEdgeData>) => void;
   clearEdgeWeight: (edgeId: string) => void;
@@ -116,6 +117,18 @@ const canvasStoreCreator = temporal(
     addNode: (node) =>
       set((state) => {
         state.nodes.push(node);
+      }),
+
+    // Lixeira do canvas — apaga todo o design de uma vez (pedido direto do autor). Como qualquer
+    // outra mudança de nodes/edges, entra no histórico do zundo — Ctrl/Cmd+Z desfaz normalmente.
+    // Também limpa seleção e o último resultado (referenciariam nós que não existem mais).
+    clearCanvas: () =>
+      set((state) => {
+        state.nodes = [];
+        state.edges = [];
+        state.selectedNodeId = null;
+        state.selectedEdgeId = null;
+        state.lastResult = null;
       }),
 
     updateNodeConfig: (nodeId, patch) =>
