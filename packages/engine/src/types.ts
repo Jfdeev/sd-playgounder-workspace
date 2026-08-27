@@ -8,6 +8,7 @@
 export type NodeId = string;
 
 export type ComponentType =
+  // 11 originais (M0/M1)
   | 'load_balancer'
   | 'api_gateway'
   | 'app_server'
@@ -18,7 +19,36 @@ export type ComponentType =
   | 'nosql_kv'
   | 'queue'
   | 'object_storage'
-  | 'cdn';
+  | 'cdn'
+  // Traffic & Edge — M1.5 US2
+  | 'dns'
+  | 'waf'
+  | 'ingress'
+  | 'rate_limiter'
+  // Compute — M1.5 US2
+  | 'serverless'
+  | 'auth_service'
+  | 'search'
+  | 'scheduler'
+  | 'notifications'
+  | 'analytics'
+  // Storage — M1.5 US2
+  | 'data_warehouse'
+  | 'vector_db'
+  // Messaging — M1.5 US2
+  | 'pubsub'
+  | 'event_stream'
+  | 'kafka'
+  // AI & Agents — M1.5 US2
+  | 'llm_gateway'
+  | 'orchestrator'
+  | 'tool_registry'
+  | 'memory_fabric'
+  | 'safety_mesh'
+  // External — M1.5 US2
+  | 'third_party_api'
+  | 'payment'
+  | 'email';
 
 export type DesignNode = {
   id: NodeId;
