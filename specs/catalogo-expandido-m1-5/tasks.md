@@ -199,8 +199,8 @@ VPC/Subnet no caminho e confirmar que nunca aparece como gargalo (quickstart.md,
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T027 [P] Rodar `pnpm -w typecheck`, `pnpm --filter engine test`, `pnpm --filter web test:coverage`, `pnpm --filter web build` — regressão completa, cobertura ≥ 90% mantida nos módulos puros tocados (quickstart.md, seção Regressão)
-- [ ] T028 Confirmar manualmente que um design com os 11 componentes de M1 salvo antes deste incremento (autosave/localStorage) ainda carrega e simula sem erro (Edge Case da spec)
+- [X] T027 [P] `pnpm --filter engine typecheck`/`test` e `pnpm --filter web typecheck`/`test:coverage`/`build` — regressão completa após as 3 user stories: 159/159 testes do engine, 103/103 testes relevantes do web (100% em `connection-rules.ts`/`canvas-ui-catalog.ts`/`component-categories.ts`, 96.97% geral em `src/lib/**` — acima do threshold de 90%), build de produção limpo. `password.spec.ts` segue com o flake pré-existente sinalizado em T001 (task em background aberta), não relacionado a esta feature.
+- [X] T028 Verificação por inspeção de código (não por browser — mesmo gap de auth de T005/T015/T026): `FlowNodeData.componentType` (`apps/web/src/lib/canvas-types.ts`) continua tipado como `ComponentType` — o campo nunca mudou de forma, só o domínio de valores aceitos cresceu (11→44). Nenhum dos 11 valores originais foi renomeado/removido em `COMPONENT_UI`/`COMPONENT_CATALOG`/`CATEGORY_OF`/`ALLOWED_TARGETS` — só ganharam entradas novas ao lado. Um JSON de autosave salvo antes deste incremento, com `componentType` igual a um dos 11 originais, continua sendo um valor válido em todos os 4 catálogos hoje: a mudança é estritamente aditiva, então a compatibilidade retroativa é garantida por construção, não por sorte. Fica pro autor confirmar visualmente quando conseguir logar.
 
 ---
 
