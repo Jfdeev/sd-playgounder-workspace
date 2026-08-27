@@ -24,19 +24,25 @@ import type { FlowNodeData } from './canvas-types';
 /** Todo nó do canvas, do ponto de vista de "quem pode originar/receber uma conexão". */
 export type ConnectableKind = ComponentType | 'client';
 
-// Grupo "cômputo especializado" (M1.5 US2) — mesmo leque de destino de app_server hoje, mais os
-// sinks novos (Storage/Messaging) e External; nunca llm_gateway, reservado a app_server/api_gateway
-// (research.md §3, tasks.md "Nota de design").
+// Grupo "cômputo especializado" (M1.5 US2/US3) — mesmo leque de destino de app_server hoje, mais
+// os sinks novos (Storage/Messaging), External e Observability; nunca llm_gateway, reservado a
+// app_server/api_gateway (research.md §3, tasks.md "Nota de design").
 const COMPUTE_TARGETS: readonly ComponentType[] = [
   'cache', 'sql_primary', 'sql_replica', 'nosql_kv', 'queue', 'object_storage',
   'data_warehouse', 'vector_db', 'pubsub', 'event_stream', 'kafka',
   'third_party_api', 'payment', 'email',
+  'metrics', 'logs', 'tracing', 'alerting', 'health_check',
 ];
 
 const ALLOWED_TARGETS: Record<ConnectableKind, readonly ComponentType[]> = {
   // Cliente nunca conecta direto em dado/fila/cache — só nos componentes de "borda" (FR-006).
   // M1.5 US2: + dns/waf/ingress/rate_limiter (Filtro/borda, research.md §3).
-  client: ['load_balancer', 'api_gateway', 'cdn', 'app_server', 'dns', 'waf', 'ingress', 'rate_limiter'],
+  // M1.5 US3: + vpc/subnet/nat_gateway/vpn/service_mesh (Network, hop de altíssima capacidade
+  // posicionado antes da borda).
+  client: [
+    'load_balancer', 'api_gateway', 'cdn', 'app_server', 'dns', 'waf', 'ingress', 'rate_limiter',
+    'vpc', 'subnet', 'nat_gateway', 'vpn', 'service_mesh',
+  ],
   // Load Balancer só distribui para instâncias de computação — nunca para dado, cache ou fila.
   // M1.5 US2: + os 6 componentes de "cômputo especializado" (variações de app_server no grafo).
   load_balancer: ['app_server', 'worker', 'serverless', 'auth_service', 'search', 'scheduler', 'notifications', 'analytics'],
@@ -45,10 +51,23 @@ const ALLOWED_TARGETS: Record<ConnectableKind, readonly ComponentType[]> = {
   api_gateway: ['app_server', 'worker', 'serverless', 'auth_service', 'search', 'scheduler', 'notifications', 'analytics', 'llm_gateway'],
   // App Server é o nó mais versátil — toca cache, os três tipos de banco, fila e object storage.
   // M1.5 US2: + os 5 sinks novos (Storage/Messaging), + llm_gateway, + External.
-  app_server: ['cache', 'sql_primary', 'sql_replica', 'nosql_kv', 'queue', 'object_storage', 'data_warehouse', 'vector_db', 'pubsub', 'event_stream', 'kafka', 'llm_gateway', 'third_party_api', 'payment', 'email'],
+  // M1.5 US3: + os 5 componentes de Observability (alcançáveis "a partir de qualquer componente
+  // de cômputo", research.md §3).
+  app_server: [
+    'cache', 'sql_primary', 'sql_replica', 'nosql_kv', 'queue', 'object_storage',
+    'data_warehouse', 'vector_db', 'pubsub', 'event_stream', 'kafka',
+    'llm_gateway', 'third_party_api', 'payment', 'email',
+    'metrics', 'logs', 'tracing', 'alerting', 'health_check',
+  ],
   // Worker processa e grava o resultado, ou encadeia pra próxima fila. M1.5 US2: + os 5 sinks
   // novos + External (sem llm_gateway — só app_server/api_gateway chamam IA).
-  worker: ['sql_primary', 'nosql_kv', 'cache', 'object_storage', 'queue', 'data_warehouse', 'vector_db', 'pubsub', 'event_stream', 'kafka', 'third_party_api', 'payment', 'email'],
+  // M1.5 US3: + os 5 componentes de Observability.
+  worker: [
+    'sql_primary', 'nosql_kv', 'cache', 'object_storage', 'queue',
+    'data_warehouse', 'vector_db', 'pubsub', 'event_stream', 'kafka',
+    'third_party_api', 'payment', 'email',
+    'metrics', 'logs', 'tracing', 'alerting', 'health_check',
+  ],
   // Aresta de saída do cache = caminho de miss (ver comentário do módulo). M1.5 US2: + vector_db
   // (miss path plausível pra embeddings, ex. cache de resultado de busca semântica).
   cache: ['sql_primary', 'sql_replica', 'nosql_kv', 'vector_db'],
@@ -101,6 +120,22 @@ const ALLOWED_TARGETS: Record<ConnectableKind, readonly ComponentType[]> = {
   third_party_api: [],
   payment: [],
   email: [],
+
+  // --- Observability (M1.5 US3) — sempre folha/sink, nunca origina conexão (research.md §3).
+  metrics: [],
+  logs: [],
+  tracing: [],
+  alerting: [],
+  health_check: [],
+
+  // --- Network (M1.5 US3) — hop inline de altíssima capacidade, posicionado antes da camada de
+  // borda: mesmo leque original de destino de client (FR-006, research.md §3) — não o leque
+  // expandido por US2, pra não crescer o escopo além do que já foi decidido.
+  vpc: ['load_balancer', 'api_gateway', 'cdn', 'app_server'],
+  subnet: ['load_balancer', 'api_gateway', 'cdn', 'app_server'],
+  nat_gateway: ['load_balancer', 'api_gateway', 'cdn', 'app_server'],
+  vpn: ['load_balancer', 'api_gateway', 'cdn', 'app_server'],
+  service_mesh: ['load_balancer', 'api_gateway', 'cdn', 'app_server'],
 };
 
 /** Deriva o `ConnectableKind` de um nó do canvas a partir do seu `data` (React Flow nativo). */

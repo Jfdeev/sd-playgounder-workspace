@@ -38,10 +38,21 @@ const EXPECTED_TYPES = [
   'third_party_api',
   'payment',
   'email',
+  // 10 de Observability/Network — M1.5 US3
+  'metrics',
+  'logs',
+  'tracing',
+  'alerting',
+  'health_check',
+  'vpc',
+  'subnet',
+  'nat_gateway',
+  'vpn',
+  'service_mesh',
 ] as const;
 
 describe('COMPONENT_CATALOG (FR-014)', () => {
-  it('contém exatamente os 34 tipos de componente esperados', () => {
+  it('contém exatamente os 44 tipos de componente esperados', () => {
     const keys = Object.keys(COMPONENT_CATALOG).sort();
     expect(keys).toEqual([...EXPECTED_TYPES].sort());
   });
@@ -87,6 +98,20 @@ describe('COMPONENT_CATALOG (FR-014)', () => {
       expect(COMPONENT_CATALOG.data_warehouse.maxThroughputRps).toBeLessThan(
         COMPONENT_CATALOG.sql_primary.maxThroughputRps,
       );
+    });
+
+    // FR-006 / Clarifications 2026-08-25: VPC/Subnet são topologicamente containers, não hops de
+    // processamento — a spec MUST refletir capacidade alta o bastante pra nunca virarem gargalo em
+    // designs razoáveis. Prova mecânica (não um valor solto): maxThroughputRps de cada um precisa
+    // ser >= o maior valor de QUALQUER outro componente do catálogo.
+    it('VPC e Subnet têm capacidade >= a de qualquer outro componente do catálogo (FR-006 — nunca gargalo)', () => {
+      const maxOfOthers = (excluded: keyof typeof COMPONENT_CATALOG) =>
+        Math.max(
+          ...EXPECTED_TYPES.filter((type) => type !== excluded).map((type) => COMPONENT_CATALOG[type].maxThroughputRps),
+        );
+
+      expect(COMPONENT_CATALOG.vpc.maxThroughputRps).toBeGreaterThanOrEqual(maxOfOthers('vpc'));
+      expect(COMPONENT_CATALOG.subnet.maxThroughputRps).toBeGreaterThanOrEqual(maxOfOthers('subnet'));
     });
   });
 });

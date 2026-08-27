@@ -212,6 +212,65 @@ export const COMPONENT_CATALOG: Record<ComponentType, ComponentSpec> = {
     baseLatencyMs: { p50: 50, p99: 400 },
     monthlyCostUsd: 15,
   },
+
+  // Observability — arquétipo "tap/sink" (cache invertido: throughput altíssimo, latência
+  // baixíssima, custo baixo — nunca gargalo em designs razoáveis, por analogia de papel com o
+  // critério fixado pra Network/FR-006). M1.5 US3, research.md §2.
+  metrics: {
+    maxThroughputRps: 80_000,
+    baseLatencyMs: { p50: 0.3, p99: 1 },
+    monthlyCostUsd: 15,
+  },
+  logs: {
+    maxThroughputRps: 60_000,
+    baseLatencyMs: { p50: 0.5, p99: 2 },
+    monthlyCostUsd: 20,
+  },
+  tracing: {
+    maxThroughputRps: 40_000,
+    baseLatencyMs: { p50: 0.5, p99: 2 },
+    monthlyCostUsd: 25,
+  },
+  alerting: {
+    maxThroughputRps: 20_000,
+    baseLatencyMs: { p50: 1, p99: 3 },
+    monthlyCostUsd: 10,
+  },
+  health_check: {
+    maxThroughputRps: 30_000,
+    baseLatencyMs: { p50: 0.3, p99: 1 },
+    monthlyCostUsd: 5,
+  },
+
+  // Network — arquétipo "contêiner/topologia de rede" (âncora: cdn, a maior capacidade do
+  // catálogo). M1.5 US3, research.md §2. VPC/Subnet especificamente MUST ter capacidade >= a de
+  // qualquer outro componente do catálogo (FR-006, Clarifications 2026-08-25: "nunca virarem
+  // gargalo em designs razoáveis" — não um número arbitrário).
+  vpc: {
+    maxThroughputRps: 150_000,
+    baseLatencyMs: { p50: 0.1, p99: 0.5 },
+    monthlyCostUsd: 50,
+  },
+  subnet: {
+    maxThroughputRps: 150_000,
+    baseLatencyMs: { p50: 0.1, p99: 0.5 },
+    monthlyCostUsd: 30,
+  },
+  nat_gateway: {
+    maxThroughputRps: 100_000,
+    baseLatencyMs: { p50: 0.2, p99: 1 },
+    monthlyCostUsd: 40,
+  },
+  vpn: {
+    maxThroughputRps: 80_000,
+    baseLatencyMs: { p50: 0.5, p99: 2 },
+    monthlyCostUsd: 60,
+  },
+  service_mesh: {
+    maxThroughputRps: 90_000,
+    baseLatencyMs: { p50: 0.3, p99: 1.5 },
+    monthlyCostUsd: 80,
+  },
 };
 
 export function getComponentSpec(type: ComponentType): ComponentSpec {

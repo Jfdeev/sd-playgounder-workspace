@@ -16,6 +16,7 @@ import {
   CalendarClock,
   Cloud,
   Cog,
+  Container,
   Cpu,
   CreditCard,
   Database,
@@ -25,18 +26,27 @@ import {
   Gauge,
   Globe,
   HardDrive,
+  HeartPulse,
   KeyRound,
+  Layers,
+  LineChart,
   ListOrdered,
+  Lock,
   Mail,
   Monitor,
+  Network,
   Radar,
   Radio,
+  Route,
+  Router,
   Rss,
+  ScrollText,
   SearchCode,
   Server,
   ShieldAlert,
   ShieldCheck,
   Shuffle,
+  Siren,
   Smartphone,
   Warehouse,
   Waves,
@@ -269,6 +279,74 @@ export const COMPONENT_UI: Record<ComponentType, { label: string; icon: LucideIc
     icon: Mail,
     description:
       'Provedor transacional de email (confirmação de conta, recibo, alerta). Tipicamente acionado por Notifications, mas qualquer componente de cômputo pode chamá-lo diretamente. Sempre um destino final.',
+  },
+
+  // Observability — M1.5 US3. Sempre folha/sink, alcançável a partir de qualquer componente de
+  // cômputo — capacidade altíssima e custo baixo (nunca é o fator limitante de um design).
+  metrics: {
+    label: 'Metrics',
+    icon: LineChart,
+    description:
+      'Números de série temporal — CPU, RPS, latência — coletados de qualquer componente de cômputo pra alimentar dashboards e alertas. Capacidade altíssima, custo baixo: aceita o volume de telemetria de um sistema inteiro sem virar o fator limitante do design.',
+  },
+  logs: {
+    label: 'Logs',
+    icon: ScrollText,
+    description:
+      'Registro estruturado de eventos pra debug — o que aconteceu, quando, com qual contexto. Recebe eventos de qualquer componente de cômputo; nunca origina uma chamada própria.',
+  },
+  tracing: {
+    label: 'Tracing',
+    icon: Route,
+    description:
+      'Segue uma requisição individual através de todos os serviços que ela toca, reconstruindo a árvore de chamadas ponta a ponta. Complementa Metrics/Logs (agregado vs. individual) — mesma regra de conectividade: alcançável a partir de qualquer nó de cômputo, sempre folha.',
+  },
+  alerting: {
+    label: 'Alerting',
+    icon: Siren,
+    description:
+      'Observa Metrics/Logs e aciona um humano quando um limiar é cruzado (ex. taxa de erro acima de 5%). Não processa a requisição do usuário — só monitora o que os outros componentes reportam.',
+  },
+  health_check: {
+    label: 'Health Check',
+    icon: HeartPulse,
+    description:
+      'Sonda periódica de liveness/readiness — pergunta "esse componente ainda está de pé?" pra decidir se ele deve continuar recebendo tráfego. Barato e de altíssima capacidade, como o resto de Observability.',
+  },
+
+  // Network — M1.5 US3. Hop de altíssima capacidade posicionado antes da borda (Client → Network
+  // → Load Balancer/API Gateway/CDN/App Server) — VPC/Subnet em particular MUST ter capacidade
+  // maior ou igual a qualquer outro componente do catálogo (FR-006): são container de rede, não
+  // um hop de processamento comum, e nunca devem aparecer como gargalo em designs razoáveis.
+  vpc: {
+    label: 'VPC',
+    icon: Container,
+    description:
+      'Fatia isolada e privada da rede na nuvem — um container topológico, não um hop de processamento. A capacidade dele no catálogo é deliberadamente maior que a de qualquer outro componente, justamente pra nunca aparecer como gargalo de um design razoável.',
+  },
+  subnet: {
+    label: 'Subnet',
+    icon: Layers,
+    description:
+      'Subdivisão de uma VPC (pública ou privada). Mesmo tratamento de capacidade da VPC — é topologia, não um passo que consome capacidade de processamento real, então a spec garante que ele nunca vira o fator limitante.',
+  },
+  nat_gateway: {
+    label: 'NAT Gateway',
+    icon: Router,
+    description:
+      'Permite que uma instância numa subnet privada acesse a internet, sem expor essa instância a conexões de entrada. Capacidade alta (âncora: CDN) — participa da simulação, mas raramente é o limitante de um design.',
+  },
+  vpn: {
+    label: 'VPN',
+    icon: Lock,
+    description:
+      'Túnel criptografado entre redes privadas (ex. conectar o datacenter da empresa à nuvem). Mesmo papel de hop de rede de alta capacidade que o resto de Network — participa da simulação, mas o foco dele é segurança de tráfego, não processamento.',
+  },
+  service_mesh: {
+    label: 'Service Mesh',
+    icon: Network,
+    description:
+      'Camada sidecar que gerencia tráfego serviço-a-serviço — mTLS automático, retry, circuit breaking — sem que cada serviço precise implementar isso por conta própria. Fica na borda, entre o Cliente e os componentes que já processam requisição.',
   },
 };
 

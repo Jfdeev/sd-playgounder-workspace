@@ -40,6 +40,17 @@ const ALL_COMPONENT_TYPES: readonly ComponentType[] = [
   'third_party_api',
   'payment',
   'email',
+  // 10 de Observability/Network — M1.5 US3
+  'metrics',
+  'logs',
+  'tracing',
+  'alerting',
+  'health_check',
+  'vpc',
+  'subnet',
+  'nat_gateway',
+  'vpn',
+  'service_mesh',
 ];
 const ALL_KINDS: readonly ConnectableKind[] = ['client', ...ALL_COMPONENT_TYPES];
 
@@ -180,17 +191,48 @@ describe('isValidCanvasConnection — componentes novos (M1.5 US2)', () => {
   });
 });
 
+// M1.5 US3 — 1 caso permitido + 1 proibido por componente novo (tasks.md, coverage pass T023).
+describe('isValidCanvasConnection — componentes novos (M1.5 US3, Observability/Network)', () => {
+  it('Observability é alcançável a partir de qualquer componente de cômputo, mas nunca origina conexão', () => {
+    expect(isValidCanvasConnection('app_server', 'metrics')).toBe(true);
+    expect(isValidCanvasConnection('worker', 'logs')).toBe(true);
+    expect(isValidCanvasConnection('serverless', 'tracing')).toBe(true);
+    expect(isValidCanvasConnection('analytics', 'alerting')).toBe(true);
+    expect(isValidCanvasConnection('auth_service', 'health_check')).toBe(true);
+    expect(isValidCanvasConnection('metrics', 'app_server')).toBe(false);
+    expect(isValidCanvasConnection('sql_primary', 'metrics')).toBe(false); // banco não é "cômputo"
+  });
+
+  it('Network é um hop de altíssima capacidade entre Cliente e a borda original — nunca alcança dado/fila/cache', () => {
+    expect(isValidCanvasConnection('client', 'vpc')).toBe(true);
+    expect(isValidCanvasConnection('vpc', 'load_balancer')).toBe(true);
+    expect(isValidCanvasConnection('vpc', 'sql_primary')).toBe(false);
+    expect(isValidCanvasConnection('client', 'subnet')).toBe(true);
+    expect(isValidCanvasConnection('subnet', 'api_gateway')).toBe(true);
+    expect(isValidCanvasConnection('client', 'nat_gateway')).toBe(true);
+    expect(isValidCanvasConnection('nat_gateway', 'cdn')).toBe(true);
+    expect(isValidCanvasConnection('client', 'vpn')).toBe(true);
+    expect(isValidCanvasConnection('vpn', 'app_server')).toBe(true);
+    expect(isValidCanvasConnection('client', 'service_mesh')).toBe(true);
+    expect(isValidCanvasConnection('service_mesh', 'queue')).toBe(false);
+  });
+});
+
 // Coverage pass (tasks.md T013): os testes acima só verificam pares pontuais — não bastam pra
 // quebrar se um elemento for removido/trocado de um array que tem 6-15 entradas (ex.: tirar
 // `vector_db` de `worker` silenciosamente não derrubaria nenhum teste acima). Estes testes
 // comparam a lista COMPLETA de cada chave nova/editada de `ALLOWED_TARGETS` (T008) contra o
 // conjunto esperado — qualquer mutação (remoção, adição indevida, troca) quebra aqui.
-describe('getAllowedTargets — conteúdo completo das chaves novas/editadas (M1.5 US2, coverage pass T013)', () => {
+describe('getAllowedTargets — conteúdo completo das chaves novas/editadas (M1.5 US2/US3, coverage pass T013/T023)', () => {
   const sorted = (kind: ConnectableKind) => [...getAllowedTargets(kind)].sort();
 
-  it('client: 4 originais + 4 componentes de borda novos (dns/waf/ingress/rate_limiter)', () => {
+  it('client: 4 originais + 4 de borda (US2) + 5 de Network (US3)', () => {
     expect(sorted('client')).toEqual(
-      ['api_gateway', 'app_server', 'cdn', 'dns', 'ingress', 'load_balancer', 'rate_limiter', 'waf'].sort(),
+      [
+        'api_gateway', 'app_server', 'cdn', 'load_balancer', // originais
+        'dns', 'ingress', 'rate_limiter', 'waf', // US2
+        'nat_gateway', 'service_mesh', 'subnet', 'vpc', 'vpn', // US3
+      ].sort(),
     );
   });
 
@@ -206,22 +248,24 @@ describe('getAllowedTargets — conteúdo completo das chaves novas/editadas (M1
     );
   });
 
-  it('app_server: 6 originais + 5 sinks novos + llm_gateway + 3 External', () => {
+  it('app_server: 6 originais + 5 sinks + llm_gateway + 3 External (US2) + 5 Observability (US3)', () => {
     expect(sorted('app_server')).toEqual(
       [
         'cache', 'sql_primary', 'sql_replica', 'nosql_kv', 'queue', 'object_storage',
         'data_warehouse', 'vector_db', 'pubsub', 'event_stream', 'kafka',
         'llm_gateway', 'third_party_api', 'payment', 'email',
+        'metrics', 'logs', 'tracing', 'alerting', 'health_check',
       ].sort(),
     );
   });
 
-  it('worker: 5 originais + 5 sinks novos + 3 External (sem llm_gateway)', () => {
+  it('worker: 5 originais + 5 sinks + 3 External (US2, sem llm_gateway) + 5 Observability (US3)', () => {
     expect(sorted('worker')).toEqual(
       [
         'sql_primary', 'nosql_kv', 'cache', 'object_storage', 'queue',
         'data_warehouse', 'vector_db', 'pubsub', 'event_stream', 'kafka',
         'third_party_api', 'payment', 'email',
+        'metrics', 'logs', 'tracing', 'alerting', 'health_check',
       ].sort(),
     );
     expect(getAllowedTargets('worker')).not.toContain('llm_gateway');
@@ -240,11 +284,28 @@ describe('getAllowedTargets — conteúdo completo das chaves novas/editadas (M1
     }
   });
 
-  it('os 6 componentes de cômputo especializado compartilham exatamente o mesmo leque de destino', () => {
-    const expected = sorted('serverless');
-    expect(expected.length).toBeGreaterThan(0);
-    for (const source of ['auth_service', 'search', 'scheduler', 'notifications', 'analytics'] as const) {
+  it('os 6 componentes de cômputo especializado têm exatamente o leque de destino esperado (COMPUTE_TARGETS) — 6 sinks + 3 External (US2) + 5 Observability (US3)', () => {
+    const expected = [
+      'cache', 'sql_primary', 'sql_replica', 'nosql_kv', 'queue', 'object_storage',
+      'data_warehouse', 'vector_db', 'pubsub', 'event_stream', 'kafka',
+      'third_party_api', 'payment', 'email',
+      'metrics', 'logs', 'tracing', 'alerting', 'health_check',
+    ].sort();
+    for (const source of ['serverless', 'auth_service', 'search', 'scheduler', 'notifications', 'analytics'] as const) {
       expect(sorted(source)).toEqual(expected);
+    }
+  });
+
+  it('os 5 componentes de Network têm exatamente o leque original de client (load_balancer/api_gateway/cdn/app_server)', () => {
+    const expected = ['api_gateway', 'app_server', 'cdn', 'load_balancer'].sort();
+    for (const source of ['vpc', 'subnet', 'nat_gateway', 'vpn', 'service_mesh'] as const) {
+      expect(sorted(source)).toEqual(expected);
+    }
+  });
+
+  it('os 5 componentes de Observability não têm nenhum destino (sempre sink)', () => {
+    for (const type of ['metrics', 'logs', 'tracing', 'alerting', 'health_check'] as const) {
+      expect(getAllowedTargets(type)).toEqual([]);
     }
   });
 
@@ -302,6 +363,12 @@ describe('getAllowedTargets — completude da matriz', () => {
       'third_party_api',
       'payment',
       'email',
+      // M1.5 US3 — folhas novas (Observability é sempre sink).
+      'metrics',
+      'logs',
+      'tracing',
+      'alerting',
+      'health_check',
     ];
     for (const source of ALL_KINDS) {
       if (leafTypes.includes(source)) continue;
