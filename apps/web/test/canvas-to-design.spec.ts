@@ -132,6 +132,8 @@ describe('toWorkload', () => {
       avgPayloadBytes: 500,
       peakMultiplier: 3,
     },
+    rubric: [],
+    hints: [],
   };
 
   it('converte DAU + requisições/usuário/dia + pico em rps', () => {

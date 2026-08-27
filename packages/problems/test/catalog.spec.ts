@@ -40,8 +40,20 @@ describe('getProblem', () => {
 });
 
 describe('ALL_PROBLEM_IDS', () => {
-  it('contém exatamente 1 problema neste marco (M1)', () => {
-    expect(ALL_PROBLEM_IDS).toHaveLength(1);
+  it('contém exatamente os 3 problemas completos do catálogo', () => {
+    expect(ALL_PROBLEM_IDS).toHaveLength(3);
     expect(ALL_PROBLEM_IDS).toContain('url-shortener');
+    expect(ALL_PROBLEM_IDS).toContain('social-feed');
+    expect(ALL_PROBLEM_IDS).toContain('ecommerce-checkout');
+  });
+});
+
+describe('todo problema do catálogo tem rubrica e dicas não-vazias', () => {
+  it.each(['url-shortener', 'social-feed', 'ecommerce-checkout'])('%s', (id) => {
+    const problem = getProblem(id);
+    expect(problem?.rubric.length).toBeGreaterThan(0);
+    expect(problem?.hints.length).toBeGreaterThan(0);
+    const criterionIds = new Set(problem?.rubric.map((c) => c.id));
+    expect(criterionIds.size).toBe(problem?.rubric.length); // ids únicos
   });
 });
