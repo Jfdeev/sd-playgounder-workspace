@@ -24,18 +24,34 @@ import type { FlowNodeData } from './canvas-types';
 /** Todo nó do canvas, do ponto de vista de "quem pode originar/receber uma conexão". */
 export type ConnectableKind = ComponentType | 'client';
 
+// Grupo "cômputo especializado" (M1.5 US2) — mesmo leque de destino de app_server hoje, mais os
+// sinks novos (Storage/Messaging) e External; nunca llm_gateway, reservado a app_server/api_gateway
+// (research.md §3, tasks.md "Nota de design").
+const COMPUTE_TARGETS: readonly ComponentType[] = [
+  'cache', 'sql_primary', 'sql_replica', 'nosql_kv', 'queue', 'object_storage',
+  'data_warehouse', 'vector_db', 'pubsub', 'event_stream', 'kafka',
+  'third_party_api', 'payment', 'email',
+];
+
 const ALLOWED_TARGETS: Record<ConnectableKind, readonly ComponentType[]> = {
   // Cliente nunca conecta direto em dado/fila/cache — só nos componentes de "borda" (FR-006).
-  client: ['load_balancer', 'api_gateway', 'cdn', 'app_server'],
+  // M1.5 US2: + dns/waf/ingress/rate_limiter (Filtro/borda, research.md §3).
+  client: ['load_balancer', 'api_gateway', 'cdn', 'app_server', 'dns', 'waf', 'ingress', 'rate_limiter'],
   // Load Balancer só distribui para instâncias de computação — nunca para dado, cache ou fila.
-  load_balancer: ['app_server', 'worker'],
-  api_gateway: ['app_server', 'worker'],
+  // M1.5 US2: + os 6 componentes de "cômputo especializado" (variações de app_server no grafo).
+  load_balancer: ['app_server', 'worker', 'serverless', 'auth_service', 'search', 'scheduler', 'notifications', 'analytics'],
+  // M1.5 US2: mesma expansão de load_balancer, + llm_gateway (único ponto de entrada do pipeline
+  // de IA a partir da borda, junto com app_server — research.md §3).
+  api_gateway: ['app_server', 'worker', 'serverless', 'auth_service', 'search', 'scheduler', 'notifications', 'analytics', 'llm_gateway'],
   // App Server é o nó mais versátil — toca cache, os três tipos de banco, fila e object storage.
-  app_server: ['cache', 'sql_primary', 'sql_replica', 'nosql_kv', 'queue', 'object_storage'],
-  // Worker processa e grava o resultado, ou encadeia pra próxima fila.
-  worker: ['sql_primary', 'nosql_kv', 'cache', 'object_storage', 'queue'],
-  // Aresta de saída do cache = caminho de miss (ver comentário do módulo).
-  cache: ['sql_primary', 'sql_replica', 'nosql_kv'],
+  // M1.5 US2: + os 5 sinks novos (Storage/Messaging), + llm_gateway, + External.
+  app_server: ['cache', 'sql_primary', 'sql_replica', 'nosql_kv', 'queue', 'object_storage', 'data_warehouse', 'vector_db', 'pubsub', 'event_stream', 'kafka', 'llm_gateway', 'third_party_api', 'payment', 'email'],
+  // Worker processa e grava o resultado, ou encadeia pra próxima fila. M1.5 US2: + os 5 sinks
+  // novos + External (sem llm_gateway — só app_server/api_gateway chamam IA).
+  worker: ['sql_primary', 'nosql_kv', 'cache', 'object_storage', 'queue', 'data_warehouse', 'vector_db', 'pubsub', 'event_stream', 'kafka', 'third_party_api', 'payment', 'email'],
+  // Aresta de saída do cache = caminho de miss (ver comentário do módulo). M1.5 US2: + vector_db
+  // (miss path plausível pra embeddings, ex. cache de resultado de busca semântica).
+  cache: ['sql_primary', 'sql_replica', 'nosql_kv', 'vector_db'],
   // Replicação: primary → replica, nunca o contrário.
   sql_primary: ['sql_replica'],
   sql_replica: [],
@@ -46,6 +62,45 @@ const ALLOWED_TARGETS: Record<ConnectableKind, readonly ComponentType[]> = {
   // CDN busca na origem só no miss — origem pode ser conteúdo estático (object storage) ou
   // dinâmico (app server).
   cdn: ['object_storage', 'app_server'],
+
+  // --- Traffic & Edge novos (M1.5 US2) — encadeiam entre si (ordem real varia por arquitetura,
+  // nenhuma é "a" ordem certa) e terminam nos 3 componentes de borda que já processam requisição.
+  dns: ['waf', 'ingress', 'rate_limiter', 'load_balancer', 'api_gateway', 'app_server'],
+  waf: ['dns', 'ingress', 'rate_limiter', 'load_balancer', 'api_gateway', 'app_server'],
+  ingress: ['dns', 'waf', 'rate_limiter', 'load_balancer', 'api_gateway', 'app_server'],
+  rate_limiter: ['dns', 'waf', 'ingress', 'load_balancer', 'api_gateway', 'app_server'],
+
+  // --- Compute novos (M1.5 US2) — variações de app_server no grafo (research.md §3): mesmo leque
+  // de destino, via COMPUTE_TARGETS.
+  serverless: COMPUTE_TARGETS,
+  auth_service: COMPUTE_TARGETS,
+  search: COMPUTE_TARGETS,
+  scheduler: COMPUTE_TARGETS,
+  notifications: COMPUTE_TARGETS,
+  analytics: COMPUTE_TARGETS,
+
+  // --- Storage novos (M1.5 US2) — sempre folha, como sql_replica/nosql_kv/object_storage.
+  data_warehouse: [],
+  vector_db: [],
+
+  // --- Messaging novos (M1.5 US2) — só entregam pra Worker, mesma regra de queue → worker.
+  pubsub: ['worker'],
+  event_stream: ['worker'],
+  kafka: ['worker'],
+
+  // --- Pipeline de IA (M1.5 US2) — app_server/api_gateway → llm_gateway → orchestrator →
+  // {tool_registry, memory_fabric}; safety_mesh é um hop inserível em qualquer ponto do pipeline.
+  llm_gateway: ['orchestrator', 'safety_mesh'],
+  orchestrator: ['tool_registry', 'memory_fabric', 'safety_mesh'],
+  tool_registry: [],
+  memory_fabric: [],
+  safety_mesh: ['llm_gateway', 'orchestrator', 'tool_registry', 'memory_fabric'],
+
+  // --- External (M1.5 US2) — sempre folha, alcançados a partir de app_server/worker/pipeline de
+  // IA (research.md §3).
+  third_party_api: [],
+  payment: [],
+  email: [],
 };
 
 /** Deriva o `ConnectableKind` de um nó do canvas a partir do seu `data` (React Flow nativo). */

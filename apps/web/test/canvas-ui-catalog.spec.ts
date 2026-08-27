@@ -10,8 +10,9 @@ import { COMPONENT_UI, CLIENT_UI, EDGE_KIND_UI, NODE_STATUS_UI } from '../src/li
  * engine e esquecer de dar a ele um ícone/rótulo aqui, este teste quebra.
  */
 describe('canvas-ui-catalog', () => {
-  // Espelha exatamente os 11 ComponentType de packages/engine/src/types.ts (a paleta de M0/M1 —
-  // ver docs/product-context.md §10).
+  // Espelha exatamente os 34 ComponentType de packages/engine/src/types.ts — os 11 de M0/M1 +
+  // os 23 novos "limpos" de M1.5 US2 (ver docs/product-context.md §10 e
+  // specs/catalogo-expandido-m1-5/spec.md).
   const ALL_COMPONENT_TYPES = [
     'load_balancer',
     'api_gateway',
@@ -24,13 +25,36 @@ describe('canvas-ui-catalog', () => {
     'queue',
     'object_storage',
     'cdn',
+    'dns',
+    'waf',
+    'ingress',
+    'rate_limiter',
+    'serverless',
+    'auth_service',
+    'search',
+    'scheduler',
+    'notifications',
+    'analytics',
+    'data_warehouse',
+    'vector_db',
+    'pubsub',
+    'event_stream',
+    'kafka',
+    'llm_gateway',
+    'orchestrator',
+    'tool_registry',
+    'memory_fabric',
+    'safety_mesh',
+    'third_party_api',
+    'payment',
+    'email',
   ] as const;
 
   const ALL_CLIENT_VARIANTS = ['mobile', 'web', 'desktop'] as const;
   const ALL_EDGE_KINDS = ['read', 'write', 'async', 'replication'] as const;
   const ALL_NODE_STATUSES = ['healthy', 'warning', 'saturated'] as const;
 
-  it('COMPONENT_UI tem uma entrada com label, icon e description para cada um dos 11 ComponentType', () => {
+  it('COMPONENT_UI tem uma entrada com label, icon e description para cada um dos 34 ComponentType', () => {
     expect(Object.keys(COMPONENT_UI).sort()).toEqual([...ALL_COMPONENT_TYPES].sort());
     for (const type of ALL_COMPONENT_TYPES) {
       expect(COMPONENT_UI[type].label).toBeTruthy();

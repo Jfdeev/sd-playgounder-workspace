@@ -8,19 +8,42 @@
  */
 
 import {
+  Bell,
+  Bot,
   Boxes,
+  BarChart3,
+  Brain,
+  CalendarClock,
   Cloud,
   Cog,
+  Cpu,
+  CreditCard,
   Database,
   DatabaseZap,
   DoorOpen,
+  Fingerprint,
+  Gauge,
   Globe,
   HardDrive,
+  KeyRound,
   ListOrdered,
+  Mail,
   Monitor,
+  Radar,
+  Radio,
+  Rss,
+  SearchCode,
   Server,
+  ShieldAlert,
+  ShieldCheck,
   Shuffle,
   Smartphone,
+  Warehouse,
+  Waves,
+  Waypoints,
+  Webhook,
+  Workflow,
+  Wrench,
   Zap,
   type LucideIcon,
 } from 'lucide-react';
@@ -93,6 +116,159 @@ export const COMPONENT_UI: Record<ComponentType, { label: string; icon: LucideIc
     icon: Cloud,
     description:
       'Rede de servidores geograficamente distribuídos que guarda cópias de conteúdo estático perto do usuário, reduzindo latência. Quando falta na borda, busca na origem — Object Storage (estático) ou App Server (dinâmico).',
+  },
+
+  // Traffic & Edge novos — M1.5 US2.
+  dns: {
+    label: 'DNS',
+    icon: Radar,
+    description:
+      'Resolve o nome de domínio pra um endereço IP — o primeiro salto de toda requisição, antes mesmo do TCP/HTTP começarem. Encadeia com os outros componentes de borda (WAF, Rate Limiter, Ingress) ou vai direto pros componentes que já processam requisição (Load Balancer, API Gateway, App Server).',
+  },
+  waf: {
+    label: 'WAF',
+    icon: ShieldAlert,
+    description:
+      'Web Application Firewall: inspeciona o conteúdo da requisição e barra padrões maliciosos conhecidos (SQL injection, XSS, bots) antes de chegar na aplicação. Fica na borda, junto com DNS/Rate Limiter/Ingress — nunca conecta direto a dado, cache ou fila.',
+  },
+  ingress: {
+    label: 'Ingress',
+    icon: Waypoints,
+    description:
+      'Controlador de entrada de um cluster Kubernetes: roteia requisições externas pros serviços internos certos, baseado em host/path. Cumpre um papel parecido com Load Balancer/API Gateway, mas é especificamente a peça de borda de um cluster K8s.',
+  },
+  rate_limiter: {
+    label: 'Rate Limiter',
+    icon: Gauge,
+    description:
+      'Rejeita requisições acima de um limite configurado (ex. por IP, por chave de API), protegendo o resto do sistema de um pico de tráfego ou abuso. Trabalho leve e rápido — verificação de contador, não processamento de negócio.',
+  },
+
+  // Compute novos — M1.5 US2. Todos variações de App Server no grafo: mesmo leque de destino
+  // (cache, bancos, fila, object storage, e agora também os sinks/External novos).
+  serverless: {
+    label: 'Serverless',
+    icon: Cpu,
+    description:
+      'Função que escala automaticamente por requisição, sem servidor dedicado pra manter — mas paga o preço de "cold start" (a primeira chamada depois de um período ocioso é bem mais lenta, refletido na latência p99 alta). Custo varia por invocação, não por instância fixa.',
+  },
+  auth_service: {
+    label: 'Auth Service',
+    icon: KeyRound,
+    description:
+      'Emite e valida identidade — login, sessão, token JWT, fluxo OAuth. Toda operação sensível do sistema depende dele estar disponível e rápido, já que costuma ficar no caminho crítico de quase toda requisição autenticada.',
+  },
+  search: {
+    label: 'Search',
+    icon: SearchCode,
+    description:
+      'Motor de busca full-text (ex. Elasticsearch/OpenSearch) — indexa documentos e responde consultas de texto livre com relevância, algo que um banco relacional comum não faz bem. Mais lento que uma consulta por chave, porque compara contra um índice inteiro.',
+  },
+  scheduler: {
+    label: 'Scheduler',
+    icon: CalendarClock,
+    description:
+      'Dispara jobs periódicos (estilo cron) — limpeza de dados antigos, geração de relatório noturno, sincronização agendada. Baixo volume de chamada (não está no caminho da requisição do usuário final), mas ainda participa da simulação como qualquer outro nó.',
+  },
+  notifications: {
+    label: 'Notifications',
+    icon: Bell,
+    description:
+      'Envia push, SMS ou notificação in-app pro usuário final. Tipicamente é quem aciona o Email (ex. "sua compra foi confirmada") — por isso alcança External na matriz de conectividade, junto com os outros componentes de cômputo.',
+  },
+  analytics: {
+    label: 'Analytics',
+    icon: BarChart3,
+    description:
+      'Coleta e agrega eventos de produto/uso (cliques, conversões, sessões) pra alimentar dashboards e decisões de negócio. Escreve tipicamente num Data Warehouse — um destino que a maioria dos outros componentes de cômputo também alcança, mas que faz mais sentido aqui.',
+  },
+
+  // Storage novos — M1.5 US2. Sempre folha, como SQL Replica/NoSQL/Object Storage.
+  data_warehouse: {
+    label: 'Data Warehouse',
+    icon: Warehouse,
+    description:
+      'Banco analítico colunar, otimizado pra consultas agregadas pesadas sobre grandes volumes (ex. "receita por região no último trimestre") — não pra volume alto de transações pequenas, por isso sua capacidade de throughput é bem menor que a de um banco OLTP como o SQL Primary. Sempre um destino final, nunca origina conexão.',
+  },
+  vector_db: {
+    label: 'Vector DB',
+    icon: Fingerprint,
+    description:
+      'Guarda embeddings (representações numéricas de significado) e busca por similaridade — a peça de dado por trás de RAG (retrieval-augmented generation) e busca semântica. Pode até ficar atrás de um Cache (miss path plausível pra uma busca já feita antes), mas nunca origina conexão.',
+  },
+
+  // Messaging novos — M1.5 US2. Só entregam pra Worker, mesma regra de Fila → Worker.
+  pubsub: {
+    label: 'Pub/Sub',
+    icon: Rss,
+    description:
+      'Difunde um evento publicado pra N assinantes independentes, sem que o publicador saiba quem (ou quantos) vai consumir. Diferente de uma Fila (1 mensagem, 1 consumidor que a remove), aqui vários Workers podem reagir ao mesmo evento.',
+  },
+  event_stream: {
+    label: 'Event Stream',
+    icon: Radio,
+    description:
+      'Log ordenado e replayable de eventos — um consumidor pode reprocessar desde um ponto passado, não só consumir o que chega dali pra frente. Suporta throughput bem mais alto que uma fila tradicional, por isso sua capacidade fica na mesma ordem de grandeza de um CDN.',
+  },
+  kafka: {
+    label: 'Kafka',
+    icon: Waves,
+    description:
+      'Plataforma de streaming distribuída de altíssimo throughput — o caso mais extremo de Event Stream, usado quando o volume de eventos é grande demais pra uma fila ou pub/sub convencional dar conta.',
+  },
+
+  // AI & Agents — M1.5 US2. Pipeline: App Server/API Gateway → LLM Gateway → Orchestrator →
+  // {Tool Registry, Memory Fabric}; Safety Mesh é um hop inserível em qualquer ponto da cadeia.
+  llm_gateway: {
+    label: 'LLM Gateway',
+    icon: Bot,
+    description:
+      'Roteia a chamada pra um provedor de LLM (com quota, cache de resposta, fallback entre provedores). Ponto de entrada do pipeline de IA — só App Server e API Gateway conectam direto nele. Latência bem mais alta que um App Server comum: uma chamada de LLM custa centenas de milissegundos, não dezenas.',
+  },
+  orchestrator: {
+    label: 'Orchestrator',
+    icon: Workflow,
+    description:
+      'Coordena um workflow de agente em múltiplas etapas (ex. "buscar informação, decidir próxima ação, chamar uma ferramenta, repetir"). Cada etapa multiplica a latência acumulada — por isso o p99 dele é ainda mais alto que o do LLM Gateway isolado.',
+  },
+  tool_registry: {
+    label: 'Tool Registry',
+    icon: Wrench,
+    description:
+      'Catálogo das ferramentas/funções que um agente pode chamar (ex. "buscar pedido", "calcular frete"). É consulta rápida — uma lista, não uma chamada de IA — por isso sua latência é próxima da de um serviço comum, bem mais baixa que o resto do pipeline de IA.',
+  },
+  memory_fabric: {
+    label: 'Memory Fabric',
+    icon: Brain,
+    description:
+      'Memória de longo prazo do agente — histórico de conversas, fatos aprendidos, retrieval de contexto relevante pra próxima resposta. Sempre um destino final do Orchestrator, nunca origina conexão própria.',
+  },
+  safety_mesh: {
+    label: 'Safety Mesh',
+    icon: ShieldCheck,
+    description:
+      'Guarda-corpo das chamadas de IA: filtra conteúdo, aplica política e audita o que entra/sai do pipeline. Pode ser inserido em qualquer ponto da cadeia de IA (antes do LLM Gateway, entre ele e o Orchestrator, etc.) — não tem uma posição fixa única.',
+  },
+
+  // External — M1.5 US2. Sempre folha, alcançados a partir de qualquer componente de cômputo ou
+  // do pipeline de IA — latência/disponibilidade fora do controle do design.
+  third_party_api: {
+    label: '3rd Party API',
+    icon: Webhook,
+    description:
+      'Serviço de terceiro genérico — sua latência e disponibilidade estão fora do controle do design, por isso a spec ilustrativa tem p99 bem mais alto que qualquer componente interno. Sempre um destino final.',
+  },
+  payment: {
+    label: 'Payment',
+    icon: CreditCard,
+    description:
+      'Processador de pagamento externo (ex. Stripe) — cobra em dinheiro real por transação, e sua indisponibilidade bloqueia diretamente uma parte crítica do negócio. Latência mais alta e menos previsível que um serviço interno, por ser uma chamada de rede pública.',
+  },
+  email: {
+    label: 'Email',
+    icon: Mail,
+    description:
+      'Provedor transacional de email (confirmação de conta, recibo, alerta). Tipicamente acionado por Notifications, mas qualquer componente de cômputo pode chamá-lo diretamente. Sempre um destino final.',
   },
 };
 
