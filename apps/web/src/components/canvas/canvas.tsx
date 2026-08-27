@@ -12,11 +12,12 @@ import {
 import '@xyflow/react/dist/style.css';
 import { Play, Redo2, Trash2, Undo2 } from 'lucide-react';
 import { simulate, type ComponentType } from '@sdp/engine';
-import type { Problem } from '@sdp/problems';
+import { isProblemSolved, type Problem } from '@sdp/problems';
 import { toDesign, toWorkload } from '@/lib/canvas-to-design';
 import { toFlowEdge, toFlowNode, type ClientVariant } from '@/lib/canvas-types';
 import { connectableKindOf, isValidCanvasConnection } from '@/lib/connection-rules';
-import { useCanvasStore, type CanvasEdge, type CanvasNode } from '@/stores/canvas-store';
+import { useCanvasStore, useCanvasStoreApi, type CanvasEdge, type CanvasNode } from '@/stores/canvas-store';
+import { useProgressionStore } from '@/stores/progression-store';
 import { ClientNode } from './nodes/client-node';
 import { ComponentNode } from './nodes/component-node';
 import { TypedEdge } from './edges/typed-edge';
@@ -27,7 +28,15 @@ import { ResultPanel } from './result-panel';
 const nodeTypes = { component: ComponentNode, client: ClientNode };
 const edgeTypes = { typed: TypedEdge };
 
-function CanvasInner({ problem }: { problem: Problem }) {
+/**
+ * `problem` é opcional (canvas livre/sandbox — pedido direto do autor: "o usuário pode entrar no
+ * canvas sem necessariamente fazer um desafio"). Sem desafio ativo, Submeter fica desabilitado —
+ * `toWorkload(problem)` precisa de uma escala vinda de algum lugar, e inventar uma aqui seria
+ * inventar escopo de produto (a régua de carga ao vivo é o "momento aha" de `product-context.md`
+ * §2, deliberadamente adiado desde a FR-007 de M1). Opção mais honesta: desabilitar com mensagem
+ * clara, nunca calcular sobre um workload inventado.
+ */
+function CanvasInner({ problem }: { problem: Problem | null }) {
   const nodes = useCanvasStore((s) => s.nodes);
   const edges = useCanvasStore((s) => s.edges);
   const onNodesChange = useCanvasStore((s) => s.onNodesChange);
@@ -40,6 +49,8 @@ function CanvasInner({ problem }: { problem: Problem }) {
   const updateNodeConfig = useCanvasStore((s) => s.updateNodeConfig);
   const applySimulationResult = useCanvasStore((s) => s.applySimulationResult);
   const lastResult = useCanvasStore((s) => s.lastResult);
+  const storeApi = useCanvasStoreApi();
+  const markChallengeCompleted = useProgressionStore((s) => s.markCompleted);
 
   const { screenToFlowPosition } = useReactFlow();
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -53,14 +64,14 @@ function CanvasInner({ problem }: { problem: Problem }) {
       if (!isModifierPressed || event.key.toLowerCase() !== 'z') return;
       event.preventDefault();
       if (event.shiftKey) {
-        useCanvasStore.temporal.getState().redo();
+        storeApi.temporal.getState().redo();
       } else {
-        useCanvasStore.temporal.getState().undo();
+        storeApi.temporal.getState().undo();
       }
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [storeApi]);
 
   const onDragOver = useCallback((event: DragEvent) => {
     event.preventDefault();
@@ -81,8 +92,9 @@ function CanvasInner({ problem }: { problem: Problem }) {
     [nodes],
   );
 
-  // Drag-and-drop da paleta pro canvas (research.md §2) — o payload arrastado é "component:tipo"
-  // ou "client:variante" (palette.tsx); screenToFlowPosition cuida de zoom/pan automaticamente.
+  // Drag-and-drop da paleta pro canvas (research.md §2 de M1) — o payload arrastado é
+  // "component:tipo" ou "client:variante" (palette.tsx); screenToFlowPosition cuida de zoom/pan
+  // automaticamente.
   const onDrop = useCallback(
     (event: DragEvent) => {
       event.preventDefault();
@@ -103,8 +115,10 @@ function CanvasInner({ problem }: { problem: Problem }) {
 
   // FR-008/FR-009/FR-029: submete o design atual pro engine e propaga status/gargalo de volta
   // pros nós (renderizado como destaque vermelho em ComponentNode). Canvas vazio (edge case do
-  // spec) mostra uma mensagem clara em vez de chamar o engine sem feedback.
+  // spec) mostra uma mensagem clara em vez de chamar o engine sem feedback. Sem desafio ativo, o
+  // botão de Submeter já vem desabilitado (ver JSX) — handleSubmit nunca roda sem `problem`.
   function handleSubmit() {
+    if (!problem) return;
     if (nodes.length === 0) {
       setSubmitError('Adicione componentes antes de submeter.');
       applySimulationResult(null);
@@ -123,6 +137,13 @@ function CanvasInner({ problem }: { problem: Problem }) {
       updateNodeConfig(nodeId, {
         result: { status: nodeResult.status, isBottleneck: nodeId === result.path.bottleneckId },
       });
+    }
+
+    // Rubrica à mostra (Clarifications desta sessão) — progressão travada avança quando TODOS os
+    // critérios passam. `isProblemSolved` só compara o que o engine já calculou contra o limiar
+    // autorado em cada critério — nunca recalcula uma métrica (Constitution I/VII).
+    if (isProblemSolved(problem, result, design)) {
+      markChallengeCompleted(problem.id);
     }
   }
 
@@ -166,7 +187,7 @@ function CanvasInner({ problem }: { problem: Problem }) {
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={() => useCanvasStore.temporal.getState().undo()}
+                onClick={() => storeApi.temporal.getState().undo()}
                 aria-label="Desfazer"
                 title="Desfazer (Ctrl/Cmd+Z)"
                 className="rounded-lg border border-zinc-800 p-1.5 text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200"
@@ -175,7 +196,7 @@ function CanvasInner({ problem }: { problem: Problem }) {
               </button>
               <button
                 type="button"
-                onClick={() => useCanvasStore.temporal.getState().redo()}
+                onClick={() => storeApi.temporal.getState().redo()}
                 aria-label="Refazer"
                 title="Refazer (Ctrl/Cmd+Shift+Z)"
                 className="rounded-lg border border-zinc-800 p-1.5 text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200"
@@ -196,7 +217,9 @@ function CanvasInner({ problem }: { problem: Problem }) {
           <button
             type="button"
             onClick={handleSubmit}
-            className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-violet-500"
+            disabled={!problem}
+            title={problem ? undefined : 'Entre em um desafio pra submeter e ver o resultado do engine'}
+            className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
           >
             <Play className="size-4" aria-hidden />
             Submeter
@@ -209,7 +232,7 @@ function CanvasInner({ problem }: { problem: Problem }) {
   );
 }
 
-export function Canvas({ problem }: { problem: Problem }) {
+export function Canvas({ problem }: { problem: Problem | null }) {
   return (
     <ReactFlowProvider>
       <CanvasInner problem={problem} />
