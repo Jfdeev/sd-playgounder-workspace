@@ -39,7 +39,7 @@ import {
   type Node,
   type NodeChange,
 } from '@xyflow/react';
-import type { SimulationResult } from '@sdp/engine';
+import type { Design, SimulationResult } from '@sdp/engine';
 import type { FlowEdgeData, FlowNodeData } from '@/lib/canvas-types';
 
 export type CanvasNode = Node<FlowNodeData>;
@@ -51,6 +51,16 @@ export type CanvasState = {
   selectedNodeId: string | null;
   selectedEdgeId: string | null;
   lastResult: SimulationResult | null;
+  /**
+   * O `Design` que gerou `lastResult`, capturado no mesmo instante (achado numa revisão do
+   * `advisor`): antes disso, `challenge-card.tsx` recomputava `design` a partir dos `nodes`/`edges`
+   * *atuais* a cada render e avaliava a rubrica contra ele emparelhado com `lastResult` da última
+   * submissão — editar o canvas depois de submeter (ex. adicionar um Cache) fazia um critério
+   * mudar de status (`uses-cache` vira ✓) sem que `lastResult` refletisse mais esse design (a
+   * latência exibida ainda seria a de antes do Cache). Mantendo os dois juntos, sempre atualizados
+   * na mesma ação, o checklist nunca mistura metade de um design com metade de outro.
+   */
+  lastDesign: Design | null;
   onNodesChange: (changes: NodeChange<CanvasNode>[]) => void;
   onEdgesChange: (changes: EdgeChange<CanvasEdge>[]) => void;
   onConnect: (connection: Connection) => void;
@@ -63,7 +73,8 @@ export type CanvasState = {
   clearEdgeWeight: (edgeId: string) => void;
   selectNode: (nodeId: string | null) => void;
   selectEdge: (edgeId: string | null) => void;
-  applySimulationResult: (result: SimulationResult | null) => void;
+  /** `design` deve ser o mesmo objeto passado a `simulate()` para produzir `result` — nunca recomputado à parte. */
+  applySimulationResult: (result: SimulationResult | null, design: Design | null) => void;
 };
 
 // Só nodes/edges entram no histórico de undo/redo e no autosave — selectedNodeId/lastResult são
@@ -105,6 +116,7 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
       selectedNodeId: null,
       selectedEdgeId: null,
       lastResult: null,
+      lastDesign: null,
 
       onNodesChange: (changes) =>
         set((state) => {
@@ -140,6 +152,7 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
           state.selectedNodeId = null;
           state.selectedEdgeId = null;
           state.lastResult = null;
+          state.lastDesign = null;
         }),
 
       // Aplicar um template de arquitetura (FR novo) — mesmo tratamento destrutivo de
@@ -151,6 +164,7 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
           state.selectedNodeId = null;
           state.selectedEdgeId = null;
           state.lastResult = null;
+          state.lastDesign = null;
         }),
 
       updateNodeConfig: (nodeId, patch) =>
@@ -198,9 +212,10 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
           state.selectedNodeId = null;
         }),
 
-      applySimulationResult: (result) =>
+      applySimulationResult: (result, design) =>
         set((state) => {
           state.lastResult = result;
+          state.lastDesign = design;
         }),
     })),
     {
