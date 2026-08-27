@@ -45,7 +45,11 @@ export function ChallengeTopBar({
   const containerRef = useRef<HTMLDivElement>(null);
   useClickOutside(containerRef, () => setOpenMenu(null));
 
-  const completedIds = useProgressionStore((s) => new Set(s.completedIds));
+  // Seleciona o array direto do store, sem embrulhar num `new Set(...)` aqui: um seletor Zustand
+  // precisa devolver a mesma referência entre renders quando o valor não mudou (v5 roda em cima de
+  // `useSyncExternalStore`, que compara snapshots com `Object.is`) — criar um objeto novo a cada
+  // render gera loop de re-render. Ver o comentário em challenge-progression.ts.
+  const completedIds = useProgressionStore((s) => s.completedIds);
 
   return (
     <div ref={containerRef} className="flex items-center gap-2 border-b border-zinc-800 bg-zinc-950 px-4 py-2">
@@ -65,7 +69,7 @@ export function ChallengeTopBar({
               const problem = getProblem(id);
               if (!problem) return null;
               const unlocked = isChallengeUnlocked(id, ALL_PROBLEM_IDS, completedIds);
-              const solved = completedIds.has(id);
+              const solved = completedIds.includes(id);
               const active = activeChallengeId === id;
               return (
                 <button

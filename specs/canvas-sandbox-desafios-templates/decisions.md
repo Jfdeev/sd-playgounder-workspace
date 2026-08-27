@@ -98,6 +98,31 @@ do site de inspiração (Real-time Chat, Analytics Pipeline, Video Platform, AI 
 aparecem na lista de desafios como "em breve" (sempre bloqueados, sem `Problem` por trás) — visual
 parecido com o site, sem fingir conteúdo que não existe.
 
+## Correções pós-implementação (achadas pelo `advisor` desta sessão, em revisão do commit anterior)
+
+Três bugs reais, nenhum pego por `tsc`/testes/build (a razão de cada um está documentada inline
+no código, não repetida aqui):
+
+1. **`challenge-topbar.tsx` quebraria a barra de Desafios já no primeiro render**: o seletor
+   Zustand `useProgressionStore((s) => new Set(s.completedIds))` devolvia um objeto novo a cada
+   render — Zustand v5 roda em cima de `useSyncExternalStore`, que exige a mesma referência quando
+   o valor não mudou, e gera loop de re-render/aviso quando não. `isChallengeUnlocked` passou a
+   receber `readonly string[]` (com `.includes()`) em vez de `ReadonlySet<string>`, e o seletor
+   passou a devolver o array direto do store (`challenge-progression.ts`, `challenge-topbar.tsx`).
+2. **Deep link contornava a progressão travada**: `/app/[problemId]` só checava se o `Problem`
+   existia no catálogo, nunca se estava destravado pela ordem de `ALL_PROBLEM_IDS` — só o dropdown
+   da topbar aplicava `isChallengeUnlocked`. Um segundo ponto de entrada pro mesmo estado
+   (`activeChallengeId`) que não passava pela mesma regra. Corrigido com um `useEffect` de
+   montagem única em `canvas-workspace.tsx` que reavalia o deep link inicial contra a progressão
+   persistida e cai pro sandbox se ainda estiver bloqueado.
+3. **Checklist de rubrica podia misturar um design editado com o resultado de uma submissão
+   anterior**: `challenge-card.tsx` recomputava `design` a partir dos `nodes`/`edges` *atuais* a
+   cada render, mas avaliava contra `lastResult` da última submissão — editar o canvas depois de
+   submeter (ex. adicionar um Cache) podia fazer um critério mudar de ✓/✗ sem que a métrica exibida
+   (ex. latência) refletisse mais esse design. Corrigido guardando `lastDesign` na store junto de
+   `lastResult`, sempre atualizados na mesma ação (`applySimulationResult(result, design)`) — o
+   card lê os dois da store, nunca recomputa `design` à parte (`canvas-store.tsx`).
+
 ## O que ficou de fora (fora do pedido explícito, não assumido)
 
 - Slider de carga ao vivo no sandbox (ver decisão 3).

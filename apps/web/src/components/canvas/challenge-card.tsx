@@ -8,15 +8,17 @@
  * `packages/problems/src/types.ts`) e dicas estáticas colapsáveis. Só renderiza quando existe um
  * desafio ativo — no canvas livre (sandbox) este componente nem monta.
  *
- * A rubrica é reavaliada a cada `lastResult`/design mudar — antes da primeira submissão, cada
- * critério aparece como "não verificado ainda" (nem passou, nem falhou).
+ * A rubrica é reavaliada a cada submissão — antes da primeira, cada critério aparece como "não
+ * verificado ainda" (nem passou, nem falhou). Lê `lastResult`/`lastDesign` da store, sempre o par
+ * exato que `simulate()` produziu junto — nunca recomputa `design` a partir dos `nodes`/`edges`
+ * *atuais* (achado numa revisão do `advisor`: fazer isso emparelharia um design editado depois da
+ * submissão com o resultado de antes, e um critério como "usa cache" poderia mudar de status sem
+ * que a latência exibida refletisse mais esse design).
  */
 
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Circle, LogOut, X } from 'lucide-react';
 import type { Problem } from '@sdp/problems';
-import { toDesign } from '@/lib/canvas-to-design';
-import { toFlowEdge, toFlowNode } from '@/lib/canvas-types';
 import { useCanvasStore } from '@/stores/canvas-store';
 
 export function ChallengeCard({ problem, onLeave }: { problem: Problem; onLeave: () => void }) {
@@ -24,13 +26,8 @@ export function ChallengeCard({ problem, onLeave }: { problem: Problem; onLeave:
   const [hintsOpen, setHintsOpen] = useState(false);
   const [openHintId, setOpenHintId] = useState<string | null>(null);
 
-  const nodes = useCanvasStore((s) => s.nodes);
-  const edges = useCanvasStore((s) => s.edges);
   const lastResult = useCanvasStore((s) => s.lastResult);
-
-  const flowNodes = nodes.map((n) => toFlowNode(n.id, n.position, n.data));
-  const flowEdges = edges.map((e) => toFlowEdge(e.id, e.source, e.target, e.data ?? { kind: 'read' }));
-  const design = toDesign(flowNodes, flowEdges);
+  const lastDesign = useCanvasStore((s) => s.lastDesign);
 
   if (collapsed) {
     return (
@@ -81,9 +78,9 @@ export function ChallengeCard({ problem, onLeave }: { problem: Problem; onLeave:
           <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Critérios</h3>
           <ul className="space-y-1">
             {problem.rubric.map((criterion) => {
-              const status: 'pass' | 'fail' | 'unchecked' = !lastResult
+              const status: 'pass' | 'fail' | 'unchecked' = !lastResult || !lastDesign
                 ? 'unchecked'
-                : criterion.evaluate(lastResult, design)
+                : criterion.evaluate(lastResult, lastDesign)
                   ? 'pass'
                   : 'fail';
               return (

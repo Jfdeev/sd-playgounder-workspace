@@ -121,7 +121,7 @@ function CanvasInner({ problem }: { problem: Problem | null }) {
     if (!problem) return;
     if (nodes.length === 0) {
       setSubmitError('Adicione componentes antes de submeter.');
-      applySimulationResult(null);
+      applySimulationResult(null, null);
       return;
     }
     setSubmitError(null);
@@ -132,7 +132,7 @@ function CanvasInner({ problem }: { problem: Problem | null }) {
     const workload = toWorkload(problem);
     const result = simulate(design, workload);
 
-    applySimulationResult(result);
+    applySimulationResult(result, design);
     for (const [nodeId, nodeResult] of Object.entries(result.nodes)) {
       updateNodeConfig(nodeId, {
         result: { status: nodeResult.status, isBottleneck: nodeId === result.path.bottleneckId },
