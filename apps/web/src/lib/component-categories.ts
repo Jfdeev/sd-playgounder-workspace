@@ -84,4 +84,18 @@ export const CATEGORY_OF: Record<ConnectableKind, PaletteCategory> = {
   third_party_api: 'External',
   payment: 'External',
   email: 'External',
+
+  // Observability — M1.5 US3.
+  metrics: 'Observability',
+  logs: 'Observability',
+  tracing: 'Observability',
+  alerting: 'Observability',
+  health_check: 'Observability',
+
+  // Network — M1.5 US3.
+  vpc: 'Network',
+  subnet: 'Network',
+  nat_gateway: 'Network',
+  vpn: 'Network',
+  service_mesh: 'Network',
 };

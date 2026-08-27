@@ -48,7 +48,19 @@ export type ComponentType =
   // External — M1.5 US2
   | 'third_party_api'
   | 'payment'
-  | 'email';
+  | 'email'
+  // Observability — M1.5 US3
+  | 'metrics'
+  | 'logs'
+  | 'tracing'
+  | 'alerting'
+  | 'health_check'
+  // Network — M1.5 US3
+  | 'vpc'
+  | 'subnet'
+  | 'nat_gateway'
+  | 'vpn'
+  | 'service_mesh';
 
 export type DesignNode = {
   id: NodeId;

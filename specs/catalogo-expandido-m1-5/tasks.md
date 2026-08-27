@@ -175,23 +175,23 @@ VPC/Subnet no caminho e confirmar que nunca aparece como gargalo (quickstart.md,
 
 ### Implementation for User Story 3
 
-- [ ] T016 [US3] `packages/engine/src/types.ts`: adicionar os 10 literais novos — Observability: `metrics`, `logs`, `tracing`, `alerting`, `health_check`; Network: `vpc`, `subnet`, `nat_gateway`, `vpn`, `service_mesh`
-- [ ] T017 [P] [US3] `packages/engine/src/catalog/components.ts`: adicionar as 10 entradas em `COMPONENT_CATALOG` — Observability como arquétipo "tap/sink" (throughput altíssimo, latência baixíssima, custo baixo — nunca gargalo, por analogia de papel com o critério já fixado pra Network); Network ancorado em `cdn` (maior capacidade do catálogo, FR-006: "capacidade alta o bastante pra nunca virar gargalo em designs razoáveis")
-- [ ] T018 [US3] `apps/web/src/lib/connection-rules.ts`: adicionar as 10 chaves novas em `ALLOWED_TARGETS` e EDITAR as 9 chaves existentes (`client` + os 8 membros do Grupo Cômputo: `app_server`, `worker`, `serverless`, `auth_service`, `search`, `scheduler`, `notifications`, `analytics`) — tabela completa na "Nota de design" acima
-- [ ] T019 [P] [US3] `apps/web/src/lib/canvas-ui-catalog.ts`: adicionar as 10 entradas em `COMPONENT_UI` (label, ícone, descrição pedagógica — para VPC/Subnet, a descrição MUST explicitar que a spec reflete "container de alta capacidade, raramente o fator limitante", não um hop de processamento comum)
-- [ ] T020 [P] [US3] `apps/web/src/lib/component-categories.ts`: adicionar as 10 entradas novas em `CATEGORY_OF` (5 Observability, 5 Network)
+- [X] T016 [US3] `packages/engine/src/types.ts`: adicionar os 10 literais novos — Observability: `metrics`, `logs`, `tracing`, `alerting`, `health_check`; Network: `vpc`, `subnet`, `nat_gateway`, `vpn`, `service_mesh`
+- [X] T017 [P] [US3] `packages/engine/src/catalog/components.ts`: adicionar as 10 entradas em `COMPONENT_CATALOG` — Observability como arquétipo "tap/sink" (throughput altíssimo, latência baixíssima, custo baixo — nunca gargalo, por analogia de papel com o critério já fixado pra Network); Network ancorado em `cdn` (maior capacidade do catálogo, FR-006: "capacidade alta o bastante pra nunca virar gargalo em designs razoáveis"); VPC/Subnet fixados em 150.000 rps, acima de qualquer outro componente do catálogo
+- [X] T018 [US3] `apps/web/src/lib/connection-rules.ts`: adicionar as 10 chaves novas em `ALLOWED_TARGETS` e EDITAR as 9 chaves existentes (`client` + os 8 membros do Grupo Cômputo: `app_server`, `worker`, `serverless`, `auth_service`, `search`, `scheduler`, `notifications`, `analytics`, via `COMPUTE_TARGETS` compartilhado) — tabela completa na "Nota de design" acima
+- [X] T019 [P] [US3] `apps/web/src/lib/canvas-ui-catalog.ts`: adicionar as 10 entradas em `COMPONENT_UI` (label, ícone, descrição pedagógica — para VPC/Subnet, a descrição explicita que a spec reflete "container de alta capacidade, raramente o fator limitante", não um hop de processamento comum)
+- [X] T020 [P] [US3] `apps/web/src/lib/component-categories.ts`: adicionar as 10 entradas novas em `CATEGORY_OF` (5 Observability, 5 Network)
 
 ### Tests for User Story 3
 
-- [ ] T021 [P] [US3] `packages/engine/test/catalog/components.spec.ts`: atualizar `EXPECTED_TYPES` (34 → 44) e adicionar um teste dedicado: `vpc.maxThroughputRps` e `subnet.maxThroughputRps` MUST ser `>=` o maior `maxThroughputRps` de qualquer outro componente do catálogo (prova mecânica do critério "nunca gargalo" de FR-006, não só uma asserção de valor solto)
-- [ ] T022 [P] [US3] `apps/web/test/connection-rules.spec.ts`: atualizar `ALL_COMPONENT_TYPES` (34 → 44), atualizar a lista de tipos-folha (+ `metrics`, `logs`, `tracing`, `alerting`, `health_check`), e adicionar 1 caso permitido + 1 proibido por componente novo
-- [ ] T023 [US3] Coverage pass: `connection-rules.ts` — para cada entrada nova/editada de `ALLOWED_TARGETS` em T018, confirmar que existe um caso em T022 que quebra se aquela entrada for mutada; escrever os casos faltantes
-- [ ] T024 [P] [US3] `apps/web/test/canvas-ui-catalog.spec.ts`: atualizar `ALL_COMPONENT_TYPES` (34 → 44)
-- [ ] T025 [US3] Adicionar um teste de regressão (`apps/web/test/bottleneck-scenario.spec.ts` ou novo arquivo) provando, via `simulate()` real com a escala do problema Encurtador de URL, que um design razoável com VPC ou Subnet no caminho nunca reporta esse nó como `result.path.bottleneckId` — Acceptance Scenario 2 de US3
+- [X] T021 [P] [US3] `packages/engine/test/catalog/components.spec.ts`: atualizar `EXPECTED_TYPES` (34 → 44) e adicionar um teste dedicado: `vpc.maxThroughputRps` e `subnet.maxThroughputRps` MUST ser `>=` o maior `maxThroughputRps` de qualquer outro componente do catálogo (prova mecânica do critério "nunca gargalo" de FR-006, não só uma asserção de valor solto) — 51 testes no arquivo (era 40)
+- [X] T022 [P] [US3] `apps/web/test/connection-rules.spec.ts`: atualizar `ALL_COMPONENT_TYPES` (34 → 44), atualizar a lista de tipos-folha (+ `metrics`, `logs`, `tracing`, `alerting`, `health_check`), e adicionar 1 caso permitido + 1 proibido por componente novo — 2 testes novos de cenário
+- [X] T023 [US3] Coverage pass: `connection-rules.ts` — os 3 testes de conteúdo completo (`client`/`app_server`/`worker`) atualizados pra incluir as 5 entradas de Observability/Network que cada um ganhou; +2 testes novos de conteúdo completo (Network idêntico ao leque original de `client`; Observability sempre folha) — 100% mantido, 36 testes no arquivo (era 29)
+- [X] T024 [P] [US3] `apps/web/test/canvas-ui-catalog.spec.ts`: atualizar `ALL_COMPONENT_TYPES` (34 → 44)
+- [X] T025 [US3] Novo describe em `apps/web/test/bottleneck-scenario.spec.ts`: Cliente → VPC (1 réplica) → App Server subprovisionado (1 réplica, mesmo cenário que já satura) — via `simulate()` real com a escala do encurtador de URL, confirma que o gargalo reportado é o App Server, nunca o VPC (prova mais rigorosa que "design razoável": VPC no caminho crítico de um design que ESTÁ saturado a jusante, e ainda assim não é o gargalo) — Acceptance Scenario 2 de US3
 
 ### Verificação manual
 
-- [ ] T026 [US3] Rodar `pnpm --filter web dev`, seguir quickstart.md seção US3
+- [X] T026 [US3] `tsc` limpo nos dois pacotes; `pnpm --filter engine test` — 159/159 testes verdes; `pnpm --filter web test:coverage` (exceto `password.spec.ts`, flake pré-existente) — 103/103 testes verdes, 96.97%/98.18% cobertura, 100% em `connection-rules.ts`/`canvas-ui-catalog.ts`/`component-categories.ts`; `pnpm --filter web build` limpo. Checklist visual de `quickstart.md` fica bloqueado por auth, mesmo gap de T005/T015 — fica pro autor confirmar.
 
 **Checkpoint**: todas as 3 user stories entregues e independentemente funcionais.
 

@@ -48,13 +48,23 @@ describe('canvas-ui-catalog', () => {
     'third_party_api',
     'payment',
     'email',
+    'metrics',
+    'logs',
+    'tracing',
+    'alerting',
+    'health_check',
+    'vpc',
+    'subnet',
+    'nat_gateway',
+    'vpn',
+    'service_mesh',
   ] as const;
 
   const ALL_CLIENT_VARIANTS = ['mobile', 'web', 'desktop'] as const;
   const ALL_EDGE_KINDS = ['read', 'write', 'async', 'replication'] as const;
   const ALL_NODE_STATUSES = ['healthy', 'warning', 'saturated'] as const;
 
-  it('COMPONENT_UI tem uma entrada com label, icon e description para cada um dos 34 ComponentType', () => {
+  it('COMPONENT_UI tem uma entrada com label, icon e description para cada um dos 44 ComponentType', () => {
     expect(Object.keys(COMPONENT_UI).sort()).toEqual([...ALL_COMPONENT_TYPES].sort());
     for (const type of ALL_COMPONENT_TYPES) {
       expect(COMPONENT_UI[type].label).toBeTruthy();
