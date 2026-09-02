@@ -150,6 +150,24 @@ tracejado (assíncrona) continuam identificando o tipo à vista, e o tipo contin
 painel de configuração da aresta selecionada; só o peso (`weight`), que a cor não expressa, ainda
 aparece como rótulo no canvas.
 
+## Painel de resultado fechável, e tráfego animado nas arestas — pedidos diretos do autor, rodada seguinte
+
+- **`ResultPanel` fechável**: colapsa pra uma pill ("Ver resultado da simulação"), mesmo padrão
+  visual do `challenge-card.tsx`. **Fecha por padrão** e nunca reabre sozinho — a primeira versão
+  reabria a cada novo `result` (já que `simulate()` sempre devolve um objeto novo), o que incluía
+  toda mudança de rps no slider de "Simular"; o autor relatou isso como o painel "resetando"
+  (reabrindo sem pedir) a cada ajuste, atrapalhando o próprio propósito da régua de carga ao vivo —
+  corrigido removendo esse `useEffect` de reabertura automática.
+- **Tráfego animado nas arestas** ("como no site de exemplo"): reaproveita a técnica que já existia
+  no diagrama do hero da landing (`architecture-diagram.tsx`, `@keyframes flow-dash` em
+  `globals.css`) — traço tracejado pequeno se deslocando continuamente (marching ants), não uma
+  partícula única. Renderizado como uma segunda `<path>` por cima da aresta "real"
+  (`typed-edge.tsx`) — nunca substitui o traço/cor que já tem significado (tipo da aresta) — e só
+  aparece depois de rodar "Simular"/"Submeter" (`lastResult !== null`), nunca antes: antes de
+  simular não há requisição nenhuma fluindo ainda. Cor verde (emerald-400, `#34d399`, pedido
+  direto do autor) — mesmo tom já usado em `NODE_STATUS_UI.healthy` e no diagrama do hero, então
+  não introduz uma cor nova ao sistema visual do canvas.
+
 ## O que ficou de fora (fora do pedido explícito, não assumido)
 
 - Autoria dos 5 problemas restantes "em breve".

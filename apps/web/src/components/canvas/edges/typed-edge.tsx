@@ -2,7 +2,7 @@
 
 import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, type EdgeProps } from '@xyflow/react';
 import { EDGE_KIND_UI } from '@/lib/canvas-ui-catalog';
-import type { CanvasEdge } from '@/stores/canvas-store';
+import { useCanvasStore, type CanvasEdge } from '@/stores/canvas-store';
 
 /**
  * Aresta customizada por `EdgeKind` (FR-003) — cor distinta por tipo, tracejada para assíncrona
@@ -14,6 +14,14 @@ import type { CanvasEdge } from '@/stores/canvas-store';
  * tipo continua 100% identificável (cor + tracejado pro assíncrono) e editável a qualquer momento
  * no painel de configuração da aresta selecionada (`EdgeConfigPanel` em `config-panel.tsx`) — só
  * o peso (`weight`, FR-004), que a cor não consegue expressar, continua com um rótulo no canvas.
+ *
+ * "Tráfego" animado (pedido direto do autor, "como no site de exemplo") — reaproveita a técnica
+ * já usada no diagrama do hero da landing (`architecture-diagram.tsx`, `@keyframes flow-dash` em
+ * `globals.css`): traço tracejado pequeno se deslocando continuamente (marching ants), não uma
+ * partícula única viajando pela curva. Renderizado como uma SEGUNDA `<path>` por cima da aresta
+ * "real" — nunca substitui o traço dela — pra não confundir a cor/tracejado que já tem significado
+ * (tipo da aresta) com a decoração de tráfego. Só aparece quando há um resultado de simulação
+ * (`lastResult`): antes de rodar "Simular"/"Submeter" não há requisição nenhuma fluindo ainda.
  */
 export function TypedEdge({
   id,
@@ -37,6 +45,7 @@ export function TypedEdge({
   });
 
   const kindUi = EDGE_KIND_UI[data?.kind ?? 'read'];
+  const hasSimulated = useCanvasStore((s) => s.lastResult !== null);
 
   return (
     <>
@@ -47,6 +56,18 @@ export function TypedEdge({
         className={`${kindUi.colorClass} ${selected ? 'opacity-100' : 'opacity-80'}`}
         style={kindUi.dashed ? { strokeWidth: selected ? 2.5 : 1.5, strokeDasharray: '6 4' } : { strokeWidth: selected ? 2.5 : 1.5 }}
       />
+      {hasSimulated && (
+        <path
+          d={edgePath}
+          fill="none"
+          stroke="#34d399"
+          strokeWidth={selected ? 2 : 1.5}
+          strokeLinecap="round"
+          strokeDasharray="4 8"
+          className="pointer-events-none opacity-70"
+          style={{ animation: 'flow-dash 0.8s linear infinite' }}
+        />
+      )}
       {data?.weight !== undefined && (
         <EdgeLabelRenderer>
           <div
