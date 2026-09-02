@@ -11,23 +11,23 @@ import { useCanvasStore } from '@/stores/canvas-store';
  * nó, latência do caminho crítico, throughput, custo, violações. FR-013: NUNCA renderiza nenhum
  * campo de nota/score/veredito — SimulationResult.scores é placeholder até M2 e não é lido aqui.
  */
-export function ResultPanel({ result, submitError }: { result: SimulationResult | null; submitError: string | null }) {
+export function ResultPanel({ result, actionError }: { result: SimulationResult | null; actionError: string | null }) {
   const nodes = useCanvasStore((s) => s.nodes);
   const nodeLabel = (nodeId: string) => {
     const node = nodes.find((n) => n.id === nodeId);
     return node && node.data.kind === 'component' ? COMPONENT_UI[node.data.componentType].label : nodeId;
   };
 
-  if (submitError) {
+  if (actionError) {
     return (
-      <section className="border-t border-zinc-800 bg-zinc-950 p-4 text-sm text-amber-400">{submitError}</section>
+      <section className="border-t border-zinc-800 bg-zinc-950 p-4 text-sm text-amber-400">{actionError}</section>
     );
   }
 
   if (!result) {
     return (
       <section className="border-t border-zinc-800 bg-zinc-950 p-4 text-sm text-zinc-500">
-        Monte um design e clique em "Submeter" para ver o resultado do engine.
+        Monte um design e clique em "Simular" (carga livre) ou "Submeter" (desafio ativo) para ver o resultado do engine.
       </section>
     );
   }

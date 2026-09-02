@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { toDesign, toWorkload } from '../src/lib/canvas-to-design';
+import { toDesign, toManualWorkload, toWorkload } from '../src/lib/canvas-to-design';
 import type { ComputableFlowNode, FlowEdge, FlowNode } from '../src/lib/canvas-types';
 import type { Problem } from '@sdp/problems';
 
@@ -151,5 +151,27 @@ describe('toWorkload', () => {
 
   it('é determinística — mesmo Problem, mesmo Workload, sempre', () => {
     expect(toWorkload(problem)).toEqual(toWorkload(problem));
+  });
+});
+
+describe('toManualWorkload', () => {
+  it('usa exatamente o rps informado, sem nenhuma transformação', () => {
+    expect(toManualWorkload(1234).rps).toBe(1234);
+    expect(toManualWorkload(0).rps).toBe(0);
+  });
+
+  it('preenche os demais campos de Workload com placeholders estruturais fixos', () => {
+    const a = toManualWorkload(100);
+    const b = toManualWorkload(99_999);
+    // readWriteRatio/payloadBytes/peakMultiplier não são lidos por nenhum cálculo do engine hoje
+    // (só workload.rps é) — o que importa aqui é que são constantes, não que tenham um valor
+    // específico; independem do rps escolhido.
+    expect(a.readWriteRatio).toBe(b.readWriteRatio);
+    expect(a.payloadBytes).toBe(b.payloadBytes);
+    expect(a.peakMultiplier).toBe(b.peakMultiplier);
+  });
+
+  it('é determinística — mesmo rps, mesmo Workload, sempre', () => {
+    expect(toManualWorkload(5000)).toEqual(toManualWorkload(5000));
   });
 });

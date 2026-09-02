@@ -20,12 +20,15 @@ export function ComponentNode({ data, selected }: NodeProps<CanvasNode>) {
   const { label, icon: Icon, description } = COMPONENT_UI[data.componentType];
   const statusUi = data.result ? NODE_STATUS_UI[data.result.status] : null;
   const isBottleneck = data.result?.isBottleneck ?? false;
+  // Brilho por status (pedido direto do autor: saudável = verde, não-saudável = vermelho/âmbar) —
+  // `shadow-lg` neutro só quando não há resultado ainda (nenhuma simulação rodou nesta sessão).
+  const glowClass = statusUi?.glowClass ?? 'shadow-lg';
 
   return (
     <div
-      className={`min-w-40 rounded-xl border-2 bg-zinc-900 px-4 py-3 shadow-lg transition ${
+      className={`min-w-40 rounded-xl border-2 bg-zinc-900 px-4 py-3 transition ${glowClass} ${
         isBottleneck
-          ? 'border-red-500 shadow-red-500/30'
+          ? 'border-red-500'
           : selected
             ? 'border-violet-400'
             : (statusUi?.colorClass.split(' ')[0] ?? 'border-zinc-700')
