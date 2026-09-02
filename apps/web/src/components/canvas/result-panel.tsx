@@ -1,6 +1,7 @@
 'use client';
 
-import { AlertTriangle, DollarSign, Gauge, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
+import { AlertTriangle, ChevronUp, DollarSign, Gauge, TrendingUp, X } from 'lucide-react';
 import type { SimulationResult } from '@sdp/engine';
 import { NODE_STATUS_UI, COMPONENT_UI } from '@/lib/canvas-ui-catalog';
 import { formatViolationMessage } from '@/lib/violation-messages';
@@ -10,9 +11,18 @@ import { useCanvasStore } from '@/stores/canvas-store';
  * Painel de resultado (FR-008) — mostra exatamente o que o engine calcula: utilização/status por
  * nó, latência do caminho crítico, throughput, custo, violações. FR-013: NUNCA renderiza nenhum
  * campo de nota/score/veredito — SimulationResult.scores é placeholder até M2 e não é lido aqui.
+ *
+ * Fechável (pedido direto do autor) — colapsa pra uma pill, mesmo padrão visual do
+ * `challenge-card.tsx`. Fica fechado por padrão (segundo pedido direto do autor) e NUNCA reabre
+ * sozinho: a primeira versão reabria a cada novo `result` (já que `simulate()` devolve um objeto
+ * novo a cada chamada), mas isso incluía toda mudança de rps no slider de "Simular" — o autor
+ * relatou como o painel "resetando" (reabrindo sem pedir) a cada ajuste, atrapalhando exatamente
+ * o "ver quem satura no canvas" que a régua deveria habilitar sem essa interrupção visual.
  */
 export function ResultPanel({ result, actionError }: { result: SimulationResult | null; actionError: string | null }) {
   const nodes = useCanvasStore((s) => s.nodes);
+  const [collapsed, setCollapsed] = useState(true);
+
   const nodeLabel = (nodeId: string) => {
     const node = nodes.find((n) => n.id === nodeId);
     return node && node.data.kind === 'component' ? COMPONENT_UI[node.data.componentType].label : nodeId;
@@ -32,8 +42,33 @@ export function ResultPanel({ result, actionError }: { result: SimulationResult 
     );
   }
 
+  if (collapsed) {
+    return (
+      <button
+        type="button"
+        onClick={() => setCollapsed(false)}
+        className="flex w-full items-center justify-between border-t border-zinc-800 bg-zinc-950 px-4 py-2 text-xs text-zinc-500 transition hover:text-zinc-300"
+      >
+        Ver resultado da simulação
+        <ChevronUp className="size-3.5" aria-hidden />
+      </button>
+    );
+  }
+
   return (
     <section className="max-h-72 overflow-y-auto border-t border-zinc-800 bg-zinc-950 p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Resultado da simulação</p>
+        <button
+          type="button"
+          onClick={() => setCollapsed(true)}
+          aria-label="Fechar resultado"
+          title="Fechar resultado"
+          className="rounded-md p-1 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200"
+        >
+          <X className="size-3.5" aria-hidden />
+        </button>
+      </div>
       <div className="mb-4 grid grid-cols-3 gap-3">
         <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
           <div className="flex items-center gap-1.5 text-xs text-zinc-500">

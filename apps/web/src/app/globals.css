@@ -24,9 +24,11 @@ body {
   background-size: 24px 24px;
 }
 
-/* "Marching ants" — tráfego fluindo pelas conexões do diagrama de exemplo no hero
-   (ArchitectureDiagram). Traço tracejado que se desloca continuamente, em vez do padrão de
-   partícula única viajando pela curva (técnica visual deliberadamente diferente). */
+/* "Marching ants" — tráfego fluindo pelas conexões. Traço tracejado que se desloca continuamente,
+   em vez do padrão de partícula única viajando pela curva (técnica visual deliberadamente
+   diferente). Compartilhado por dois consumidores: o diagrama de exemplo do hero
+   (ArchitectureDiagram, sempre animado, decorativo) e as arestas reais do canvas (TypedEdge, só
+   animadas depois de rodar "Simular"/"Submeter" — representa requisição de verdade, não decoração). */
 @keyframes flow-dash {
   to {
     stroke-dashoffset: -24;
