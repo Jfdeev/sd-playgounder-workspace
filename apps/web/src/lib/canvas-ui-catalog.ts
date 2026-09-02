@@ -378,8 +378,17 @@ export const EDGE_KIND_UI: Record<EdgeKind, { label: string; colorClass: string;
   replication: { label: 'Replicação', colorClass: 'stroke-violet-400', dashed: false },
 };
 
-export const NODE_STATUS_UI: Record<'healthy' | 'warning' | 'saturated', { label: string; colorClass: string }> = {
-  healthy: { label: 'Saudável', colorClass: 'border-emerald-500 text-emerald-400' },
-  warning: { label: 'Atenção', colorClass: 'border-amber-500 text-amber-400' },
-  saturated: { label: 'Saturado', colorClass: 'border-red-500 text-red-400' },
+/**
+ * `glowClass` — pedido direto do autor: nó saudável brilha verde, nó não-saudável brilha vermelho
+ * (ao rodar "Simular"/"Submeter"). Mantém o terceiro estado do engine (`warning`, ρ ainda não
+ * saturado mas acima do limiar de atenção — `WARNING_UTILIZATION_THRESHOLD` em
+ * `packages/engine/src/metrics/utilization.ts`) com um brilho âmbar intermediário, em vez de forçar
+ * um binário verde/vermelho — perderia o aviso antecipado de "está perto de saturar" que o próprio
+ * engine já calcula. Glow em `box-shadow` (não em `border`, que continua reservado pro destaque de
+ * gargalo em `ComponentNode`), então os dois efeitos nunca competem pela mesma propriedade CSS.
+ */
+export const NODE_STATUS_UI: Record<'healthy' | 'warning' | 'saturated', { label: string; colorClass: string; glowClass: string }> = {
+  healthy: { label: 'Saudável', colorClass: 'border-emerald-500 text-emerald-400', glowClass: 'shadow-[0_0_16px_3px_rgba(16,185,129,0.55)]' },
+  warning: { label: 'Atenção', colorClass: 'border-amber-500 text-amber-400', glowClass: 'shadow-[0_0_16px_3px_rgba(245,158,11,0.55)]' },
+  saturated: { label: 'Saturado', colorClass: 'border-red-500 text-red-400', glowClass: 'shadow-[0_0_18px_4px_rgba(239,68,68,0.65)]' },
 };

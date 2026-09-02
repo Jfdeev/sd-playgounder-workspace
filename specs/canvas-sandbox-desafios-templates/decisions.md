@@ -123,8 +123,34 @@ no código, não repetida aqui):
    `lastResult`, sempre atualizados na mesma ação (`applySimulationResult(result, design)`) — o
    card lê os dois da store, nunca recomputa `design` à parte (`canvas-store.tsx`).
 
+## Botão "Simular" — a decisão 3 acima é reaberta, deliberadamente, por pedido direto do autor
+
+Pedido do autor nesta rodada: tirar a legenda de tipo que aparecia fixa em cada aresta, e
+adicionar um botão de simular com carga ajustável que destaca no canvas quem satura. Confirmado
+com o autor antes de implementar (duas perguntas): (1) "Simular" é **puramente exploratório** —
+nunca chama `isProblemSolved`/`markChallengeCompleted`, só "Submeter" (sempre na escala fixa do
+`Problem`) conta oficialmente pra rubrica/progressão; (2) controle por slider (escala logarítmica,
+`apps/web/src/lib/rps-slider.ts`) + input numérico ao lado.
+
+Isso não contradiz a decisão 3 registrada acima — só reabre precisamente a parte que tinha sido
+descartada (o slider de carga ao vivo), da forma que preserva a preocupação original da FR-007 de
+M1 (o usuário não pode baixar a carga só pra "passar" na rubrica de um desafio): "Simular" nunca
+afeta se um desafio é considerado resolvido; resolver continua exigindo "Submeter" na escala real
+do problema. Ver comentário de topo em `apps/web/src/components/canvas/canvas.tsx`.
+
+Nós ganharam brilho por status (`glowClass` em `NODE_STATUS_UI`, `canvas-ui-catalog.ts`) — verde
+saudável, âmbar atenção, vermelho saturado. Pedido literal do autor foi um binário (saudável=verde
+/ não=vermelho); mantive o terceiro estado intermediário (âmbar) que o próprio engine já calcula
+(`WARNING_UTILIZATION_THRESHOLD`) em vez de forçar um binário, pra não jogar fora um aviso
+antecipado real — decisão minha, registrada aqui pra o autor poder reverter se preferir o binário
+estrito.
+
+A legenda de texto ("Leitura"/"Escrita"/...) saiu de cima de toda aresta (`typed-edge.tsx`) — cor +
+tracejado (assíncrona) continuam identificando o tipo à vista, e o tipo continua 100% editável no
+painel de configuração da aresta selecionada; só o peso (`weight`), que a cor não expressa, ainda
+aparece como rótulo no canvas.
+
 ## O que ficou de fora (fora do pedido explícito, não assumido)
 
-- Slider de carga ao vivo no sandbox (ver decisão 3).
 - Autoria dos 5 problemas restantes "em breve".
 - Narrador/LLM em qualquer parte disso (dicas são texto estático, por pedido explícito).

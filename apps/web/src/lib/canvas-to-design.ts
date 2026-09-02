@@ -75,3 +75,18 @@ export function toWorkload(problem: Problem): Workload {
     peakMultiplier,
   };
 }
+
+/**
+ * Workload manual do botão "Simular" — usa só o rps escolhido livremente pelo usuário no canvas
+ * (sandbox ou dentro de um desafio), sem vir da escala de nenhum `Problem`. Puramente exploratório:
+ * nunca conta pra rubrica nem pra progressão travada (só `toWorkload(problem)`, usado por
+ * "Submeter", faz isso) — ver `canvas.tsx`.
+ *
+ * `readWriteRatio`/`payloadBytes`/`peakMultiplier` são placeholders estruturais: nenhum cálculo
+ * do engine hoje lê esses três campos de `Workload` (só `workload.rps`, conferido em
+ * `packages/engine/src/index.ts`) — valores fixos aqui não influenciam `simulate()` de forma
+ * nenhuma. Se um cálculo futuro passar a consumi-los, valerá revisitar isto.
+ */
+export function toManualWorkload(rps: number): Workload {
+  return { rps, readWriteRatio: 0.8, payloadBytes: 1024, peakMultiplier: 1 };
+}

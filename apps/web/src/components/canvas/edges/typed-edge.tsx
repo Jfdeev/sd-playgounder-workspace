@@ -7,7 +7,13 @@ import type { CanvasEdge } from '@/stores/canvas-store';
 /**
  * Aresta customizada por `EdgeKind` (FR-003) — cor distinta por tipo, tracejada para assíncrona
  * (deixa explícito que ela sai do cálculo de latência do usuário — mesma regra do engine),
- * marcador de seta e rótulo com o peso efetivo quando presente (FR-004).
+ * marcador de seta.
+ *
+ * Pedido direto do autor: tirar a legenda de texto ("Leitura"/"Escrita"/...) que aparecia fixa em
+ * cima de toda aresta — poluía o canvas repetindo uma informação que a cor/traço já comunica. O
+ * tipo continua 100% identificável (cor + tracejado pro assíncrono) e editável a qualquer momento
+ * no painel de configuração da aresta selecionada (`EdgeConfigPanel` em `config-panel.tsx`) — só
+ * o peso (`weight`, FR-004), que a cor não consegue expressar, continua com um rótulo no canvas.
  */
 export function TypedEdge({
   id,
@@ -41,15 +47,16 @@ export function TypedEdge({
         className={`${kindUi.colorClass} ${selected ? 'opacity-100' : 'opacity-80'}`}
         style={kindUi.dashed ? { strokeWidth: selected ? 2.5 : 1.5, strokeDasharray: '6 4' } : { strokeWidth: selected ? 2.5 : 1.5 }}
       />
-      <EdgeLabelRenderer>
-        <div
-          className="pointer-events-none absolute rounded bg-zinc-900/90 px-1.5 py-0.5 text-[10px] text-zinc-300"
-          style={{ transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)` }}
-        >
-          {kindUi.label}
-          {data?.weight !== undefined ? ` · ${data.weight}` : ''}
-        </div>
-      </EdgeLabelRenderer>
+      {data?.weight !== undefined && (
+        <EdgeLabelRenderer>
+          <div
+            className="pointer-events-none absolute rounded bg-zinc-900/90 px-1.5 py-0.5 text-[10px] text-zinc-300"
+            style={{ transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)` }}
+          >
+            {data.weight}
+          </div>
+        </EdgeLabelRenderer>
+      )}
     </>
   );
 }
