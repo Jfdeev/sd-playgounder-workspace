@@ -194,6 +194,41 @@ do encurtador do zero, sem ajuda, e entende por que o resultado foi aquele (garg
 latência, custo, violações estruturais — score por dimensão é escopo de M2; decisão
 do autor, 2026-08-17, `specs/canvas-submissao-m1/spec.md`).
 
+### M1.5 — Catálogo expandido de componentes (inserido após M1 — decisão do autor)
+Paleta reorganizada em 9 categorias · 33 `ComponentType` novos (Traffic & Edge, Compute,
+Storage, Messaging, AI & Agents, External, Observability, Network) sobre os 11 originais
+de M0/M1, cada um com matriz de conectividade e spec de capacidade/latência próprias
+(P0). Concluído — `specs/catalogo-expandido-m1-5/spec.md`.
+
+**Critério de saída de M1.5:** todo `ComponentType` novo tem categoria de paleta,
+matriz de conectividade e spec de capacidade cobertos por teste exaustivo
+(`Record<ComponentType, ...>` força isso em tempo de compilação).
+
+### Canvas sandbox, desafios e templates (resgate de pedidos de chat, fora do fluxo formal — decisão do autor)
+Entre M1.5 e M2, por pedido direto do autor ("faça tudo logo agora", sem passar pelo
+fluxo `/speckit-specify` → clarify → plan → tasks completo — registrado em
+`specs/canvas-sandbox-desafios-templates/decisions.md`, que é a fonte de racional
+detalhado destas decisões):
+
+- **Canvas sandbox**: uma rota só (`/app`), desafio como estado opcional — o usuário
+  monta e simula um design sem precisar de um problema ativo.
+- **Módulo de desafios**: card de desafio no canto inferior esquerdo, **rubrica à
+  mostra** (reverte a "rubrica escondida" de `foundational-doc.md` §2.1 parte 6 — ver
+  `packages/problems/src/types.ts`), dicas estáticas colapsáveis, progressão travada
+  (desafio N só destrava com o desafio N-1 resolvido). 3 problemas completos hoje
+  (Encurtador de URL, Social Feed, E-commerce Checkout).
+- **Templates de arquitetura**: Monolito, 3 Camadas, Microsserviços, Orientado a
+  Eventos — geram o design automaticamente, validados contra a mesma matriz de
+  conectividade do canvas.
+- **Botão "Simular"**: roda o engine com um rps ajustável por slider/input, **sempre
+  exploratório** — nunca conta pra rubrica/progressão (só "Submeter", na escala fixa
+  do problema, faz isso). Nós brilham por status (verde/âmbar/vermelho); arestas
+  mostram tráfego animado depois de simular.
+
+Isso muda o ponto de partida de M2 abaixo: rubrica visível e progressão travada já
+existem para 3 problemas — M2 estende isso (score por dimensão, narrador, solução de
+referência), não o introduz do zero.
+
 ### M2 — Avaliação e biblioteca
 Rubrica por problema · narrador LLM explicando o resultado do engine (nunca gerando
 número) · score por dimensão · solução de referência com raciocínio · calculadora de
@@ -265,7 +300,9 @@ via Yjs · modo turma com painel do professor. **Nada aqui começa antes de M4 f
   que é descritivo, não definitivo.
 - **D2** — Gerenciador de pacote do monorepo (pnpm vs. npm workspaces).
 - **D3** — ORM (Drizzle vs. Prisma).
-- **D4** — Provedor de LLM do narrador.
+- ~~**D4** — Provedor de LLM do narrador.~~ **Resolvido**: Anthropic (Claude API) —
+  decisão do autor ao iniciar M2. Saída JSON estruturada (exigência de ADR-006),
+  chave de API gerenciada no mesmo fluxo do ambiente de desenvolvimento.
 - **D5** — Fonte dos números de custo dos componentes (tabela fixa vs. baseada em
   preço real de cloud).
 
