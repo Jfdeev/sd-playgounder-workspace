@@ -168,6 +168,22 @@ aparece como rótulo no canvas.
   direto do autor) — mesmo tom já usado em `NODE_STATUS_UI.healthy` e no diagrama do hero, então
   não introduz uma cor nova ao sistema visual do canvas.
 
+## Bug de posicionamento: `ChallengeCard` sobrepunha o rodapé (toolbar + `ResultPanel`)
+
+Achado pelo autor: o card de desafio aparecia "na frente" das informações de resultado. Causa raiz
+— `ChallengeCard` era `absolute bottom-4 left-[240px]` relativo ao container do `Canvas` INTEIRO
+(`canvas-workspace.tsx`), que empilha o mapa (`<ReactFlow>`) E o rodapé (toolbar de
+Simular/Submeter + `ResultPanel`) num único `flex-col`. `bottom-4` media a distância a partir do
+fundo desse container inteiro — ou seja, a partir do fundo do rodapé, não do fundo do mapa —
+então o card e o rodapé caíam na mesma faixa vertical e se sobrepunham.
+
+Corrigido movendo o `relative` (e a renderização do `ChallengeCard`) pra dentro de `canvas.tsx`,
+como filho do div que envolve só o `<ReactFlow>` — o mesmo container onde o `MiniMap` já flutua.
+`Canvas`/`CanvasInner` ganharam um prop `onLeaveChallenge` pra isso (antes só `canvas-workspace.tsx`
+tinha o callback de sair do desafio). `left-[240px]` (compensação manual da largura da Paleta) virou
+`left-4`, porque o novo container relativo já começa depois da Paleta — não precisa mais compensar
+por fora.
+
 ## O que ficou de fora (fora do pedido explícito, não assumido)
 
 - Autoria dos 5 problemas restantes "em breve".
