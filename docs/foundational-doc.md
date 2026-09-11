@@ -73,7 +73,9 @@ Cada componente carrega **specs verificáveis**: throughput máximo, latência b
 3. **Requisitos funcionais** (o que faz)
 4. **Requisitos não-funcionais** (SLA de latência, disponibilidade, consistência, budget)
 5. **Escala** — DAU, razão leitura/escrita, tamanho médio de payload, pico vs. média
-6. **Rubrica escondida** — os itens avaliados
+6. **Rubrica à mostra** — os itens avaliados, visíveis no card do desafio (decisão do autor,
+   reverte a ideia original de rubrica escondida — ver `packages/problems/src/types.ts` e
+   `specs/canvas-sandbox-desafios-templates/decisions.md` para o racional completo)
 7. **Solução de referência** com o raciocínio, não só o diagrama
 
 ### 2.2 Conjunto inicial (12 problemas cobrem 80% dos padrões)
