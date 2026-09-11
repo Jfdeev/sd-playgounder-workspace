@@ -1,0 +1,421 @@
+# Tasks: M1 — Canvas e submissão
+
+**Input**: [plan.md](plan.md), [spec.md](spec.md), [research.md](research.md), [data-model.md](data-model.md),
+[contracts/canvas-engine-boundary.md](contracts/canvas-engine-boundary.md), [quickstart.md](quickstart.md)
+
+**Tests**: incluídas para os dois módulos de lógica pura (`packages/problems` catálogo,
+`apps/web/src/lib/canvas-to-design.ts`) — escopo de cobertura decidido em research.md §8 (mesmo
+padrão de M0/M0.5: não perseguir cobertura de componentes React/interação do React Flow, que é
+verificada manualmente via quickstart.md).
+
+**Organização**: por user story (US1 P1, US2 P2, US3 P3, conforme spec.md). Setup → Foundational →
+US1 → US2 → US3 → Polish. US1 é o loop de valor completo e, sozinha, já cumpre o critério de saída
+do marco (spec.md, Success Criteria) — US2/US3 são incrementos de qualidade sobre ela, cada um
+independentemente testável por cima do que já existe.
+
+## Phase 1: Setup
+
+- [X] T001 Instalar dependências novas em `apps/web`: `@xyflow/react` `^12.11.3`, `zustand` `^5`,
+      `immer`, `zundo` `^2.3.0` (`pnpm --filter web add @xyflow/react zustand immer zundo`,
+      research.md §2/§3)
+- [X] T002 [P] Criar `packages/problems/package.json` — `@sdp/problems`, `workspace:*`, sem build
+      step (`main`/`types` apontando para `src/index.ts`, mesmo padrão de
+      `packages/engine/package.json`); devDependencies: `vitest`, `@vitest/coverage-v8`,
+      `typescript`, `@types/node`
+- [X] T003 [P] Criar `packages/problems/tsconfig.json` — mesmo strict mode de
+      `packages/engine/tsconfig.json`
+- [X] T004 [P] Criar `packages/problems/vitest.config.ts` — mesmo padrão de
+      `packages/engine/vitest.config.ts`
+- [X] T005 [P] Adicionar `"@sdp/problems": "workspace:*"` em `apps/web/package.json`
+      (`dependencies`)
+- [X] T006 Rodar `pnpm install` na raiz do monorepo — linka `@sdp/problems` em
+      `apps/web/node_modules/@sdp/problems` (mesmo padrão confirmado nesta sessão para
+      `@sdp/engine`). `next.config.ts`: `@sdp/problems` adicionado a `transpilePackages`.
+
+**Checkpoint**: `pnpm install` limpo; `pnpm --filter web typecheck` e `pnpm --filter problems
+typecheck` rodam sem erro (pacotes ainda vazios). `next.config.ts` (`transpilePackages` +
+`webpack.resolve.extensionAlias`) já está pronto de uma sessão anterior a este `/speckit-tasks` —
+nenhuma task nova necessária para isso.
+
+## Phase 2: Foundational (bloqueia todas as user stories)
+
+- [X] T007 [P] Criar `packages/problems/src/types.ts` — tipo `Problem` (data-model.md)
+- [X] T008 Criar `packages/problems/src/catalog/url-shortener.ts` — problema "Encurtador de URL"
+      completo (enunciado, requisitos funcionais, requisitos não-funcionais, escala). Ler
+      `docs/foundational-doc.md` §2.1 (partes 1/3/4/5 — não as partes 2/6/7, que são M2) e §2.2
+      (linha "Encurtador de URL — Hashing, cache read-heavy, geração de ID") **integralmente antes
+      de escrever**, não parafrasear de memória — mesmo princípio de T012 de M0.5, texto vai ao ar
+      como conteúdo real do produto
+- [X] T009 Criar `packages/problems/src/index.ts` — `getProblem(id): Problem | undefined`,
+      `ALL_PROBLEM_IDS: readonly string[]` (contracts/canvas-engine-boundary.md)
+- [X] T010 [P] Escrever `packages/problems/test/catalog.spec.ts` — `getProblem` retorna o registro
+      certo para `"url-shortener"`; retorna `undefined` para id inexistente; `scale`/FRs/NFRs
+      presentes e não-vazios; `ALL_PROBLEM_IDS` contém exatamente 1 item
+- [X] T011 Coverage pass: `packages/problems` catálogo — 100% statements/branches/functions/lines
+      confirmado via `pnpm --filter @sdp/problems test:coverage`; `getProblem` não tem branch
+      explícito além do lookup (found/not-found), já coberto pelos 2 casos de T010
+
+- [X] T012 [P] Criar `apps/web/src/lib/canvas-types.ts` — `ComputableFlowNode`, `ClientFlowNode`,
+      `FlowNode`, `FlowEdge` (data-model.md), mais `FlowNodeData`/`FlowEdgeData`/`toFlowNode`/
+      `toFlowEdge` (payload de `data` dos nós/arestas nativos do React Flow — refinamento
+      necessário para não duplicar `id`/`position` entre o nó do React Flow e o `data`, achado ao
+      integrar com a store em T016)
+- [X] T013 Criar `apps/web/src/lib/canvas-to-design.ts` — `toDesign(nodes, edges): Design`,
+      `toWorkload(problem): Workload` (contracts/canvas-engine-boundary.md, research.md §4/§5) —
+      importa `Design`/`Workload`/`ComponentType`/`EdgeKind` de `@sdp/engine`, nunca redefine esses
+      tipos
+- [X] T014 Escrever `apps/web/test/canvas-to-design.spec.ts` — 17 testes cobrindo as regras 1-6 do
+      contrato: nó Cliente sem conexão ignorado; múltiplos Clientes → 1 `entryNodeId` sem
+      duplicata / 2 `entryNodeIds` para componentes diferentes; nós/arestas Cliente nunca em
+      `Design.nodes`/`Design.edges`; peso bruto repassado sem normalização própria; entrada
+      malformada nunca lança exceção; `toWorkload` determinística
+- [X] T015 Coverage pass: `canvas-to-design.ts` — 100% statements/branches/functions/lines
+      (`pnpm --filter web test:coverage`)
+
+- [X] T016 Criar `apps/web/src/stores/canvas-store.ts` — store Zustand + Immer: `nodes`/`edges`
+      tipados como `Node<FlowNodeData>`/`Edge<FlowEdgeData>` nativos do React Flow (research.md
+      §2 — position/seleção ficam no próprio React Flow, nunca duplicados em `data`),
+      `selectedNodeId`, `lastResult: SimulationResult | null`; ações `onNodesChange`,
+      `onEdgesChange`, `onConnect`, `addNode`, `updateNodeConfig`, `selectNode`,
+      `applySimulationResult`. Sem `zundo` (undo/redo) nem `persist` (autosave) ainda —
+      adicionados em US2 (T030) e US3 (T032)
+
+**Checkpoint**: `packages/problems` e o mapper (`canvas-to-design.ts`) compilam e passam em todos
+os testes (`pnpm --filter problems test`, `pnpm --filter web test`). Nenhuma user story ainda é
+utilizável — sem UI de canvas.
+
+## Phase 3: User Story 1 — Montar e simular o desafio do encurtador de URL, do zero (P1)
+
+**Goal**: loop completo — ler o problema, arrastar/conectar/configurar componentes, submeter, ver o
+resultado do engine com o gargalo destacado — sem ajuda externa (spec.md, critério de saída).
+
+**Independent Test**: com uma conta autenticada e nenhum design em andamento, abrir o problema,
+montar Cliente → API Gateway → App Server, configurar réplicas do App Server, submeter, e confirmar
+que o resultado reflete a topologia (mudar réplicas muda a capacidade exibida na submissão seguinte).
+
+- [X] T017 [US1] Criar `apps/web/src/app/app/[problemId]/page.tsx` — Server Component: `auth()`
+      (redirect para `/entrar` se sem sessão, mesmo padrão do placeholder de M0.5),
+      `getProblem(problemId)` de `@sdp/problems` (`notFound()` do Next se `undefined`), renderiza
+      `<ProblemBrief problem={problem} />` (T020) + `<Canvas problem={problem} />` (T025, Client
+      Component)
+- [X] T018 [US1] Reescrever `apps/web/src/app/app/page.tsx` — Server Component que faz
+      `redirect(`/app/${ALL_PROBLEM_IDS[0]}`)` (1 problema neste marco; remove o placeholder "Você
+      está dentro do..." de M0.5, que cumpriu seu propósito)
+- [X] T019 [P] [US1] Criar `apps/web/src/app/app/layout.tsx` — header mínimo com o email da sessão
+      + `<SignOutButton />` (reaproveita `apps/web/src/app/app/_sign-out-button.tsx`, já existente
+      de M0.5, movido de `page.tsx` para o layout)
+- [X] T020 [P] [US1] Criar `apps/web/src/components/canvas/problem-brief.tsx` — enunciado,
+      requisitos funcionais, requisitos não-funcionais e escala do `Problem` (FR-012), exibido
+      antes/acima do canvas
+- [X] T021 [P] [US1] Criar `apps/web/src/components/canvas/nodes/component-node.tsx` — nó
+      customizado do React Flow parametrizado por `ComponentType` (ícone lucide-react + nome +
+      badge de status/gargalo vindo de `data.result` quando existir — destaque vermelho quando
+      `data.result.isBottleneck`, FR-009)
+- [X] T022 [P] [US1] Criar `apps/web/src/components/canvas/nodes/client-node.tsx` — nó customizado
+      para o Cliente (variantes mobile/web/desktop), sem badge de status nem configuração (FR-006)
+- [X] T023 [P] [US1] Criar `apps/web/src/components/canvas/edges/typed-edge.tsx` — aresta
+      customizada por `EdgeKind` (cor/traço distinto para leitura/escrita/assíncrona/replicação),
+      marcador de seta (`MarkerType.ArrowClosed`)
+- [X] T024 [P] [US1] Criar `apps/web/src/components/canvas/palette.tsx` — lista os 11
+      `ComponentType` + Cliente (mobile/web/desktop); `onDragStart` marca o tipo arrastado via
+      `event.dataTransfer.setData` (research.md §2)
+- [X] T025 [US1] Criar `apps/web/src/components/canvas/canvas.tsx` — Client Component: `<ReactFlow>`
+      ligado à store (T016) via `useStore`, `nodeTypes`/`edgeTypes` (T021-T023), `onDragOver`/
+      `onDrop` criando o nó via `screenToFlowPosition` (research.md §2), seleção de nó atualiza
+      `selectedNodeId`
+- [X] T026 [US1] Criar `apps/web/src/components/canvas/config-panel.tsx` — painel do nó
+      selecionado: campo de réplicas com validação de entrada (FR-014 — impede confirmar valor < 1
+      ou não-numérico diretamente no campo) e, quando o nó for `cache`, campo de taxa de acerto;
+      nada exibido quando o nó selecionado é um Cliente (FR-006)
+- [X] T027 [US1] Criar `apps/web/src/components/canvas/result-panel.tsx` — renderiza
+      `SimulationResult`: utilização/status por nó, latência p50/p95/p99 do caminho crítico,
+      throughput, custo por nó e total, violações com a mensagem já produzida pelo engine;
+      **explicitamente sem nenhum campo de nota/score/veredito** (FR-013)
+- [X] T028 [US1] Adicionar submissão em `canvas.tsx`/`canvas-store.ts` — botão "submeter" chama
+      `toDesign`/`toWorkload` (T013) e `simulate()` de `@sdp/engine`, guarda o `SimulationResult` em
+      `lastResult` (T016) via `applySimulationResult`, propaga o status/gargalo por nó para
+      `data.result` de cada `component-node` (T021), abre o `result-panel` (T027)
+- [X] T029 [US1] Tratar submissão de canvas vazio em `canvas-store.ts`/`result-panel.tsx` —
+      mensagem clara ("adicione componentes antes de submeter") em vez de chamar o engine com um
+      `Design` vazio sem feedback (Edge Case do spec)
+
+**Checkpoint**: quickstart.md "Verificar o loop principal (US1)" passa de ponta a ponta —
+inclusive o caso de violação (`orphan-node`) exibindo mensagem legível, nunca um erro técnico cru
+(FR-016).
+
+## Phase 4: User Story 2 — Corrigir o design sem perder o trabalho (P2)
+
+**Goal**: desfazer/refazer edições do canvas, em ordem, histórico linear.
+
+**Independent Test**: sequência de edições → desfazer N vezes → canvas idêntico ao estado anterior a
+cada uma; refazer restaura; uma edição nova após um undo descarta o redo pendente.
+
+- [X] T030 [US2] Envolver `canvas-store.ts` (T016) com o middleware `temporal` do `zundo` — histórico
+      de `nodes`/`edges` (research.md §3); `selectedNodeId`/`lastResult` ficam fora do histórico
+      (não fazem parte do "design" em si). Achado durante a implementação: sem um `handleSet`
+      debounced, `onNodesChange` durante um drag geraria um passo de histórico por pixel — resolvido
+      com um debounce mínimo de 300ms (padrão documentado pelo próprio zundo), sem dependência nova
+- [X] T031 [P] [US2] Adicionar botões de desfazer/refazer + atalhos de teclado
+      (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z) em `apps/web/src/components/canvas/canvas.tsx`, chamando
+      `useCanvasStore.temporal.getState().undo()`/`redo()`
+
+**Checkpoint**: quickstart.md "Verificar undo/redo (US2)" passa de ponta a ponta.
+
+## Phase 5: User Story 3 — Retomar um design depois de fechar o navegador (P3)
+
+**Goal**: autosave local via `localStorage`, chaveado por `problemId`, restaurado automaticamente.
+
+**Independent Test**: montar design parcial → fechar/reabrir a aba no mesmo navegador → design
+restaurado idêntico; problema nunca aberto neste navegador → canvas vazio.
+
+- [X] T032 [US3] Adicionar middleware `persist` (`zustand/middleware`) a `canvas-store.ts` (T016) —
+      persiste só `nodes`/`edges` (não `selectedNodeId`/`lastResult`/histórico de undo); chave
+      literal `sdp-canvas-url-shortener` (FR-011 pede "derivada de problemId" — como M1 só tem 1
+      problema, a chave já É essa derivação, sem precisar virar store-factory ainda; comentário no
+      arquivo aponta revisitar em M4); `storage` com fallback silencioso se `localStorage`
+      indisponível/cheio (try/catch — Edge Case do spec). Achado durante a implementação: o TS não
+      infere o tipo persistido de `persist` quando composto com `temporal`/`immer` — resolvido
+      tipando `persistOptions` explicitamente como `PersistOptions<CanvasState,
+      PersistedCanvasState>` em vez de especificar os 4 parâmetros de `persist<...>` (o que apagaria
+      a inferência de `useCanvasStore.temporal`)
+- [X] T033 [US3] Hidratar a store a partir do `localStorage` — automático pelo próprio middleware
+      `persist` do Zustand ao montar (sem `skipHydration`); nenhum código adicional necessário em
+      `canvas.tsx`
+
+**Checkpoint**: quickstart.md "Verificar autosave (US3)" passa de ponta a ponta.
+
+## Phase 6: Polish & Cross-Cutting
+
+- [X] T034 [P] Navegação por teclado no canvas — RNF-8/FR-015. Confirmado via documentação oficial
+      do React Flow (`nodesFocusable`/`edgesFocusable` são `true` por padrão, `disableKeyboardA11y`
+      é `false` por padrão — nenhuma dessas props foi desativada em `canvas.tsx`): Tab foca nós,
+      Enter/Espaço seleciona (aciona o mesmo `onNodeClick` usado por clique de mouse), setas movem
+      o nó selecionado, Delete remove. Paleta (T024) e painel de configuração (T026) já são
+      `<button>`/`<input>` nativos, então já são operáveis por Tab/Enter sem código extra. Undo/redo
+      (T031) tem atalho de teclado dedicado. **Lacuna conhecida, não resolvida neste marco**: criar
+      uma *conexão* entre dois nós exige arrastar entre handles (gesto de ponteiro) — o React Flow
+      não oferece um fluxo nativo de conexão 100% por teclado, e implementar um (ex.: "selecionar
+      nó de origem → tecla → selecionar destino → confirmar") seria uma feature própria, fora do
+      escopo de tempo deste marco. Registrado aqui em vez de reivindicado como resolvido.
+- [X] T035 Rodar `quickstart.md` manualmente (US1+US2+US3) — feito ao longo da implementação, com
+      uma conta real criada nesta sessão (signup → login → canvas → paleta → submissão →
+      undo/redo → autosave), não como uma passada separada ao final. Único passo do quickstart.md
+      não verificado desta forma: a conexão entre dois nós via drag-and-drop entre handles (o
+      ambiente de browser desta sessão não suporta simulação de arrastar sem uma captura de tela
+      prévia) — fica para o autor confirmar manualmente.
+- [X] T036 `pnpm --filter problems typecheck && pnpm --filter problems test && pnpm --filter web
+      typecheck && pnpm --filter web test && pnpm --filter web build` — ver resultado no relatório
+      final do `/speckit-implement`
+- [X] T037 Revisar `specs/canvas-submissao-m1/spec.md` — status permanece `Ready` (não `Done`),
+      mesmo padrão de T041 de M0.5: **SC-002** (identificar o gargalo em <10s olhando o canvas) e
+      **SC-006** (60fps até 50 nós) exigem verificação visual/de performance com um navegador real
+      que este ambiente de implementação não tinha disponível (sem `screenshot`/drag, sem
+      profiling) — o destaque vermelho de gargalo foi implementado e o dado que o alimenta
+      (`isBottleneck`) foi exercitado indiretamente (violação `orphan-node` confirmada na tela),
+      mas nenhum design real chegou a saturar um nó durante a verificação desta sessão. Autor
+      MUST confirmar manualmente antes de promover para `Done`.
+- [X] T038 Fechar a lacuna de teste apontada em revisão pós-implementação: nenhum teste tinha
+      exercitado o *caminho de gargalo* de fato (o caso `orphan-node` de T035 tem `bottleneckId =
+      null`, o oposto do que FR-009/SC-002 descrevem). Adicionado
+      `apps/web/test/bottleneck-scenario.spec.ts` — Cliente → App Server na escala real do
+      problema (`getProblem('url-shortener')`, ~1737 rps de pico): com 1 réplica (500 rps de
+      capacidade) o App Server satura e `result.path.bottleneckId` aponta pra ele; com 4 réplicas
+      (2000 rps) não satura. Prova via `simulate()` real (sem mock) que a leitura de
+      `result.nodes[id].status`/`bottleneckId` que alimenta o destaque vermelho em
+      `component-node.tsx` está correta — só o *render* visual (cor de fato aparecendo na tela)
+      continua exigindo confirmação humana, não mais o cálculo. Também descoberto nesta revisão:
+      `canvas-types.ts` (funções `toFlowNode`/`toFlowEdge`, chamadas em todo submit) e
+      `canvas-ui-catalog.ts` (dado puro) estavam em `src/lib/**` — dentro do include do coverage —
+      mas em 0% (nunca importados por um teste), derrubando o threshold global de 90% pra 80.64%
+      sem que `pnpm test` (sem `--coverage`) acusasse nada. Adicionados
+      `apps/web/test/canvas-types.spec.ts` e `apps/web/test/canvas-ui-catalog.spec.ts` — o primeiro
+      testa a reconstrução do formato achatado a partir do formato nativo do React Flow, o segundo
+      é smoke test de completude (cada `ComponentType`/`EdgeKind`/`ClientVariant`/`NodeStatus` do
+      engine tem entrada de UI). `pnpm --filter web test:coverage` volta a 100%/100%/100%/100%.
+      Nota sobre duas versões de `zustand` no lockfile (v4 interna do `@xyflow/react` vs. v5 do
+      projeto) documentada em research.md §3 — instâncias isoladas, sem risco confirmado.
+
+## Phase 9: Refinamento pós-Ready — conectividade e explicação por componente
+
+Feedback direto do autor após revisão visual do canvas em M1 já `Ready`: (1) handles dos nós no
+topo/embaixo liam mal — deveriam ficar nas laterais, como um fluxo horizontal; (2) cada card
+precisa explicar o que o componente faz; (3) o Load Balancer (e os demais) devem só se conectar a
+componentes com quem faz sentido arquitetural (ex.: LB só liga a servidores) — o engine roda sem
+erro num LB→SQL Primary (FR-019/nunca lança), mas produz um número plausível e errado, exatamente
+o tipo de bug silencioso que a Constitution VI existe pra evitar.
+
+- [X] T039 Handles de `component-node.tsx` e `client-node.tsx` movidos de `Position.Top`/`Position.Bottom`
+      pra `Position.Left`/`Position.Right` — o canvas agora lê como um fluxo horizontal
+      (Cliente à esquerda, dado/armazenamento à direita). `typed-edge.tsx` não precisou de mudança
+      (`sourcePosition`/`targetPosition` já vêm como props do React Flow, derivados do handle).
+      Confirmado ao vivo no browser: `.react-flow__handle-left`/`-right` no DOM real, nenhum
+      `-top`/`-bottom` restante.
+- [X] T040 Descrição pedagógica adicionada a cada um dos 11 `ComponentType` + 3 `ClientVariant` em
+      `apps/web/src/lib/canvas-ui-catalog.ts` (campo `description`) — grounded na doc do produto
+      (`docs/foundational-doc.md` §1.2, ex. estratégias de LB) e no comportamento real do engine
+      (ex. a explicação do Cache menciona que a taxa de acerto só reduz carga de quem vem depois
+      dele no mesmo caminho — `packages/engine/src/graph/propagate.ts`). Surfaced em 3 lugares que
+      reusam o mesmo dado (sem duplicar texto): tooltip nativo (`title`) na paleta, ícone
+      `Info`+tooltip no próprio nó, e texto completo no `ConfigPanel` ao selecionar o nó — o único
+      caminho totalmente acessível por teclado, já que tooltip nativo via `title` não é
+      confiavelmente alcançável por foco de teclado em todo browser. Confirmado ao vivo: o texto
+      aparece correto tanto no accessible name da paleta quanto no `ConfigPanel`.
+- [X] T041 Nova regra de conectividade pedagógica em `apps/web/src/lib/connection-rules.ts`
+      (`isValidCanvasConnection`/`getAllowedTargets`, função pura) — matriz "origem → destinos
+      permitidos" pros 11 `ComponentType` + Cliente, derivada de: (a) convenção padrão de system
+      design pro papel de cada componente, (b) o modelo real do engine (`propagateLoad` trata toda
+      aresta igual, só por peso — nunca por `kind` — então Cache precisa de aresta de saída pra um
+      banco pra que a redução por hit rate represente algo; SQL Replica/NoSQL/Object Storage nunca
+      iniciam conexão, são sempre folha), (c) o exemplo explícito do autor (Load Balancer só liga a
+      App Server/Worker). Fica inteiramente em `apps/web` — `packages/engine` não muda, a regra é
+      puramente de UX/pedagógica, nunca imposta pelo engine (FR-019 continua valendo: um design
+      "sem sentido" que já existia antes desta mudança continua rodando sem erro se alguém o criar
+      por outro caminho, ex. import futuro). Wired via a prop `isValidConnection` do `<ReactFlow>`
+      em `canvas.tsx` — React Flow só chama `onConnect` se `isValidConnection` retornar `true`.
+      13 testes novos em `apps/web/test/connection-rules.spec.ts` (100% de cobertura), cobrindo
+      cada regra citada acima mais duas propriedades de completude da matriz: todo `ComponentType`
+      é alcançável por pelo menos uma origem, e todo tipo não-folha origina pelo menos uma conexão
+      válida (nenhum componente fica "preso" sem uso possível no canvas).
+      **Gap de verificação conhecido** (mesmo padrão de T035/T037 de M1 original): o
+      aceitar/recusar de fato durante um gesto de arrastar não pôde ser confirmado ao vivo nesta
+      sessão — o Browser pane não estava sendo pintado (nós ficam com `visibility: hidden`
+      permanente porque o React Flow considera o viewport não inicializado sem compositing ativo),
+      então nem uma tentativa de conexão válida nem inválida disparou via simulação de eventos de
+      ponteiro. A lógica em si está 100% coberta por teste unitário e o wiring (`isValidConnection`
+      lendo `nodes` da store e chamando `isValidCanvasConnection`) foi revisado e compila limpo,
+      mas o comportamento fim-a-fim de arrastar-e-ser-recusado exige confirmação humana com um
+      navegador real antes de considerar este gap fechado.
+- [X] T042 `pnpm --filter web typecheck && pnpm --filter web test:coverage && pnpm --filter web build`
+      — limpo (78 testes, 100%/100%/100%/100% em `src/lib/**`, build de produção sem erro).
+
+## Phase 10: Refinamento pós-Ready — navegação do canvas e exclusão de nó
+
+Mais feedback direto do autor: minimapa no canto inferior direito, remover os `Controls` (zoom/fit
+view) do canto inferior esquerdo, e um botão explícito de excluir componente na side bar direita
+(`ConfigPanel`) — hoje só dava pra excluir via tecla Backspace/Delete com o nó focado (FR-015),
+sem afordância visual.
+
+- [X] T043 `<MiniMap pannable zoomable />` adicionado dentro do `<ReactFlow>` em `canvas.tsx` —
+      posição padrão do componente já é `bottom-right` (P2 do product-context.md §10, "Minimapa,
+      agrupamento por região (P2)" — item já documentado como escopo, só não tinha sido feito
+      ainda). `className="!bg-zinc-900"` pra combinar com o tema escuro do resto do canvas (o
+      fundo branco padrão do React Flow destoava).
+- [X] T044 `<Controls />` removido de `canvas.tsx` (zoom/pan continuam funcionando via mouse/touch
+      nativos do React Flow — só o widget de botões some). Não afeta FR-015 (a lista de operações
+      exigidas por teclado — adicionar/selecionar/conectar/configurar/desfazer/refazer — nunca
+      incluiu zoom/fit view).
+- [X] T045 Botão "Excluir componente" adicionado em `config-panel.tsx` (`DeleteNodeButton`,
+      reusado nos dois branches — Cliente e componente) — usa `useReactFlow().deleteElements`
+      (a mesma API que o atalho de teclado do React Flow já usa por baixo dos panos), então
+      arestas conectadas ao nó excluído somem junto, sem duplicar essa lógica de conectividade
+      no código do app. Limpa `selectedNodeId` após excluir, pra o painel voltar ao estado "nenhum
+      nó selecionado" em vez de referenciar um nó que não existe mais.
+- [X] T046 `pnpm --filter web typecheck && pnpm --filter web test:coverage && pnpm --filter web build`
+      — limpo (78 testes, 100%/100%/100%/100% em `src/lib/**`, build de produção sem erro). Sem
+      testes novos: as três mudanças são wiring de componente React/React Flow puro (sem lógica
+      nova em `src/lib/**`), mesmo limite de cobertura já estabelecido em research.md §5 de M0.5.
+
+## Phase 11: Bugfix — FR-003/FR-004 nunca tiveram um editor de aresta
+
+Achado ao investigar a pergunta do autor "por que 'leitura' aparece no meio dos nós?": FR-003
+("MUST permitir conectar dois nós... escolhendo um entre quatro tipos") e FR-004 (peso por aresta)
+prometiam uma escolha que nunca existiu na UI — toda aresta nascia (e ficava pra sempre) com
+`kind: 'read'` (`DEFAULT_NEW_EDGE_DATA` em `canvas-store.ts`), sem nenhum jeito de trocar depois.
+O comentário do próprio código já dizia "o usuário troca o tipo depois pelo próprio canvas (FR-003)"
+— uma afirmação que nunca foi implementada.
+
+- [X] T047 Store (`canvas-store.ts`): `selectedEdgeId` + `selectEdge`/`updateEdgeConfig` (mesmo
+      padrão de `selectedNodeId`/`selectNode`/`updateNodeConfig`) e `clearEdgeWeight` (ação
+      separada — `exactOptionalPropertyTypes` impede um patch genérico expressar "propriedade
+      ausente" via `{weight: undefined}`, já que `FlowEdgeData['weight']` é `number`, não
+      `number | undefined`; `clearEdgeWeight` usa `delete` no draft do Immer em vez disso). Seleção
+      de nó e de aresta são mutuamente exclusivas (`selectNode`/`selectEdge` sempre zeram a outra).
+- [X] T048 `canvas.tsx`: `onEdgeClick` wired pra `selectEdge(edge.id)`.
+- [X] T049 `config-panel.tsx`: novo branch `EdgeConfigPanel`, renderizado quando uma aresta está
+      selecionada — 4 botões de tipo (leitura/escrita/assíncrona/replicação, `EDGE_KIND_UI`) e um
+      input de peso opcional com botão "Limpar" (volta ao peso implícito).
+- [X] T050 `pnpm --filter web typecheck && pnpm --filter web test:coverage && pnpm --filter web build`
+      — limpo (78 testes, 100%/100%/100%/100%). Sem testes novos: mesma justificativa de T046 (o
+      código novo é wiring de store/componente, `canvas-store.ts` não faz parte do escopo de
+      cobertura de `src/lib/**`).
+
+## Phase 12: Bugfix — violação mostrando NodeId bruto (UUID) em vez de nome legível
+
+Achado ao investigar o relato do autor ("Nó 'e5bbd976-...' é ponto único de falha — o usuário
+dificilmente vai perceber qual nó é esse"): `Violation.message` (packages/engine) embute o `NodeId`
+bruto no texto — correto do ponto de vista do engine (mensagem legível *pro engine*, gerada por ele,
+nunca por LLM), mas `result-panel.tsx` já tinha um helper `nodeLabel()` funcionando pro gargalo e
+pros cards por nó, só nunca tinha sido aplicado a `violation.message`.
+
+- [X] T051 Novo `apps/web/src/lib/violation-messages.ts` — `formatViolationMessage(message,
+      nodeIds, labelOf)`, função pura: substitui cada `NodeId` (já vem estruturado em
+      `Violation.nodeIds`, não precisa de regex) pelo rótulo amigável, sem re-derivar o texto da
+      violação (evita duplicar a lógica de FR-009/FR-010/FR-011 do engine na UI — proibido por
+      `docs/product-context.md` §5). 5 testes novos em `apps/web/test/violation-messages.spec.ts`
+
+## Phase 13: Refinamento pós-Ready — lixeira do canvas
+
+Pedido direto do autor: um jeito explícito de apagar todo o design de uma vez (antes só dava pra
+excluir nó por nó via `DeleteNodeButton`/Backspace).
+
+- [X] T052 Nova ação `clearCanvas` em `canvas-store.ts` — zera `nodes`/`edges`, e também
+      `selectedNodeId`/`selectedEdgeId`/`lastResult` (referenciariam nós que não existem mais).
+      Como qualquer outra mutação de nodes/edges, entra no histórico do `zundo` — Ctrl/Cmd+Z desfaz
+      normalmente, sem lógica extra.
+- [X] T053 Botão de lixeira (`Trash2`, `lucide-react`) na toolbar inferior de `canvas.tsx`, ao lado
+      de Desfazer/Refazer — pede confirmação (`window.confirm`, sem dependência de modal nova, sem
+      padrão de dialog pré-existente no projeto) antes de chamar `clearCanvas`, e é no-op se o
+      canvas já está vazio.
+- [X] T054 `pnpm --filter web typecheck` limpo; `pnpm --filter web test:coverage` — 75/75 testes
+      passando fora de `password.spec.ts` (flake pré-existente de timeout sob paralelismo/coverage,
+      não relacionado a esta mudança — sinalizado à parte, não corrigido aqui), 93.72%/98.18% de
+      cobertura em `src/lib/**` (sem regressão); `pnpm --filter web build` limpo. Sem teste novo:
+      `clearCanvas`/o botão são wiring de store/React puro, mesmo limite de cobertura já
+      estabelecido em research.md §5 de M0.5. Verificação visual no browser bloqueada por auth
+      (rota do canvas exige login — sem credencial pra simular, mesmo padrão de gap já documentado
+      em T035/T037/T041).
+      (100% de cobertura): substituição única, múltipla (ciclo), lista vazia, fallback quando o nó
+      não é encontrado no canvas atual, e nenhuma substituição parcial acidental quando o id repete
+      na mensagem.
+- [X] T052 `result-panel.tsx`: `{violation.message}` trocado por
+      `{formatViolationMessage(violation.message, violation.nodeIds, nodeLabel)}` — reusa o mesmo
+      `nodeLabel` já usado pro gargalo/cards, sem duplicar lookup.
+- [X] T053 `pnpm --filter web typecheck && pnpm --filter web test:coverage && pnpm --filter web build`
+      — limpo (83 testes, 100%/100%/100%/100% em `src/lib/**`, build de produção sem erro).
+
+## Dependencies
+
+- **Setup (T001-T006)** → bloqueia tudo.
+- **Foundational (T007-T016)** → bloqueia US1/US2/US3 (catálogo de problemas, mapper canvas→engine,
+  store base).
+- **US1 (T017-T029)** → depende só do Foundational; é o loop de valor completo e, sozinha, já
+  cumpre o critério de saída do marco.
+- **US2 (T030-T031)** → depende de US1 (envolve a store que US1 já usa; sem canvas funcional não há
+  o que desfazer).
+- **US3 (T032-T033)** → depende de US1 (mesmo motivo); independente de US2 no sentido de que
+  `persist` e `temporal` são middlewares Zustand que compõem sem interferir um no outro, mas os
+  dois modificam `canvas-store.ts` — fazer US2 antes de US3 evita editar o mesmo arquivo fora de
+  ordem.
+- **Polish (T034-T036)** → depende de US1+US2+US3 completos.
+
+## Parallel Example
+
+Dentro do Foundational: T007 (`types.ts`) e T012 (`canvas-types.ts`) são paralelas entre si
+(pacotes diferentes); depois de T013 (`canvas-to-design.ts`) existir, T014 e T015 dependem dela mas
+são sequenciais entre si (T015 precisa saber o que T014 já cobriu). Dentro de US1: T019-T024 (seis
+componentes independentes — layout, problem-brief, os dois tipos de nó, a aresta, a paleta) são
+paralelas entre si, convergindo em T025 (`canvas.tsx`, que os importa todos).
+
+## Implementation Strategy
+
+**MVP scope**: **Setup + Foundational + US1** — sozinha, US1 já cumpre o critério de saída do marco
+(spec.md: "uma pessoa que nunca viu o produto resolve o problema do encurtador do zero, sem ajuda,
+e entende por que o resultado foi aquele"). US2 (undo/redo) e US3 (autosave) são P0 no
+`docs/product-context.md` §10 — não são opcionais para o marco terminar — mas são incrementos de
+qualidade que não bloqueiam a demonstração do loop de valor central.
+
+**Incremental delivery**: implementar e commitar por fase (Setup → Foundational → US1 → US2 → US3 →
+Polish), na ordem deste documento — cada checkpoint é um ponto seguro para parar/retomar. Dentro do
+Foundational, os dois módulos puros com teste (T007-T015: catálogo de problemas, mapper
+canvas-to-design) são a parte mais fácil de verificar sem depender de nenhuma interação manual no
+browser — fazer e commitar primeiro, antes de qualquer componente React.
