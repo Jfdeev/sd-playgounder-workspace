@@ -22,7 +22,6 @@ import { isChallengeUnlocked } from '@/lib/challenge-progression';
 import { useProgressionStore } from '@/stores/progression-store';
 import { Canvas } from './canvas';
 import { ChallengeTopBar } from './challenge-topbar';
-import { ChallengeCard } from './challenge-card';
 
 function CanvasWorkspaceInner({
   activeChallengeId,
@@ -57,9 +56,8 @@ function CanvasWorkspaceInner({
         onSelectChallenge={onSelectChallenge}
         onApplyTemplate={handleApplyTemplate}
       />
-      <div className="relative flex min-h-0 flex-1">
-        <Canvas problem={activeProblem} />
-        {activeProblem && <ChallengeCard problem={activeProblem} onLeave={onLeaveChallenge} />}
+      <div className="flex min-h-0 flex-1">
+        <Canvas problem={activeProblem} onLeaveChallenge={onLeaveChallenge} />
       </div>
     </>
   );
