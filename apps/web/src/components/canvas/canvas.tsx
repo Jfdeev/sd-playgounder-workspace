@@ -25,6 +25,7 @@ import { TypedEdge } from './edges/typed-edge';
 import { Palette, buildNodeData, DRAG_MIME } from './palette';
 import { ConfigPanel } from './config-panel';
 import { ResultPanel } from './result-panel';
+import { ChallengeCard } from './challenge-card';
 
 const nodeTypes = { component: ComponentNode, client: ClientNode };
 const edgeTypes = { typed: TypedEdge };
@@ -46,7 +47,7 @@ const edgeTypes = { typed: TypedEdge };
  *   a carga só pra "passar" num desafio) — resolver um desafio continua exigindo Submeter na
  *   escala real dele.
  */
-function CanvasInner({ problem }: { problem: Problem | null }) {
+function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; onLeaveChallenge: () => void }) {
   const nodes = useCanvasStore((s) => s.nodes);
   const edges = useCanvasStore((s) => s.edges);
   const onNodesChange = useCanvasStore((s) => s.onNodesChange);
@@ -220,7 +221,7 @@ function CanvasInner({ problem }: { problem: Problem | null }) {
     <div className="flex min-h-0 flex-1">
       <Palette />
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex min-h-0 flex-1" onDragOver={onDragOver} onDrop={onDrop}>
+        <div className="relative flex min-h-0 flex-1" onDragOver={onDragOver} onDrop={onDrop}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -239,6 +240,13 @@ function CanvasInner({ problem }: { problem: Problem | null }) {
             <Background />
             <MiniMap pannable zoomable className="!bg-zinc-900" />
           </ReactFlow>
+          {/* Pedido direto do autor: o card ficava "na frente" do rodapé (toolbar de
+              Simular/Submeter + ResultPanel) porque antes era posicionado `absolute` relativo ao
+              container do Canvas INTEIRO (que empilha o mapa E o rodapé) — `bottom-4` acabava
+              caindo na mesma altura do rodapé, sobrepondo os dois. Agora o container relativo é só
+              a área do mapa (este div, que envolve só o `<ReactFlow>`), então o card flutua dentro
+              da área do mapa como o MiniMap, nunca mais baixo que isso. */}
+          {problem && <ChallengeCard problem={problem} onLeave={onLeaveChallenge} />}
         </div>
         {simulatePanelOpen && (
           <div className="flex items-center gap-3 border-t border-zinc-800 bg-zinc-950 px-4 py-2">
@@ -330,10 +338,10 @@ function CanvasInner({ problem }: { problem: Problem | null }) {
   );
 }
 
-export function Canvas({ problem }: { problem: Problem | null }) {
+export function Canvas({ problem, onLeaveChallenge }: { problem: Problem | null; onLeaveChallenge: () => void }) {
   return (
     <ReactFlowProvider>
-      <CanvasInner problem={problem} />
+      <CanvasInner problem={problem} onLeaveChallenge={onLeaveChallenge} />
     </ReactFlowProvider>
   );
 }

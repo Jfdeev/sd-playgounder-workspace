@@ -8,6 +8,14 @@
  * `packages/problems/src/types.ts`) e dicas estáticas colapsáveis. Só renderiza quando existe um
  * desafio ativo — no canvas livre (sandbox) este componente nem monta.
  *
+ * Posicionado `absolute` relativo ao container do mapa do canvas (o div que envolve só o
+ * `<ReactFlow>` em `canvas.tsx`) — não mais relativo ao Canvas inteiro. Corrigido depois que o
+ * autor relatou o card sobrepondo o rodapé (toolbar de Simular/Submeter + ResultPanel): antes o
+ * container relativo empilhava mapa E rodapé, então `bottom-4` caía na mesma altura dos dois.
+ * `left-4` (não mais `left-[240px]`) porque este componente agora só existe dentro da área do
+ * mapa, que já começa depois da Paleta — não precisa mais compensar a largura dela por conta
+ * própria.
+ *
  * A rubrica é reavaliada a cada submissão — antes da primeira, cada critério aparece como "não
  * verificado ainda" (nem passou, nem falhou). Lê `lastResult`/`lastDesign` da store, sempre o par
  * exato que `simulate()` produziu junto — nunca recomputa `design` a partir dos `nodes`/`edges`
@@ -34,7 +42,7 @@ export function ChallengeCard({ problem, onLeave }: { problem: Problem; onLeave:
       <button
         type="button"
         onClick={() => setCollapsed(false)}
-        className="absolute bottom-4 left-[240px] z-10 rounded-lg border border-zinc-800 bg-zinc-950/95 px-4 py-2 text-sm font-medium text-zinc-200 shadow-xl backdrop-blur hover:border-violet-500"
+        className="absolute bottom-4 left-4 z-10 rounded-lg border border-zinc-800 bg-zinc-950/95 px-4 py-2 text-sm font-medium text-zinc-200 shadow-xl backdrop-blur hover:border-violet-500"
       >
         {problem.title}
         <ChevronUp className="ml-2 inline size-3.5" aria-hidden />
@@ -43,7 +51,7 @@ export function ChallengeCard({ problem, onLeave }: { problem: Problem; onLeave:
   }
 
   return (
-    <div className="absolute bottom-4 left-[240px] z-10 w-80 rounded-lg border border-zinc-800 bg-zinc-950/95 shadow-xl backdrop-blur">
+    <div className="absolute bottom-4 left-4 z-10 w-80 rounded-lg border border-zinc-800 bg-zinc-950/95 shadow-xl backdrop-blur">
       <div className="flex items-start justify-between gap-2 border-b border-zinc-800 px-4 py-3">
         <div>
           <p className="text-xs uppercase tracking-wide text-zinc-500">Desafio</p>
