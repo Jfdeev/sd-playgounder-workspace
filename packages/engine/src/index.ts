@@ -18,13 +18,24 @@ import { calculatePathLatency } from './metrics/latency.js';
 import { calculateQueueWaitMs } from './metrics/queue.js';
 import { calculateThroughput } from './metrics/throughput.js';
 import { calculateUtilization } from './metrics/utilization.js';
-import { ALL_DIMENSIONS } from './types.js';
-import type { Design, Dimension, NodeId, NodeResult, NodeStatus, SimulationResult, Workload } from './types.js';
+import { calculateScores } from './scores/calculate.js';
+import type { Design, NodeId, NodeResult, NodeStatus, SimulationResult, Workload } from './types.js';
 
 /** ρ abaixo deste limiar é 'healthy'; entre este e 1 é 'warning'; ρ ≥ 1 é 'saturated'. */
 const WARNING_UTILIZATION_THRESHOLD = 0.7;
 
-export function simulate(design: Design, workload: Workload): SimulationResult {
+/**
+ * `scoreContext` (M2) — dados que só a camada de aplicação sabe (limiar de latência e custo de
+ * referência vêm da rubrica/`referenceSolution` de um `Problem`, um conceito que `packages/engine`
+ * não conhece — Constitution II). `simulate()` continua puro: recebe os dois números já resolvidos,
+ * nunca busca um `Problem` sozinho. `null`/omitido = fora de um desafio (sandbox/"Simular") — as
+ * dimensões Latência/Custo retornam 0 nesse caso (`scores/calculate.ts`).
+ */
+export function simulate(
+  design: Design,
+  workload: Workload,
+  scoreContext?: { latencyBudgetMs?: number | null; referenceCostUsd?: number | null },
+): SimulationResult {
   const reachable = computeReachableNodeIds(design);
 
   // FR-019: validação estrutural nunca lança; FR-009/FR-010/FR-011: análises estáticas rodam
@@ -103,12 +114,23 @@ export function simulate(design: Design, workload: Workload): SimulationResult {
     pathNodeResults.map(({ nodeId, node }) => ({ nodeId, capacityRps: node.capacity })),
   );
 
+  const cost = calculateCost(design, reachable);
+
   return {
     nodes,
     path: { throughputRps, bottleneckId, latency },
     violations,
-    cost: calculateCost(design, reachable),
-    scores: placeholderScores(),
+    cost,
+    scores: calculateScores({
+      design,
+      pathNodeIds: criticalPath,
+      nodes,
+      violations,
+      cost,
+      latencyP99Ms: latency.p99,
+      latencyBudgetMs: scoreContext?.latencyBudgetMs ?? null,
+      referenceCostUsd: scoreContext?.referenceCostUsd ?? null,
+    }),
   };
 }
 
@@ -133,14 +155,6 @@ function statusFromUtilization(utilization: number): NodeStatus {
   if (utilization >= 1) return 'saturated';
   if (utilization >= WARNING_UTILIZATION_THRESHOLD) return 'warning';
   return 'healthy';
-}
-
-/** FR-020: placeholder — cálculo real de score por dimensão é escopo do M2. */
-function placeholderScores(): Record<Dimension, number> {
-  return Object.fromEntries(ALL_DIMENSIONS.map((dimension) => [dimension, 0])) as Record<
-    Dimension,
-    number
-  >;
 }
 
 export type {
