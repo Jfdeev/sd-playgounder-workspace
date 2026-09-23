@@ -31,9 +31,9 @@ US3 (solução de referência) estar pronta antes de US1 poder calcular a dimens
 ordem de implementação sugerida em `tasks.md` (US3 antes da parte de custo de US1, mesmo com
 prioridade de produto P1 > P3).
 
-**Decisão**: nenhuma escolhida ainda. Este documento propõe; a aprovação acontece antes de
-`/speckit-implement` gerar código pra `packages/engine/src/scores/calculate.ts` — ver nota em
-`tasks.md`.
+**Decisão**: **aprovado pelo autor em 2026-09-23** — as 7 fórmulas acima (Escalabilidade,
+Disponibilidade, Latência, Custo, Consistência, Complexidade operacional, Segurança) ficam como
+especificadas nesta seção, sem ajuste. Implementação liberada pra `/speckit-implement`.
 
 ## §2. Schema de resposta estruturada do narrador
 
