@@ -12,6 +12,7 @@
 import type { Design, DesignEdge, DesignNode, NodeId, Workload } from '@sdp/engine';
 import type { FlowEdge, FlowNode } from './canvas-types';
 import type { Problem } from '@sdp/problems';
+import { averageRps, peakRps } from './capacity-formula';
 
 /**
  * Traduz o canvas montado pelo usuário para o Design que o engine consome.
@@ -66,10 +67,9 @@ export function toDesign(nodes: readonly FlowNode[], edges: readonly FlowEdge[])
  */
 export function toWorkload(problem: Problem): Workload {
   const { dau, requestsPerUserPerDay, readWriteRatio, avgPayloadBytes, peakMultiplier } = problem.scale;
-  const averageRps = (dau * requestsPerUserPerDay) / 86_400;
 
   return {
-    rps: averageRps * peakMultiplier,
+    rps: peakRps(averageRps(dau, requestsPerUserPerDay), peakMultiplier),
     readWriteRatio,
     payloadBytes: avgPayloadBytes,
     peakMultiplier,

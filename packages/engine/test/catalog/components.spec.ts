@@ -63,6 +63,10 @@ describe('COMPONENT_CATALOG (FR-014)', () => {
     expect(spec.baseLatencyMs.p50).toBeGreaterThan(0);
     expect(spec.baseLatencyMs.p99).toBeGreaterThanOrEqual(spec.baseLatencyMs.p50);
     expect(spec.monthlyCostUsd).toBeGreaterThan(0);
+    // M2 — insumo da dimensão Disponibilidade (scores/calculate.ts); fecha o Record exaustivo
+    // pras 44 entradas, mesmo tratamento de maxThroughputRps/baseLatencyMs/monthlyCostUsd acima.
+    expect(spec.availability).toBeGreaterThan(0);
+    expect(spec.availability).toBeLessThanOrEqual(1);
   });
 
   it('getComponentSpec retorna a mesma spec presente no catálogo', () => {
