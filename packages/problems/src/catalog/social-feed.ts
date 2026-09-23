@@ -74,6 +74,33 @@ const HINTS: Problem['hints'] = [
   },
 ];
 
+// M2, US3. Mesmo design já provado por `apps/web/test/social-feed-scenario.spec.ts` ("rubrica
+// completa resolve o desafio na escala real") — 30 réplicas de App Server (15.000 rps) cobrem o
+// pico ~13.889 rps com folga; o "aha" pedagógico deste problema é a réplica no armazenamento (4
+// réplicas de NoSQL, 32.000 rps), não no App Server, mostrado explicitamente no cabeçalho deste
+// arquivo.
+const REFERENCE_SOLUTION: Problem['referenceSolution'] = {
+  design: {
+    nodes: [
+      { id: 'app-server-1', type: 'app_server', replicas: 30 },
+      { id: 'cache-1', type: 'cache', replicas: 2, cacheHitRate: 0.8 },
+      { id: 'nosql-1', type: 'nosql_kv', replicas: 4 },
+    ],
+    edges: [
+      { id: 'e1', from: 'app-server-1', to: 'cache-1', kind: 'read', weight: 1 },
+      { id: 'e2', from: 'cache-1', to: 'nosql-1', kind: 'read', weight: 1 },
+    ],
+    entryNodeIds: ['app-server-1'],
+  },
+  reasoning:
+    'O pico deste problema (~13.889 rps) é ~8x o do Encurtador de URL, então precisa de ' +
+    'capacidade de cômputo proporcionalmente maior na entrada (30 réplicas de App Server). O ' +
+    'gargalo real não é o App Server — é o armazenamento do feed: com poucas réplicas de NoSQL, ' +
+    'ele satura antes de qualquer outro nó (ver os testes de cenário deste problema). 4 réplicas ' +
+    'de NoSQL (32.000 rps) resolvem isso; o Cache na frente reduz a carga repetida de reler o ' +
+    'mesmo feed entre uma atualização e outra.',
+};
+
 export const SOCIAL_FEED: Problem = {
   id: 'social-feed',
   title: 'Social Feed',
@@ -105,4 +132,5 @@ export const SOCIAL_FEED: Problem = {
 
   rubric: RUBRIC,
   hints: HINTS,
+  referenceSolution: REFERENCE_SOLUTION,
 };

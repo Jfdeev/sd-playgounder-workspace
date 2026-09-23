@@ -72,6 +72,19 @@ export type Problem = {
   rubric: RubricCriterion[];
   /** Sistema de dicas estáticas (texto autorado) — educativo, não gerado por IA. */
   hints: Hint[];
+  /**
+   * Solução de referência (M2, US3) — `design` no mesmo shape que o engine consome
+   * (`@sdp/engine` `Design`, sem posição visual: converter pra `CanvasNode[]`/`CanvasEdge[]` com
+   * layout automático é responsabilidade de `apps/web`, nunca deste pacote puro). `reasoning` é
+   * texto autorado à mão, mesmo padrão de `rubric`/`hints` — nunca gerado por LLM. Validado por
+   * teste (`packages/problems/test/reference-solution.spec.ts`): `simulate(design,
+   * toWorkload(problem))` MUST satisfazer 100% de `rubric` — uma referência que a própria rubrica
+   * rejeitaria seria uma contradição.
+   */
+  referenceSolution: {
+    design: Design;
+    reasoning: string;
+  };
 };
 
 /** Um desafio passa quando TODOS os critérios da rubrica passam — usado pra progressão travada. */
