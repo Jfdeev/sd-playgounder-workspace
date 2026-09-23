@@ -71,6 +71,33 @@ const HINTS: Problem['hints'] = [
   },
 ];
 
+// M2, US3. Pico ~1736 rps (10M DAU × 5 req/dia / 86400 × 3). 8 réplicas de App Server (4000 rps)
+// dão margem confortável (ρ≈0,43) acima do mínimo de 4 réplicas já documentado no cabeçalho deste
+// arquivo — referência não precisa ser o design mais barato possível, só um exemplo robusto e
+// correto. Cache com hit rate alto (redirecionamento é leitura repetitiva do mesmo código) reduz
+// a carga que chega no NoSQL. Todo nó com 2+ réplicas — nenhum SPOF no caminho.
+const REFERENCE_SOLUTION: Problem['referenceSolution'] = {
+  design: {
+    nodes: [
+      { id: 'app-server-1', type: 'app_server', replicas: 8 },
+      { id: 'cache-1', type: 'cache', replicas: 2, cacheHitRate: 0.85 },
+      { id: 'nosql-1', type: 'nosql_kv', replicas: 2 },
+    ],
+    edges: [
+      { id: 'e1', from: 'app-server-1', to: 'cache-1', kind: 'read', weight: 1 },
+      { id: 'e2', from: 'cache-1', to: 'nosql-1', kind: 'read', weight: 1 },
+    ],
+    entryNodeIds: ['app-server-1'],
+  },
+  reasoning:
+    'O redirecionamento é o caminho crítico (leitura, <100ms p99) — 8 réplicas de App Server ' +
+    '(4.000 rps de capacidade) escoam o pico de ~1.736 rps com folga, evitando fila e latência ' +
+    'alta. Um Cache com taxa de acerto de 85% na frente do NoSQL absorve a maior parte da carga: ' +
+    'redirecionamento é um padrão de leitura muito repetitivo (o mesmo código curto acessado ' +
+    'muitas vezes), então a maioria das requisições nunca chega a bater no banco. 2 réplicas em ' +
+    'todo componente do caminho — nenhum ponto único de falha.',
+};
+
 export const URL_SHORTENER: Problem = {
   id: 'url-shortener',
   title: 'Encurtador de URL',
@@ -103,4 +130,5 @@ export const URL_SHORTENER: Problem = {
 
   rubric: RUBRIC,
   hints: HINTS,
+  referenceSolution: REFERENCE_SOLUTION,
 };

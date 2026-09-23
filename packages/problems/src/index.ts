@@ -32,3 +32,4 @@ export function getProblem(id: string): Problem | undefined {
 
 export type { Problem, ProblemScale, RubricCriterion, Hint } from './types.js';
 export { isProblemSolved } from './types.js';
+export { toWorkload } from './workload.js';

@@ -134,6 +134,7 @@ describe('toWorkload', () => {
     },
     rubric: [],
     hints: [],
+    referenceSolution: { design: { nodes: [], edges: [], entryNodeIds: [] }, reasoning: '' },
   };
 
   it('converte DAU + requisições/usuário/dia + pico em rps', () => {
