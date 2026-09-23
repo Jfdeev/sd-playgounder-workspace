@@ -68,6 +68,13 @@ export type Problem = {
   nonFunctionalRequirements: string[];
   /** Anatomia §2.1 parte 5. */
   scale: ProblemScale;
+  /**
+   * Limiar de latência p99 (ms) que o problema exige — mesmo número usado pelo critério de
+   * rubrica `latency-p99` (ver `rubric` abaixo), exposto aqui como campo estruturado porque
+   * `RubricCriterion.evaluate` é uma função opaca: não dá pra extrair o número de dentro dela sem
+   * executá-la. Insumo direto da dimensão Latência de score (M2, `scores/calculate.ts`).
+   */
+  latencyBudgetMs: number;
   /** Anatomia §2.1 parte 6 — à mostra nesta sessão (ver comentário do módulo), não escondida. */
   rubric: RubricCriterion[];
   /** Sistema de dicas estáticas (texto autorado) — educativo, não gerado por IA. */

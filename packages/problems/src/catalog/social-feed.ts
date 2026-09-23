@@ -130,6 +130,9 @@ export const SOCIAL_FEED: Problem = {
     peakMultiplier: 3,
   },
 
+  // Mesmo número do critério de rubrica 'latency-p99' abaixo (result.path.latency.p99 <= 200).
+  latencyBudgetMs: 200,
+
   rubric: RUBRIC,
   hints: HINTS,
   referenceSolution: REFERENCE_SOLUTION,

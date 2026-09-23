@@ -128,6 +128,9 @@ export const URL_SHORTENER: Problem = {
     peakMultiplier: 3,
   },
 
+  // Mesmo número do critério de rubrica 'latency-p99' abaixo (result.path.latency.p99 <= 100).
+  latencyBudgetMs: 100,
+
   rubric: RUBRIC,
   hints: HINTS,
   referenceSolution: REFERENCE_SOLUTION,
