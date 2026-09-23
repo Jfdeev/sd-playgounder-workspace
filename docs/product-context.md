@@ -299,7 +299,9 @@ via Yjs · modo turma com painel do professor. **Nada aqui começa antes de M4 f
 - **D1** — Nome do produto e do repositório. Trabalhando com "System Design Playground",
   que é descritivo, não definitivo.
 - **D2** — Gerenciador de pacote do monorepo (pnpm vs. npm workspaces).
-- **D3** — ORM (Drizzle vs. Prisma).
+- ~~**D3** — ORM (Drizzle vs. Prisma).~~ **Resolvido**: Drizzle — já em uso desde M0.5
+  (`apps/web/src/db/`, `@auth/drizzle-adapter`), nunca foi de fato uma escolha em
+  aberto na prática.
 - ~~**D4** — Provedor de LLM do narrador.~~ **Resolvido**: Anthropic (Claude API) —
   decisão do autor ao iniciar M2. Saída JSON estruturada (exigência de ADR-006),
   chave de API gerenciada no mesmo fluxo do ambiente de desenvolvimento.
