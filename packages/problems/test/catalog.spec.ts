@@ -57,3 +57,20 @@ describe('todo problema do catálogo tem rubrica e dicas não-vazias', () => {
     expect(criterionIds.size).toBe(problem?.rubric.length); // ids únicos
   });
 });
+
+describe('Problem.latencyBudgetMs (M2) fica consistente com o critério de rubrica "latency-p99"', () => {
+  it.each(['url-shortener', 'social-feed', 'ecommerce-checkout'])('%s', (id) => {
+    const problem = getProblem(id);
+    if (!problem) throw new Error(`problema "${id}" não encontrado — catálogo quebrado`);
+
+    const criterion = problem.rubric.find((c) => c.id === 'latency-p99');
+    if (!criterion) throw new Error(`problema "${id}" não tem critério "latency-p99" na rubrica`);
+
+    // O critério real é uma função opaca sobre SimulationResult inteiro — fixture mínima só com o
+    // que 'latency-p99' de fato lê (path.latency.p99), pra provar que o número declarado em
+    // latencyBudgetMs é exatamente o limiar que o critério usa, sem duplicar lógica de simulação.
+    const fixture = (p99: number) => ({ path: { latency: { p99 } } }) as never;
+    expect(criterion.evaluate(fixture(problem.latencyBudgetMs), {} as never)).toBe(true);
+    expect(criterion.evaluate(fixture(problem.latencyBudgetMs + 0.01), {} as never)).toBe(false);
+  });
+});

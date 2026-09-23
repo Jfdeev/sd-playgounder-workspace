@@ -132,6 +132,9 @@ export const ECOMMERCE_CHECKOUT: Problem = {
     peakMultiplier: 4,
   },
 
+  // Mesmo número do critério de rubrica 'latency-p99' abaixo (result.path.latency.p99 <= 2_000).
+  latencyBudgetMs: 2_000,
+
   rubric: RUBRIC,
   hints: HINTS,
   referenceSolution: REFERENCE_SOLUTION,
