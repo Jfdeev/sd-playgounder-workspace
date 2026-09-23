@@ -33,10 +33,19 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Nenhum plano ativo no momento** — o último marco concluído foi M1.5 (Catálogo expandido de
-componentes do canvas, [specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md),
-branch `feature/001-expanded-component-catalog`). M1 (Canvas e submissão,
-[specs/canvas-submissao-m1/plan.md](specs/canvas-submissao-m1/plan.md)) e M0.5 (Landing Page e Conta,
-[specs/landing-page-conta-m0-5/plan.md](specs/landing-page-conta-m0-5/plan.md)) também estão
-concluídos. Próximo marco no roadmap (`docs/product-context.md` §10): M2.
+**Plano ativo**: M2 — Avaliação e biblioteca
+([specs/avaliacao-biblioteca-m2/plan.md](specs/avaliacao-biblioteca-m2/plan.md)), branch
+`feature/001-evaluation-narrator-scoring`. Score por dimensão (US1), narrador via Anthropic Claude
+API (US2), solução de referência por problema (US3), calculadora de capacidade independente (US4).
+Catálogo de problemas fica em 3 (não 6) neste marco — decisão de `/speckit-clarify`. **Atenção**:
+as fórmulas de score por dimensão em `research.md` §1 são uma PROPOSTA, pendente de aprovação
+explícita do autor (Constitution VI) antes de `/speckit-implement` codificar
+`packages/engine/src/scores/calculate.ts`.
+
+Marcos concluídos: M1.5 (Catálogo expandido de componentes,
+[specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md)), M1 (Canvas e
+submissão, [specs/canvas-submissao-m1/plan.md](specs/canvas-submissao-m1/plan.md)), M0.5 (Landing
+Page e Conta, [specs/landing-page-conta-m0-5/plan.md](specs/landing-page-conta-m0-5/plan.md)) — mais
+um lote fora do fluxo formal entre M1.5 e M2 (canvas sandbox/desafios/templates/Simular,
+[specs/canvas-sandbox-desafios-templates/decisions.md](specs/canvas-sandbox-desafios-templates/decisions.md)).
 <!-- SPECKIT END -->
