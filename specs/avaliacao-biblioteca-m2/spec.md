@@ -4,13 +4,20 @@
 
 **Created**: 2026-09-11
 
-**Status**: Draft
+**Status**: Ready
 
 **Input**: User description: "M2 — Avaliação e biblioteca. Marco definido em docs/product-context.md §10. Escopo P0: rubrica por problema, narrador LLM explicando o resultado do engine (nunca gerando número), score por dimensão, solução de referência com raciocínio, calculadora de capacidade back-of-envelope, 6 problemas. Critério de saída: o narrador nunca contradiz o engine em 20 submissões de teste consecutivas."
 
 ## Contexto ao entrar neste marco
 
 Rubrica visível e progressão travada já existem para 3 problemas (Encurtador de URL, Social Feed, E-commerce Checkout) — construídas num incremento anterior, fora do escopo formal deste marco. Este marco **estende** o que existe, não o reconstrói: adiciona score por dimensão (hoje placeholder zerado), narrador em linguagem natural, solução de referência por problema, e uma calculadora de capacidade independente do canvas.
+
+## Clarifications
+
+### Session 2026-09-23
+
+- Q: Catálogo de 6 problemas — completar pra 6 TOTAIS neste marco, ou focar primeiro nos 3 já existentes? → A: Focar em score/narrador/solução de referência pros 3 problemas já existentes (US1-US4) neste marco; os 3 problemas novos ficam pra um incremento separado depois. Autorizado a prosseguir sem aguardar resposta detalhada — opção recomendada aplicada.
+- Q: Escopo da calculadora back-of-envelope (US4) — ferramenta independente sempre acessível, ou parte do fluxo de um problema específico? → A: Ferramenta independente sempre acessível (painel próprio, não amarrada a um problema ativo). Autorizado a prosseguir sem aguardar resposta detalhada — opção recomendada aplicada.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -120,5 +127,5 @@ O usuário informa uma escala (ex. número de usuários ativos, requisições po
 - A solução de referência é conteúdo autorado à mão (como rubrica e dicas hoje), não gerada por LLM em tempo de autoria nem de execução — mantém o mesmo padrão de confiabilidade do resto do catálogo.
 - O cálculo de score por dimensão vive inteiramente em `packages/engine` (pacote puro) — nenhuma dependência de rede, LLM ou camada de aplicação entra no cálculo em si.
 - A calculadora de capacidade reusa a fórmula já existente em `toWorkload()`/`apps/web/src/lib/canvas-to-design.ts`, sem inventar uma segunda fórmula de conversão escala→RPS.
-- [NEEDS CLARIFICATION: catálogo de 6 problemas — completar pra 6 problemas TOTAIS neste marco (autorando 3 novos, com solução de referência incluída), ou tratar isso como um incremento separado depois de US1-US4 estarem prontas pros 3 problemas já existentes?]
-- [NEEDS CLARIFICATION: escopo da calculadora back-of-envelope (US4) — ferramenta independente sempre acessível (painel próprio, calcula RPS/storage/banda a partir de uma escala digitada), ou parte do fluxo de um problema específico (ex. um passo anterior a montar o canvas, usando a escala já fixada daquele problema)?]
+- Autorar os 3 problemas novos (pra chegar a 6 totais, conforme product-context.md §10) fica **fora do escopo deste marco** — resolvido via `/speckit-clarify`, Session 2026-09-23. Este marco entrega score/narrador/solução de referência pros 3 problemas já existentes (Encurtador de URL, Social Feed, E-commerce Checkout); os 3 problemas novos são um incremento futuro separado.
+- A calculadora back-of-envelope (US4) é uma ferramenta independente e sempre acessível, não amarrada a um problema ativo — resolvido via `/speckit-clarify`, Session 2026-09-23.
