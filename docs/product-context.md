@@ -263,6 +263,53 @@ mais GitHub (P0) (decisão do autor, 2026-08-13).
 explicação de cada componente pela LLM, e entender por que aquela empresa fez aquela escolha
 de arquitetura.
 
+### M2.6 — Fundamentos de arquitetura (inserido após M2.5 — decisão do autor, 2026-09-24)
+
+Base de conhecimento **pesquisada previamente** (mesma regra de M2.5: fidelidade real, nunca
+gerada pela LLM na hora) condensando princípios da literatura clássica de arquitetura de
+software — *Clean Architecture* (Robert C. Martin), *Fundamentals of Software Architecture*
+(Mark Richards & Neal Ford) e *Patterns of Enterprise Application Architecture* (Martin Fowler)
+— em conteúdo que a própria plataforma já sabe onde encaixar, porque conecta direto em mecânica
+que M1/M1.5/M2 já construíram:
+
+- **Características de arquitetura** (Richards & Ford) — o vocabulário formal por trás das 7
+  dimensões de score que o engine já calcula (M2): cada dimensão (escalabilidade, disponibilidade,
+  latência, consistência, custo, complexidade operacional, segurança) ganha uma ficha curta com
+  definição formal, a fonte, e o trade-off que ela representa contra as outras. Nunca um score
+  novo — só vocabulário e contexto por trás do que o engine já mede (Constitution I/V/VI
+  continuam valendo sem exceção).
+- **Estilos de arquitetura** (Richards & Ford) — ficha curta por template já existente (Monolito,
+  3 Camadas, Microsserviços, Orientado a Eventos — `canvas-templates.ts`, M1.5) com quando usar
+  cada um e os trade-offs principais, citando a fonte. 2-3 estilos novos (ex. Microkernel,
+  Baseado em Serviços) avaliados pra virar template também, só se couberem no catálogo de
+  componentes já existente.
+- **Responsabilidade e acoplamento** (Clean Architecture) — adaptado pro vocabulário de
+  infraestrutura da plataforma (a Regra de Dependência de Martin fala de camadas de código, não
+  de topologia de sistema — a tradução pro domínio daqui é o alvo desta parte, não uma cópia
+  literal): dicas estáticas novas (mesmo padrão de `Hint` já usado em M1) que citam o princípio
+  quando um design mostra um nó concentrando responsabilidade demais, ou acoplamento direto entre
+  partes que deveriam estar isoladas.
+- Narrador (M2) ganha esse conteúdo como contexto adicional no prompt — pode citar o nome do
+  princípio/padrão relevante ao explicar um resultado, sempre atribuído à fonte, nunca inventando
+  uma citação (mesma regra que já proíbe o narrador de inventar número).
+
+**Explicitamente fora de escopo**: nenhum padrão de *PoEAA* específico de camada de dado
+(Repository, Data Mapper, Active Record, Table Module) vira mecânica nova — a plataforma simula
+infraestrutura/topologia, não a estrutura de código interno de uma aplicação; esses padrões
+ficam só como leitura recomendada dentro da ficha de conceito, nunca como um componente novo do
+canvas ou um cálculo novo do engine.
+
+**Critério de saída de M2.6:** pra qualquer uma das 7 dimensões de score e qualquer um dos 4
+templates já existentes, uma pessoa consegue abrir a ficha correspondente e ver a definição
+formal + a fonte bibliográfica exata — nenhum conteúdo sem citação rastreável.
+
+> Nota de quem escreveu isto: numeração (M2.6), posição no roadmap (logo após M2.5, antes de
+> M3) e o corte de escopo acima (dentro/fora) são uma proposta — mesmo tipo de decisão que M2.5
+> registrou como "decisão do autor" quando foi inserida. Nenhum código foi criado pra este
+> marco ainda; nenhum `/speckit-specify` foi rodado. Fica pro autor confirmar ou ajustar antes
+> de qualquer implementação começar (CLAUDE.md: "nenhuma feature... fora do que está descrito
+> nestes documentos... pare e pergunte ao autor").
+
 ### M3 — Primeiro diferencial: Modo Incidente
 Arquitetura pronta + alerta + métricas simuladas; o usuário diagnostica a causa raiz
 plantada e propõe o fix. Reaproveita 100% do engine. Chaos: derrubar nó, derrubar AZ,
