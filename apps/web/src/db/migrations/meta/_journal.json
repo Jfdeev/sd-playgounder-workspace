@@ -15,6 +15,13 @@
       "when": 1786968062224,
       "tag": "0001_clear_talon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790258327450,
+      "tag": "0002_concerned_wind_dancer",
+      "breakpoints": true
     }
   ]
 }

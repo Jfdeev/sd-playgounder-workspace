@@ -26,6 +26,7 @@ import { Palette, buildNodeData, DRAG_MIME } from './palette';
 import { ConfigPanel } from './config-panel';
 import { ResultPanel } from './result-panel';
 import { ScorePanel } from './score-panel';
+import { NarratorPanel } from './narrator-panel';
 import { ChallengeCard } from './challenge-card';
 
 const nodeTypes = { component: ComponentNode, client: ClientNode };
@@ -158,7 +159,7 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
     (workload: Workload, { actionLabel, countsForProgression }: { actionLabel: string; countsForProgression: boolean }) => {
       if (nodes.length === 0) {
         setActionError(`Adicione componentes antes de ${actionLabel}.`);
-        applySimulationResult(null, null);
+        applySimulationResult(null, null, null);
         return;
       }
       setActionError(null);
@@ -171,7 +172,7 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
         referenceCostUsd,
       });
 
-      applySimulationResult(result, design);
+      applySimulationResult(result, design, workload);
       for (const [nodeId, nodeResult] of Object.entries(result.nodes)) {
         updateNodeConfig(nodeId, {
           result: { status: nodeResult.status, isBottleneck: nodeId === result.path.bottleneckId },
@@ -346,6 +347,7 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
         </div>
         <ResultPanel result={lastResult} actionError={actionError} />
         <ScorePanel result={lastResult} />
+        <NarratorPanel />
       </div>
       <ConfigPanel />
     </div>
