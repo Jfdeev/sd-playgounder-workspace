@@ -127,9 +127,10 @@ nova chamada ao provedor (spec.md, US2).
 **Independent Test**: abrir a referência do Encurtador de URL, confirmar design carregável +
 raciocínio associado a pelo menos uma decisão de capacidade (spec.md, US3).
 
-- [ ] T032 [US3] Criar `apps/web/src/components/canvas/reference-solution-panel.tsx` — mostra `problem.referenceSolution.reasoning` e um botão pra carregar `problem.referenceSolution.design` no canvas (mesma ação destrutiva de `loadDesign`, mesmo tratamento de confirmação de `handleApplyTemplate` em `canvas-workspace.tsx`)
-- [ ] T033 [US3] Adicionar o botão de abrir a solução de referência em `apps/web/src/components/canvas/challenge-card.tsx`, ao lado do botão de sair do desafio
-- [ ] T034 [US3] Verificação manual no browser (US3 do quickstart.md) — sem teste automatizado novo: o dado já foi validado em T014 (Foundational), esta fase só adiciona wiring de UI
+- [X] T031b (achado durante a implementação, fora do plano original) Criar `apps/web/src/lib/design-to-canvas.ts` — `Problem.referenceSolution.design` é um `Design` puro do engine (sem posição visual, packages/problems não conhece Client/layout, regra 3 do contrato); precisa de um conversor pra virar `{ nodes: CanvasNode[]; edges: CanvasEdge[] }` (shape que `loadDesign()` espera). Layout automático em camadas via BFS a partir de `entryNodeIds` + nó Cliente sintético. 8 testes, `apps/web/test/design-to-canvas.spec.ts`.
+- [X] T032 [US3] Criar `apps/web/src/components/canvas/reference-solution-panel.tsx` — mostra `problem.referenceSolution.reasoning` e um botão pra carregar `problem.referenceSolution.design` (via `designToCanvas`) no canvas (mesma ação destrutiva de `loadDesign`, mesmo tratamento de confirmação de `handleApplyTemplate` em `canvas-workspace.tsx`)
+- [X] T033 [US3] Adicionar o botão de abrir a solução de referência em `apps/web/src/components/canvas/challenge-card.tsx`, ao lado do botão de sair do desafio
+- [ ] T034 [US3] Verificação manual no browser (US3 do quickstart.md) — sem teste automatizado novo: o dado já foi validado em T014 (Foundational), esta fase só adiciona wiring de UI — pendente (bloqueado por auth, ver relatório de conclusão)
 
 **Checkpoint**: `tsc` limpo, `pnpm --filter web exec vitest run --exclude "**/password.spec.ts"` verde (sem regressão), verificação manual no browser.
 
