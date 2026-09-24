@@ -153,10 +153,10 @@ raciocínio associado a pelo menos uma decisão de capacidade (spec.md, US3).
 
 ## Phase 7: Polish
 
-- [ ] T038 `pnpm -r typecheck` limpo nos 4 pacotes (engine, problems, narrator, web)
-- [ ] T039 `pnpm --filter web build` limpo
-- [ ] T040 Atualizar `docs/product-context.md` §10 — marcar M2 como concluído, com link pra `specs/avaliacao-biblioteca-m2/spec.md`, mesmo padrão já usado pra M1/M1.5
-- [ ] T041 Promover `**Status**` de `specs/avaliacao-biblioteca-m2/spec.md` para `Done`
+- [X] T038 `pnpm -r typecheck` limpo nos 4 pacotes (engine, problems, narrator, web)
+- [X] T039 `pnpm --filter web build` limpo (`/api/narrator` registrado, `/app` e `/app/[problemId]` em 196 kB First Load JS)
+- [X] T040 Atualizar `docs/product-context.md` §10 — **não** marcado como "concluído" (diferente de M1/M1.5): o critério de saída oficial ("narrador nunca contradiz o engine em 20 submissões de teste consecutivas") exige observação empírica do provedor real, que nenhum teste automatizado com mock satisfaz, e o agente nunca teve uma `GEMINI_API_KEY` real. Registrado como "código completo, exit criterion pendente de verificação humana" em vez disso.
+- [ ] T041 Promover `**Status**` de `specs/avaliacao-biblioteca-m2/spec.md` para `Done` — **não promovido**, pela mesma razão de T040. Fica `Ready` até o autor confirmar as 20 submissões consecutivas com uma chave real.
 
 ---
 

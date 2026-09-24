@@ -35,12 +35,14 @@ do anterior ser atingido.
 <!-- SPECKIT START -->
 **Plano ativo**: M2 — Avaliação e biblioteca
 ([specs/avaliacao-biblioteca-m2/plan.md](specs/avaliacao-biblioteca-m2/plan.md)), branch
-`feature/001-evaluation-narrator-scoring`. Score por dimensão (US1, **implementado** —
-`packages/engine/src/scores/calculate.ts`, fórmulas aprovadas pelo autor em 2026-09-23), narrador
-via Google Gemini 2.5 Flash (US2, em andamento — decisão do autor, reverte a escolha original de
-Anthropic Claude API), solução de referência por problema (US3), calculadora de capacidade
-independente (US4). Catálogo de problemas fica em 3 (não 6) neste marco — decisão de
-`/speckit-clarify`.
+`feature/001-evaluation-narrator-scoring`. **Código completo** (US1-US4: score por dimensão,
+narrador via Google Gemini `gemini-2.5-flash`, solução de referência, calculadora de capacidade) —
+`tsc`/381 testes/build limpos nos 4 pacotes. Catálogo de problemas fica em 3 (não 6) neste marco —
+decisão de `/speckit-clarify`. **Status da spec continua `Ready`, não `Done`**: o critério de saída
+oficial ("narrador nunca contradiz o engine em 20 submissões consecutivas") exige observação
+empírica com uma `GEMINI_API_KEY` real e login manual no browser — nenhum dos dois disponível pro
+agente nesta sessão. Falta ao autor: configurar a chave, verificar `quickstart.md`, e promover
+`spec.md` pra `Done` depois de confirmar as 20 submissões.
 
 Marcos concluídos: M1.5 (Catálogo expandido de componentes,
 [specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md)), M1 (Canvas e
