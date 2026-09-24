@@ -302,9 +302,10 @@ via Yjs · modo turma com painel do professor. **Nada aqui começa antes de M4 f
 - ~~**D3** — ORM (Drizzle vs. Prisma).~~ **Resolvido**: Drizzle — já em uso desde M0.5
   (`apps/web/src/db/`, `@auth/drizzle-adapter`), nunca foi de fato uma escolha em
   aberto na prática.
-- ~~**D4** — Provedor de LLM do narrador.~~ **Resolvido**: Anthropic (Claude API) —
-  decisão do autor ao iniciar M2. Saída JSON estruturada (exigência de ADR-006),
-  chave de API gerenciada no mesmo fluxo do ambiente de desenvolvimento.
+- ~~**D4** — Provedor de LLM do narrador.~~ **Resolvido**: Google Gemini, modelo
+  `gemini-2.5-flash` — decisão do autor durante a implementação de M2, revertendo a
+  escolha inicial (Anthropic Claude API). Saída JSON estruturada via `responseSchema`
+  nativo do Gemini (exigência de ADR-006), chave de API (`GEMINI_API_KEY`) server-only.
 - **D5** — Fonte dos números de custo dos componentes (tabela fixa vs. baseada em
   preço real de cloud).
 

@@ -8,7 +8,7 @@ description: "Task list for M2 — Avaliação e biblioteca"
 
 **Tests**: incluídos — mesmo padrão de M0/M0.5/M1/M1.5 (`.specify/memory/constitution.md`, Fluxo de
 Trabalho SDD): cobertura forte em módulos puros (`packages/engine`, `packages/problems`, `apps/web/src/lib/**`,
-`packages/narrator`); wiring de UI/Route Handler/chamada real à Anthropic verificado por
+`packages/narrator`); wiring de UI/Route Handler/chamada real ao Gemini verificado por
 `tsc`/build/checagem manual no browser, nunca por unit test contra a API real.
 
 **Organização**: Setup → Foundational → US1 (P1) → US2 (P2) → US3 (P3) → US4 (P4) → Polish. As
@@ -40,9 +40,9 @@ duas entregas.
 
 ## Phase 1: Setup
 
-- [ ] T001 Adicionar `@anthropic-ai/sdk` (versão estável mais recente) às dependências de `apps/web/package.json`
-- [ ] T002 [P] Documentar `ANTHROPIC_API_KEY` como variável server-only em `apps/web/.env.example` (criar o arquivo se não existir), seguindo o mesmo padrão de `RESEND_API_KEY` já documentado ali
-- [ ] T003 Rodar `pnpm install` na raiz do monorepo pra resolver a dependência nova
+- [X] T001 Adicionar `@google/generative-ai` (versão estável mais recente) às dependências de `apps/web/package.json` — trocado de `@anthropic-ai/sdk` (decisão original de D4) pra Google Gemini (`gemini-2.5-flash`), pedido do autor durante a implementação de US2, antes de qualquer código do narrador existir
+- [X] T002 [P] Documentar `GEMINI_API_KEY` como variável server-only em `apps/web/.env.example` (criar o arquivo se não existir), seguindo o mesmo padrão de `RESEND_API_KEY` já documentado ali
+- [X] T003 Rodar `pnpm install` na raiz do monorepo pra resolver a dependência nova
 
 ---
 
@@ -53,23 +53,24 @@ duas entregas.
 
 ### `availability` no catálogo (bloqueia US1 — dimensão Disponibilidade)
 
-- [ ] T004 Adicionar campo `availability: number` ao tipo `ComponentSpec` em `packages/engine/src/catalog/components.ts` (data-model.md)
-- [ ] T005 Preencher `availability` nas 44 entradas de `COMPONENT_CATALOG` em `packages/engine/src/catalog/components.ts` — valores ilustrativos plausíveis (0.99-0.999), maior pra componentes de borda/rede de alta capacidade (ex. `vpc`, `cdn`), menor pra bancos/filas (ex. `sql_primary`, `queue`), mesmo espírito "plausível e redondo" já documentado no cabeçalho do arquivo (research.md §1)
-- [ ] T006 Coverage pass: `COMPONENT_CATALOG` — teste que itera `ALL_COMPONENT_TYPES` (mesmo padrão de `packages/engine/test/catalog/components.spec.ts` já existente) e confirma que todo `availability` está no intervalo `(0, 1]`, fechando o `Record` exaustivo
+- [X] T004 Adicionar campo `availability: number` ao tipo `ComponentSpec` em `packages/engine/src/catalog/components.ts` (data-model.md)
+- [X] T005 Preencher `availability` nas 44 entradas de `COMPONENT_CATALOG` em `packages/engine/src/catalog/components.ts` — valores ilustrativos plausíveis (0.99-0.999), maior pra componentes de borda/rede de alta capacidade (ex. `vpc`, `cdn`), menor pra bancos/filas (ex. `sql_primary`, `queue`), mesmo espírito "plausível e redondo" já documentado no cabeçalho do arquivo (research.md §1)
+- [X] T006 Coverage pass: `COMPONENT_CATALOG` — teste que itera `ALL_COMPONENT_TYPES` (mesmo padrão de `packages/engine/test/catalog/components.spec.ts` já existente) e confirma que todo `availability` está no intervalo `(0, 1]`, fechando o `Record` exaustivo
 
 ### Fórmula de capacidade compartilhada (bloqueia US1 parcialmente via `toWorkload`, e US4 inteira)
 
-- [ ] T007 [P] Extrair `averageRps(dau, requestsPerUserPerDay)` e `peakRps(averageRps, peakMultiplier)` de `apps/web/src/lib/canvas-to-design.ts` para um módulo novo `apps/web/src/lib/capacity-formula.ts` (research.md §4)
-- [ ] T008 Atualizar `toWorkload()` em `apps/web/src/lib/canvas-to-design.ts` para usar as funções extraídas de `capacity-formula.ts`, sem duplicar a conta
-- [ ] T009 [P] Coverage pass: `capacity-formula.ts` — testes em `apps/web/test/capacity-formula.spec.ts` cobrindo os casos já testados indiretamente em `canvas-to-design.spec.ts` (garante que a extração não mudou o resultado — mesmos números de antes)
+- [X] T007 [P] Extrair `averageRps(dau, requestsPerUserPerDay)` e `peakRps(averageRps, peakMultiplier)` de `apps/web/src/lib/canvas-to-design.ts` para um módulo novo `apps/web/src/lib/capacity-formula.ts` (research.md §4)
+- [X] T008 Atualizar `toWorkload()` em `apps/web/src/lib/canvas-to-design.ts` para usar as funções extraídas de `capacity-formula.ts`, sem duplicar a conta
+- [X] T009 [P] Coverage pass: `capacity-formula.ts` — testes em `apps/web/test/capacity-formula.spec.ts` cobrindo os casos já testados indiretamente em `canvas-to-design.spec.ts` (garante que a extração não mudou o resultado — mesmos números de antes)
 
 ### `Problem.referenceSolution` (bloqueia US1 — dimensão Custo — e US3)
 
-- [ ] T010 Adicionar o campo `referenceSolution: { design: Design; reasoning: string }` (obrigatório) ao tipo `Problem` em `packages/problems/src/types.ts` (data-model.md)
-- [ ] T011 [P] Autorar `referenceSolution` do Encurtador de URL em `packages/problems/src/catalog/url-shortener.ts` — design completo que resolve 100% da rubrica na escala oficial do problema, mais texto de raciocínio
-- [ ] T012 [P] Autorar `referenceSolution` do Social Feed em `packages/problems/src/catalog/social-feed.ts`
-- [ ] T013 [P] Autorar `referenceSolution` do E-commerce Checkout em `packages/problems/src/catalog/ecommerce-checkout.ts`
-- [ ] T014 Teste em `packages/problems/test/reference-solution.spec.ts`: para cada um dos 3 problemas, rodar `simulate(referenceSolution.design, toWorkload(problem))` (via `@sdp/engine`) e confirmar `isProblemSolved(problem, result, referenceSolution.design)` verdadeiro (SC-005) — mesmo padrão de `bottleneck-scenario.spec.ts`
+- [X] T010 Adicionar o campo `referenceSolution: { design: Design; reasoning: string }` (obrigatório) ao tipo `Problem` em `packages/problems/src/types.ts` (data-model.md)
+- [X] T011 [P] Autorar `referenceSolution` do Encurtador de URL em `packages/problems/src/catalog/url-shortener.ts` — design completo que resolve 100% da rubrica na escala oficial do problema, mais texto de raciocínio
+- [X] T012 [P] Autorar `referenceSolution` do Social Feed em `packages/problems/src/catalog/social-feed.ts`
+- [X] T013 [P] Autorar `referenceSolution` do E-commerce Checkout em `packages/problems/src/catalog/ecommerce-checkout.ts`
+- [X] T014 Teste em `packages/problems/test/reference-solution.spec.ts`: para cada um dos 3 problemas, rodar `simulate(referenceSolution.design, toWorkload(problem))` (via `@sdp/engine`) e confirmar `isProblemSolved(problem, result, referenceSolution.design)` verdadeiro (SC-005) — mesmo padrão de `bottleneck-scenario.spec.ts`
+- [X] T014b (achado durante a implementação, fora do plano original) Adicionar `Problem.latencyBudgetMs` — `RubricCriterion.evaluate` é uma função opaca, não dava pra extrair o limiar numérico de latência de dentro dela pra alimentar a dimensão Latência de score; campo novo + teste de consistência contra o critério `latency-p99` em `packages/problems/test/catalog.spec.ts`
 
 **Checkpoint**: `pnpm -r typecheck` limpo, `pnpm --filter engine test` e `pnpm --filter problems test` verdes antes de prosseguir.
 
@@ -83,13 +84,13 @@ placeholder zerado; UI nunca as reduz a uma nota única.
 **Independent Test**: resolver o Encurtador de URL com/sem Cache, confirmar que a dimensão de
 Latência ou Custo muda de valor entre os dois designs (spec.md, US1).
 
-- [ ] T015 [US1] Criar `packages/engine/src/scores/calculate.ts` com `calculateScores(design, nodes, path, violations, cost, latencyBudgetMs, referenceCostUsd)` implementando as 7 fórmulas aprovadas em `research.md` §1 (data-model.md)
-- [ ] T016 [US1] Em `packages/engine/src/index.ts`, remover `placeholderScores()` e chamar `calculateScores(...)` com os dados já calculados em `simulate()` — `latencyBudgetMs`/`referenceCostUsd` chegam como parâmetros novos de `simulate()` (ambos `| null`, `null` fora de um desafio)
-- [ ] T017 [US1] Em `apps/web/src/components/canvas/canvas.tsx`, extrair `latencyBudgetMs` (do critério de rubrica de latência do `problem` ativo, se existir) e `referenceCostUsd` (simulando `problem.referenceSolution.design` com `toWorkload(problem)` e lendo `cost.monthlyTotal`) antes de chamar `simulate()`, passando ambos como `null` no sandbox/sem desafio ativo
-- [ ] T018 [US1] [P] Criar `apps/web/src/components/canvas/score-panel.tsx` — exibe as 7 dimensões separadamente (barras ou números 0-100), nunca uma soma/média/nota geral (Constitution V, FR-002); renderiza só quando `lastResult` existe, mesmo padrão de `result-panel.tsx`
-- [ ] T019 [US1] Integrar `<ScorePanel>` em `apps/web/src/components/canvas/canvas.tsx`, ao lado de `<ResultPanel>`
-- [ ] T020 [US1] Testes de cenário em `packages/engine/test/scores/calculate.spec.ts`: cada uma das 7 dimensões varia com um design diferente (ex. mais réplicas → Escalabilidade sobe; remover Cache → Latência cai, se a rubrica tiver limiar; design mais caro que a referência → Custo cai); `latencyBudgetMs`/`referenceCostUsd` nulos → dimensões correspondentes retornam 0 (edge case do spec.md)
-- [ ] T021 [US1] Coverage pass: `calculate.ts` — para cada decision point das 7 fórmulas (clamps, o `if` de replication em Consistência, a soma condicional de Segurança, os `null` de Latência/Custo), confirmar que existe um teste que quebra se aquela linha for mutada; escrever os testes faltantes
+- [X] T015 [US1] Criar `packages/engine/src/scores/calculate.ts` com `calculateScores(params)` (options object, não posicional — melhor que os 7 parâmetros originalmente sketchados aqui) implementando as 7 fórmulas aprovadas em `research.md` §1 (data-model.md)
+- [X] T016 [US1] Em `packages/engine/src/index.ts`, remover `placeholderScores()` e chamar `calculateScores(...)` com os dados já calculados em `simulate()` — `latencyBudgetMs`/`referenceCostUsd` chegam via um 3º parâmetro opcional `scoreContext` de `simulate()` (ambos `| null`, `null` fora de um desafio)
+- [X] T017 [US1] Em `apps/web/src/components/canvas/canvas.tsx`, extrair `latencyBudgetMs` (de `problem.latencyBudgetMs`, campo novo — não da rubrica, que é opaca) e `referenceCostUsd` (memoizado por `problem`, simulando `problem.referenceSolution.design` com `toWorkload(problem)` e lendo `cost.monthlyTotal`) antes de chamar `simulate()`, passando ambos como `null` no sandbox/sem desafio ativo
+- [X] T018 [US1] [P] Criar `apps/web/src/components/canvas/score-panel.tsx` — exibe as 7 dimensões separadamente (barras + números 0-100), nunca uma soma/média/nota geral (Constitution V, FR-002); renderiza só quando `lastResult` existe, fecha por padrão (mesmo padrão de `result-panel.tsx`)
+- [X] T019 [US1] Integrar `<ScorePanel>` em `apps/web/src/components/canvas/canvas.tsx`, ao lado de `<ResultPanel>`
+- [X] T020 [US1] Testes de cenário em `packages/engine/test/scores/calculate.spec.ts`: cada uma das 7 dimensões varia com um design diferente; `latencyBudgetMs`/`referenceCostUsd` nulos → dimensões correspondentes retornam 0 (edge case do spec.md)
+- [X] T021 [US1] Coverage pass: `calculate.ts` — para cada decision point das 7 fórmulas (clamps, o `if` de replication em Consistência, a soma condicional de Segurança, os `null` de Latência/Custo), confirmar que existe um teste que quebra se aquela linha for mutada; escrever os testes faltantes
 
 **Checkpoint**: `pnpm --filter engine test` verde, `pnpm --filter web exec vitest run --exclude "**/password.spec.ts"` verde, `tsc` limpo, verificação manual no browser (US1 do quickstart.md).
 
@@ -104,14 +105,14 @@ contradiz `SimulationResult`.
 nova chamada ao provedor (spec.md, US2).
 
 - [ ] T022 [US2] [P] Criar `packages/narrator/src/design-hash.ts` — `hashDesign(design, workload)` usando `crypto.subtle.digest` sobre a versão canonicalizada (nodes/edges ordenados por id, research.md §3)
-- [ ] T023 [US2] [P] Criar `packages/narrator/src/schema.ts` — schema de tool use da Anthropic (`explain_result`, contracts/narrator-contract.md §2), sem nenhum campo numérico
+- [ ] T023 [US2] [P] Criar `packages/narrator/src/schema.ts` — `responseSchema` estruturado do Gemini (contracts/narrator-contract.md §2), sem nenhum campo numérico
 - [ ] T024 [US2] [P] Criar `packages/narrator/src/prompt.ts` — monta o prompt a partir só de `SimulationResult` (nunca de `Design`/`Workload` brutos, contracts/narrator-contract.md Regra 2)
 - [ ] T025 [US2] Adicionar tabela `narratorExplanations` em `apps/web/src/db/schema.ts` (data-model.md) e gerar a migration com `pnpm --filter web db:generate`
-- [ ] T026 [US2] Criar `apps/web/src/app/api/narrator/route.ts` — Route Handler seguindo `contracts/narrator-contract.md`: `auth()` direto na rota, hash → cache lookup → chamada Anthropic (tool use, timeout RNF-5) → parse/validação contra o schema → persiste → devolve; nunca devolve 200 com corpo inventado em caso de erro
+- [ ] T026 [US2] Criar `apps/web/src/app/api/narrator/route.ts` — Route Handler seguindo `contracts/narrator-contract.md`: `auth()` direto na rota, hash → cache lookup → chamada Gemini (`responseSchema`, timeout RNF-5) → parse/validação contra o schema → persiste → devolve; nunca devolve 200 com corpo inventado em caso de erro
 - [ ] T027 [US2] [P] Criar `apps/web/src/components/canvas/narrator-panel.tsx` — busca a explicação via `POST /api/narrator`, estado de loading/erro próprio, nunca bloqueia `<ResultPanel>`/`<ScorePanel>` (FR-010)
 - [ ] T028 [US2] Integrar `<NarratorPanel>` em `apps/web/src/components/canvas/canvas.tsx`
 - [ ] T029 [US2] Testes em `packages/narrator/test/`: `design-hash.spec.ts` (mesmo design em ordem diferente de nodes/edges → mesmo hash; designs diferentes → hashes diferentes), `schema.spec.ts` (schema não aceita campo numérico), `prompt.spec.ts` (prompt gerado nunca inclui campos fora de `SimulationResult`) — sem chamada real à API
-- [ ] T030 [US2] Testes em `apps/web/test/` pro Route Handler: mockar o SDK da Anthropic — cache hit não chama o mock; cache miss chama e persiste; resposta fora do schema → `INVALID_RESPONSE`; timeout simulado → `TIMEOUT`, nunca 200 inventado
+- [ ] T030 [US2] Testes em `apps/web/test/` pro Route Handler: mockar o SDK do Gemini (`@google/generative-ai`) — cache hit não chama o mock; cache miss chama e persiste; resposta fora do schema → `INVALID_RESPONSE`; timeout simulado → `TIMEOUT`, nunca 200 inventado
 - [ ] T031 [US2] Coverage pass: `design-hash.ts`, `schema.ts`, Route Handler — decision points (cache hit/miss, validação de schema, branches de erro) cobertos; escrever os testes faltantes
 
 **Checkpoint**: `pnpm --filter narrator test`, `pnpm --filter web exec vitest run --exclude "**/password.spec.ts"` verdes, `tsc` limpo, verificação manual no browser (US2 do quickstart.md, incluindo o cache hit via Network tab).

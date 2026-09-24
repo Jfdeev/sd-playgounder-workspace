@@ -37,35 +37,38 @@ especificadas nesta seção, sem ajuste. Implementação liberada pra `/speckit-
 
 ## §2. Schema de resposta estruturada do narrador
 
-**Decision**: usar tool use da API da Anthropic (`tools` + `tool_choice: {type: 'tool', name: 'explain_result'}`)
-com um schema JSON que só aceita campos de texto — nenhum campo `number`/`integer` no schema.
+**Decision**: usar saída estruturada nativa do Gemini (`generationConfig.responseMimeType:
+'application/json'` + `responseSchema`) com um schema JSON que só aceita campos de texto — nenhum
+campo `number`/`integer` no schema. Modelo: `gemini-2.5-flash` (decisão do autor, reverte a escolha
+inicial de Anthropic Claude — trocado durante a implementação de US2, antes de qualquer código do
+narrador existir, então sem rework de código já escrito).
 
 ```json
 {
-  "name": "explain_result",
-  "input_schema": {
-    "type": "object",
-    "properties": {
-      "summary": { "type": "string", "description": "1-2 frases resumindo o resultado" },
-      "bottleneck_explanation": { "type": "string", "description": "por que este nó é o gargalo, em linguagem natural" },
-      "recommendation": { "type": "string", "description": "uma sugestão textual de melhoria, sem propor um número específico de réplicas" }
-    },
-    "required": ["summary", "bottleneck_explanation"]
-  }
+  "type": "object",
+  "properties": {
+    "summary": { "type": "string", "description": "1-2 frases resumindo o resultado" },
+    "bottleneck_explanation": { "type": "string", "description": "por que este nó é o gargalo, em linguagem natural" },
+    "recommendation": { "type": "string", "description": "uma sugestão textual de melhoria, sem propor um número específico de réplicas" }
+  },
+  "required": ["summary", "bottleneck_explanation"]
 }
 ```
 
-**Rationale**: tool use força o modelo a responder no shape exato — não há campo pra "inventar" um
-número, e mesmo que o texto livre (`summary`, etc.) mencione um número solto, esse número já
-precisa ter vindo do prompt (que só contém dados de `SimulationResult`) pra ser plausível — não é
-uma garantia absoluta contra alucinação textual, mas é a garantia mecânica de que nenhum CAMPO
-estruturado de saída é numérico, o mínimo que a Constitution exige ("nenhum número exibido pode ter
-origem em LLM" — os números exibidos na UI continuam vindo só de `SimulationResult`, o narrador
-nunca populariza um campo separado que a UI leria como métrica).
+**Rationale**: `responseSchema` força o modelo a responder no shape exato — não há campo pra
+"inventar" um número, e mesmo que o texto livre (`summary`, etc.) mencione um número solto, esse
+número já precisa ter vindo do prompt (que só contém dados de `SimulationResult`) pra ser plausível
+— não é uma garantia absoluta contra alucinação textual, mas é a garantia mecânica de que nenhum
+CAMPO estruturado de saída é numérico, o mínimo que a Constitution exige ("nenhum número exibido
+pode ter origem em LLM" — os números exibidos na UI continuam vindo só de `SimulationResult`, o
+narrador nunca populariza um campo separado que a UI leria como métrica).
 
-**Alternatives considered**: pedir markdown livre e extrair texto — rejeitado, mais difícil de
-validar estrutura/tamanho, sem garantia de quais seções existem. JSON mode sem tool use — Anthropic
-recomenda tool use para schema estrito; mesmo efeito, tool use é o padrão mais documentado.
+**Alternatives considered (provedor)**: Anthropic Claude (tool use) — decisão original de D4,
+revertida pelo autor por preferência de custo/familiaridade com o Gemini. OpenAI — não avaliado a
+fundo, Gemini já resolvia a exigência de saída estruturada (ADR-006) igualmente bem.
+
+**Alternatives considered (formato de saída)**: pedir markdown livre e extrair texto — rejeitado,
+mais difícil de validar estrutura/tamanho, sem garantia de quais seções existem.
 
 ## §3. Hash de cache do narrador
 

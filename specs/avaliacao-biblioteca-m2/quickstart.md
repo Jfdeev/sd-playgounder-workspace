@@ -19,7 +19,7 @@ dev — os passos abaixo exigem login manual no browser antes de seguir.
    de resultado, nenhum número no texto diverge do que já está na tela.
 3. Recarregar a página, submeter exatamente o mesmo design de novo, abrir o narrador de novo.
    Confirmar (via Network tab do browser ou log do servidor): resposta veio do cache
-   (`cached: true`), sem nova chamada à API da Anthropic.
+   (`cached: true`), sem nova chamada à API do Gemini.
 
 ## US3 — Solução de referência
 
