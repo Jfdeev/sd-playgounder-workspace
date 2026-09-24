@@ -235,8 +235,19 @@ número) · score por dimensão · solução de referência com raciocínio · c
 capacidade back-of-envelope · 6 problemas (P0). Fase de clarificação de requisitos,
 defesa textual do design avaliada pelo LLM (P1).
 
-**Critério de saída de M2:** o narrador nunca contradiz o engine em 20 submissões
-de teste consecutivas.
+**Código completo** ([specs/avaliacao-biblioteca-m2/](../specs/avaliacao-biblioteca-m2/spec.md)) —
+score por dimensão real (US1), narrador via Google Gemini `gemini-2.5-flash` (US2), solução de
+referência carregável por problema (US3), calculadora de capacidade independente (US4). 381 testes
+automatizados (engine/problems/narrator/web) e build de produção limpos. **Catálogo permanece em 3
+problemas** (não 6) — decisão de `/speckit-clarify`, 2026-09-23: os 3 problemas novos ficam pra um
+incremento futuro separado.
+
+**Critério de saída de M2:** o narrador nunca contradiz o engine em 20 submissões de teste
+consecutivas. **Ainda não verificado** — exige uma chave real de API do Gemini (`GEMINI_API_KEY`,
+o agente nunca teve uma) e login manual no browser (mesmo gap de auth de todos os marcos
+anteriores); os 20 testes consecutivos são uma observação empírica do comportamento real do
+provedor, não algo que um teste automatizado com mock possa satisfazer. Marco fica em "código
+completo, exit criterion pendente de verificação humana" até o autor confirmar.
 
 ### M2.5 — Arquiteturas de referência (inserido após M2 — decisão do autor)
 Presets de arquiteturas reais de empresas conhecidas, **pesquisadas previamente** (não
