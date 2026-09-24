@@ -11,11 +11,12 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { Blocks, ChevronDown, Lock, Sparkles } from 'lucide-react';
+import { Blocks, Calculator, ChevronDown, Lock, Sparkles } from 'lucide-react';
 import { ALL_PROBLEM_IDS, getProblem } from '@sdp/problems';
 import { ARCHITECTURE_TEMPLATES, type ArchitectureTemplate } from '@/lib/canvas-templates';
 import { isChallengeUnlocked } from '@/lib/challenge-progression';
 import { useProgressionStore } from '@/stores/progression-store';
+import { CapacityCalculatorPanel } from './capacity-calculator-panel';
 
 // Nomes do site de inspiração que ainda não têm um Problem completo autorado — aparecem na lista
 // como "em breve" (sempre bloqueados), pra manter a lista visualmente parecida com o site sem
@@ -41,7 +42,7 @@ export function ChallengeTopBar({
   onSelectChallenge: (problemId: string) => void;
   onApplyTemplate: (template: ArchitectureTemplate) => void;
 }) {
-  const [openMenu, setOpenMenu] = useState<'challenges' | 'templates' | null>(null);
+  const [openMenu, setOpenMenu] = useState<'challenges' | 'templates' | 'calculator' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   useClickOutside(containerRef, () => setOpenMenu(null));
 
@@ -128,6 +129,23 @@ export function ChallengeTopBar({
                 <span className="text-xs text-zinc-500">{template.description}</span>
               </button>
             ))}
+          </div>
+        )}
+      </div>
+
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpenMenu((m) => (m === 'calculator' ? null : 'calculator'))}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-3 py-1.5 text-sm text-zinc-200 transition hover:border-violet-500"
+        >
+          <Calculator className="size-4 text-violet-400" aria-hidden />
+          Calculadora
+          <ChevronDown className="size-3.5 text-zinc-500" aria-hidden />
+        </button>
+        {openMenu === 'calculator' && (
+          <div className="absolute left-0 top-full z-20 mt-1 rounded-lg border border-zinc-800 bg-zinc-900 shadow-xl">
+            <CapacityCalculatorPanel />
           </div>
         )}
       </div>
