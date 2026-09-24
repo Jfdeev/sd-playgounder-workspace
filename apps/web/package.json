@@ -15,8 +15,8 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.32.1",
     "@auth/drizzle-adapter": "^1.7.4",
+    "@google/generative-ai": "^0.21.0",
     "@neondatabase/serverless": "^0.10.4",
     "@sdp/engine": "workspace:*",
     "@sdp/problems": "workspace:*",

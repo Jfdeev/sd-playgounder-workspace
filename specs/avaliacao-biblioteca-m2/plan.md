@@ -8,8 +8,9 @@
 
 `SimulationResult.scores` é placeholder zerado desde M0 (FR-020) — este marco implementa o cálculo
 real das 7 dimensões, inteiramente em `packages/engine`, a partir de dados que `simulate()` já
-calcula (US1). Sobre essa fundação, adiciona um narrador em linguagem natural via Anthropic Claude
-API, chamado fora do caminho crítico e cacheado por hash do design em Postgres/Drizzle (US2); uma
+calcula (US1). Sobre essa fundação, adiciona um narrador em linguagem natural via Google Gemini
+(`gemini-2.5-flash`), chamado fora do caminho crítico e cacheado por hash do design em
+Postgres/Drizzle (US2); uma
 solução de referência autorada por problema, validada contra a própria rubrica (US3); e uma
 calculadora de capacidade independente, reaproveitando a fórmula de conversão escala→RPS já usada
 pelo canvas (US4). Por decisão de `/speckit-clarify`, o catálogo permanece em 3 problemas neste
@@ -19,11 +20,11 @@ marco — os 3 problemas novos (pra completar 6) ficam pra um incremento futuro 
 
 **Language/Version**: TypeScript 5.7 (mesma versão de `packages/engine`/`packages/problems`/`apps/web`, já fixada desde M0)
 
-**Primary Dependencies**: `@anthropic-ai/sdk` (novo, só em `apps/web` — narrador via Anthropic Claude API, decisão do autor ao iniciar este marco); reaproveita `drizzle-orm`/`@auth/drizzle-adapter` (já em uso desde M0.5) pra persistir o cache do narrador; nenhuma dependência nova em `packages/engine`/`packages/problems` (Constitution II — engine continua puro)
+**Primary Dependencies**: `@google/generative-ai` (novo, só em `apps/web` — narrador via Google Gemini, modelo `gemini-2.5-flash`; decisão do autor durante a implementação de US2, revertendo a escolha inicial de Anthropic Claude API antes de qualquer código do narrador existir); reaproveita `drizzle-orm`/`@auth/drizzle-adapter` (já em uso desde M0.5) pra persistir o cache do narrador; nenhuma dependência nova em `packages/engine`/`packages/problems` (Constitution II — engine continua puro)
 
 **Storage**: Postgres via Drizzle (já configurado, `apps/web/src/db/client.ts`) — nova tabela `narrator_explanations` (cache por hash do design+workload, FR-005). Nenhuma outra persistência nova: score é derivado em `simulate()` a cada chamada (não persistido), solução de referência é dado versionado em `packages/problems` (arquivo de código, não banco)
 
-**Testing**: Vitest — mesmo padrão de M0/M0.5/M1/M1.5: `packages/engine` com testes unitários fortes sobre a lógica pura de score (incluindo cenários que provam que o score reage ao design, SC-002); `packages/problems` com teste que roda `simulate()` sobre cada `referenceSolution.design` e confirma `isProblemSolved` verdadeiro (SC-005); `apps/web` restrito a módulos puros em `src/lib/**` (cálculo da calculadora, construção do hash de cache, parsing/validação do schema de resposta do narrador com respostas mockadas) — nenhuma chamada real à API da Anthropic em teste automatizado (custo, não-determinismo), wiring de UI verificado por `tsc`/build/checagem manual no browser (mesmo gap de auth já registrado nos marcos anteriores)
+**Testing**: Vitest — mesmo padrão de M0/M0.5/M1/M1.5: `packages/engine` com testes unitários fortes sobre a lógica pura de score (incluindo cenários que provam que o score reage ao design, SC-002); `packages/problems` com teste que roda `simulate()` sobre cada `referenceSolution.design` e confirma `isProblemSolved` verdadeiro (SC-005); `apps/web` restrito a módulos puros em `src/lib/**` (cálculo da calculadora, construção do hash de cache, parsing/validação do schema de resposta do narrador com respostas mockadas) — nenhuma chamada real à API do Gemini em teste automatizado (custo, não-determinismo), wiring de UI verificado por `tsc`/build/checagem manual no browser (mesmo gap de auth já registrado nos marcos anteriores)
 
 **Target Platform**: Web (Next.js App Router, `apps/web`) — narrador exposto via novo Route Handler `apps/web/src/app/api/narrator/route.ts`, mesmo padrão dos Route Handlers já existentes (`api/account/signup`, `api/account/confirm-email`); nenhum middleware novo (auth() direto na rota, mesma decisão de M0.5/M1)
 
@@ -31,7 +32,7 @@ marco — os 3 problemas novos (pra completar 6) ficam pra um incremento futuro 
 
 **Performance Goals**: RNF-5 (latência do narrador < 5s p95, já definido em `docs/product-context.md`); cálculo de score, por ser puro e síncrono, soma tempo desprezível a `simulate()` (mesma ordem de grandeza das outras métricas já calculadas ali)
 
-**Constraints**: chave de API da Anthropic só em variável de ambiente server-only, nunca `NEXT_PUBLIC_*` (mesmo padrão de `RESEND_API_KEY`, FR-006); narrador MUST ficar fora do caminho crítico da submissão (FR-004) — resultado do engine nunca espera a resposta do LLM; resposta do narrador MUST vir em schema estruturado sem campos numéricos (tool use / structured output da API da Anthropic) — não é permitido extrair número de texto livre, único jeito de garantir mecanicamente a regra "nenhum número exibido pode ter origem em LLM"
+**Constraints**: chave de API do Gemini (`GEMINI_API_KEY`) só em variável de ambiente server-only, nunca `NEXT_PUBLIC_*` (mesmo padrão de `RESEND_API_KEY`, FR-006); narrador MUST ficar fora do caminho crítico da submissão (FR-004) — resultado do engine nunca espera a resposta do LLM; resposta do narrador MUST vir em schema estruturado sem campos numéricos (`responseSchema` nativo do Gemini) — não é permitido extrair número de texto livre, único jeito de garantir mecanicamente a regra "nenhum número exibido pode ter origem em LLM"
 
 **Scale/Scope**: 7 dimensões de score novas (função pura); 1 Route Handler novo; 1 tabela Drizzle nova; `Problem` ganha 1 campo novo (`referenceSolution`) preenchido nos 3 problemas já existentes; 1 painel de UI novo (calculadora, na topbar de utilitários)
 
@@ -42,7 +43,7 @@ marco — os 3 problemas novos (pra completar 6) ficam pra um incremento futuro 
 | Princípio | Como este marco cumpre | Risco de violação |
 |---|---|---|
 | I — Engine é a fonte da verdade, narrador nunca julga | Score por dimensão é calculado 100% em `packages/engine`, a partir de dados que `simulate()` já produz. O narrador (`packages/narrator` + Route Handler) só recebe o `SimulationResult` já pronto — nunca recalcula, nunca corrige, nunca inventa um número. Reforçado mecanicamente pelo schema de resposta do LLM não ter nenhum campo numérico (FR-003). | Baixo — a mesma garantia estrutural de M0 (engine como única fonte), reforçada por um schema que fisicamente não aceita número de volta do LLM. |
-| II — Engine puro | `@anthropic-ai/sdk` entra só em `apps/web` — `packages/engine`/`packages/problems` ganham só TypeScript puro (função de score, campo `referenceSolution`). Nenhuma dependência de rede/LLM/React entra nesses dois pacotes. | Baixo — verificado por `tsc` isolado de cada pacote, como já é rotina. |
+| II — Engine puro | `@google/generative-ai` entra só em `apps/web` — `packages/engine`/`packages/problems` ganham só TypeScript puro (função de score, campo `referenceSolution`). Nenhuma dependência de rede/LLM/React entra nesses dois pacotes. | Baixo — verificado por `tsc` isolado de cada pacote, como já é rotina. |
 | III — Determinismo | Score é função pura de dados já determinísticos (`nodes`, `path`, `cost`, `violations`, `design`, `workload`) — mesmo design, mesmo score, sempre. O narrador é explicitamente **não-determinístico** (tabela da Seção VII da constitution já prevê isso) — por isso nunca é fonte de número, só de texto explicativo, e é cacheado (mesma pergunta nunca gera duas respostas diferentes *exibidas*, mesmo que o LLM em si não seja determinístico). | Baixo — a constitution já antecipa essa fronteira. |
 | IV — Só pontua o caminho da requisição | Score deriva de `nodes`/`path`/`violations`/`cost` já calculados por `simulate()` — que já aplicam essa regra (M0). Nenhuma lógica nova de alcançabilidade é introduzida. | Nenhum. |
 | V — Score multidimensional, nunca nota única | É o requisito central de US1/FR-002 — 7 valores separados, nenhuma agregação numa nota. UI nunca soma/pondera as 7 dimensões numa única exibida. | Baixo — mesma disciplina de nunca introduzir um campo "nota geral" em nenhuma camada. |
@@ -92,7 +93,7 @@ packages/
     ├── README.md                        # substituído por código real
     └── src/
         ├── prompt.ts                    # NOVO — monta o prompt a partir de SimulationResult (nunca de Design bruto sem contexto)
-        ├── schema.ts                    # NOVO — schema de tool use/structured output (Anthropic), sem campo numérico
+        ├── schema.ts                    # NOVO — responseSchema estruturado do Gemini, sem campo numérico
         └── design-hash.ts               # NOVO — hash determinístico de (Design, Workload) pra cache
 
 apps/web/
@@ -100,7 +101,7 @@ apps/web/
 │   ├── app/
 │   │   └── api/
 │   │       └── narrator/
-│   │           └── route.ts             # NOVO — Route Handler: recebe SimulationResult+Design+Workload, checa cache, chama Anthropic, persiste
+│   │           └── route.ts             # NOVO — Route Handler: recebe SimulationResult+Design+Workload, checa cache, chama Gemini, persiste
 │   ├── db/
 │   │   └── schema.ts                    # + tabela narrator_explanations (hash PK, texto, criado em)
 │   ├── lib/
@@ -118,7 +119,7 @@ apps/web/
 **Structure Decision**: `packages/narrator` deixa de ser um README stub e ganha sua primeira
 implementação real — vive só de dados de entrada (`SimulationResult`) e produz texto, nunca
 importa `packages/engine` além do tipo. O Route Handler em `apps/web/src/app/api/narrator/route.ts`
-é a única peça que efetivamente chama a API da Anthropic e toca o banco — `packages/narrator` em si
+é a única peça que efetivamente chama a API do Gemini e toca o banco — `packages/narrator` em si
 permanece testável sem rede (schema/prompt são funções puras; a chamada HTTP fica isolada no Route
 Handler, mockada em teste). Calculadora e painéis novos seguem o padrão já estabelecido de
 `apps/web/src/components/canvas/*` — um componente por responsabilidade, mesmo estilo de

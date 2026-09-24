@@ -15,6 +15,7 @@ const FORBIDDEN_IMPORT_PATTERNS = [
   /from\s+['"]node-fetch['"]/,
   /from\s+['"]@anthropic-ai\//,
   /from\s+['"]openai['"]/,
+  /from\s+['"]@google\/generative-ai['"]/,
 ];
 
 function listTsFilesRecursively(dir: string): string[] {

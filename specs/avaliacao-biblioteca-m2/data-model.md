@@ -92,7 +92,7 @@ Client (apps/web canvas)
       2. SELECT narratorExplanations WHERE designHash = hash
       3. se encontrado → devolve direto (cache hit, RNF-6: zero chamada nova)
       4. se não encontrado → monta prompt (packages/narrator/src/prompt.ts) a partir só de `result`
-         (nunca de `design`/`workload` brutos sem contexto) → chama Anthropic com tool use
+         (nunca de `design`/`workload` brutos sem contexto) → chama Gemini com responseSchema
          (research.md §2) → valida resposta contra o schema → INSERT narratorExplanations → devolve
   ← { summary, bottleneckExplanation, recommendation } | { error: '...' } (RNF-5/FR-010: nunca bloqueia o resultado do engine, que já foi devolvido antes desta chamada)
 ```

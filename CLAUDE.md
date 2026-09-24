@@ -35,12 +35,12 @@ do anterior ser atingido.
 <!-- SPECKIT START -->
 **Plano ativo**: M2 — Avaliação e biblioteca
 ([specs/avaliacao-biblioteca-m2/plan.md](specs/avaliacao-biblioteca-m2/plan.md)), branch
-`feature/001-evaluation-narrator-scoring`. Score por dimensão (US1), narrador via Anthropic Claude
-API (US2), solução de referência por problema (US3), calculadora de capacidade independente (US4).
-Catálogo de problemas fica em 3 (não 6) neste marco — decisão de `/speckit-clarify`. **Atenção**:
-as fórmulas de score por dimensão em `research.md` §1 são uma PROPOSTA, pendente de aprovação
-explícita do autor (Constitution VI) antes de `/speckit-implement` codificar
-`packages/engine/src/scores/calculate.ts`.
+`feature/001-evaluation-narrator-scoring`. Score por dimensão (US1, **implementado** —
+`packages/engine/src/scores/calculate.ts`, fórmulas aprovadas pelo autor em 2026-09-23), narrador
+via Google Gemini 2.5 Flash (US2, em andamento — decisão do autor, reverte a escolha original de
+Anthropic Claude API), solução de referência por problema (US3), calculadora de capacidade
+independente (US4). Catálogo de problemas fica em 3 (não 6) neste marco — decisão de
+`/speckit-clarify`.
 
 Marcos concluídos: M1.5 (Catálogo expandido de componentes,
 [specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md)), M1 (Canvas e

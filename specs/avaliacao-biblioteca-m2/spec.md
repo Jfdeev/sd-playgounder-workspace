@@ -19,6 +19,10 @@ Rubrica visível e progressão travada já existem para 3 problemas (Encurtador 
 - Q: Catálogo de 6 problemas — completar pra 6 TOTAIS neste marco, ou focar primeiro nos 3 já existentes? → A: Focar em score/narrador/solução de referência pros 3 problemas já existentes (US1-US4) neste marco; os 3 problemas novos ficam pra um incremento separado depois. Autorizado a prosseguir sem aguardar resposta detalhada — opção recomendada aplicada.
 - Q: Escopo da calculadora back-of-envelope (US4) — ferramenta independente sempre acessível, ou parte do fluxo de um problema específico? → A: Ferramenta independente sempre acessível (painel próprio, não amarrada a um problema ativo). Autorizado a prosseguir sem aguardar resposta detalhada — opção recomendada aplicada.
 
+### Session 2026-09-24
+
+- Q: Provedor de LLM do narrador (D4, resolvido em 2026-09-11 como Anthropic Claude API) — o autor pediu explicitamente pra trocar pra Google Gemini durante a implementação de US2, antes de qualquer código do narrador existir. → A: Google Gemini, modelo `gemini-2.5-flash`. `@anthropic-ai/sdk` trocado por `@google/generative-ai` em `apps/web/package.json`; `ANTHROPIC_API_KEY` virou `GEMINI_API_KEY`; saída estruturada via `responseSchema` nativo do Gemini em vez de tool use da Anthropic (research.md §2).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Ver a nota por dimensão depois de resolver um desafio (Priority: P1)
@@ -85,7 +89,7 @@ O usuário informa uma escala (ex. número de usuários ativos, requisições po
 
 ### Edge Cases
 
-- O que acontece se o provedor de LLM (Anthropic) estiver fora do ar ou retornar uma resposta que não é o JSON estruturado esperado? → resultado numérico do engine continua disponível; a explicação mostra um estado de erro claro, nunca um texto inventado que pareça uma explicação válida.
+- O que acontece se o provedor de LLM (Google Gemini) estiver fora do ar ou retornar uma resposta que não é o JSON estruturado esperado? → resultado numérico do engine continua disponível; a explicação mostra um estado de erro claro, nunca um texto inventado que pareça uma explicação válida.
 - O que acontece se o usuário pedir a explicação de um resultado que já mudou (ex. editou o canvas depois de simular)? → mesma regra já estabelecida pro par `lastResult`/`lastDesign` na store: o narrador só explica o par exato que gerou aquele resultado, nunca um design editado depois.
 - O que acontece se dois designs diferentes (hashes diferentes) só diferem numa posição de nó no canvas, sem mudar nodes/edges/config? → o hash de cache deve ser calculado sobre o `Design` (estrutura que o engine lê), não sobre o `CanvasNode`/posição visual — dois designs com posições diferentes mas mesmo `Design` devem compartilhar cache.
 - O que acontece com o score por dimensão de um problema que ainda não foi submetido nenhuma vez? → não existe (mesma regra de `lastResult`: nulo até a primeira simulação, nunca um zero que pareça uma nota real).
@@ -96,7 +100,7 @@ O usuário informa uma escala (ex. número de usuários ativos, requisições po
 
 - **FR-001**: O engine MUST calcular um valor real (não placeholder) para cada uma das 7 `Dimension` de `SimulationResult.scores`, a partir do `Design`/`Workload`/resultado já calculados — nunca a partir de uma chamada de LLM (Constitution I: engine é fonte da verdade).
 - **FR-002**: A UI MUST exibir as 7 dimensões de score separadamente, em nenhum lugar reduzidas a uma nota/veredito único (Constitution V).
-- **FR-003**: O sistema MUST gerar uma explicação em linguagem natural do resultado via um provedor de LLM (Anthropic), citando apenas números que já existem em `SimulationResult` — nenhuma métrica pode se originar do texto gerado (Constitution: "nenhum número exibido pode ter origem em LLM").
+- **FR-003**: O sistema MUST gerar uma explicação em linguagem natural do resultado via um provedor de LLM (Google Gemini, modelo `gemini-2.5-flash`), citando apenas números que já existem em `SimulationResult` — nenhuma métrica pode se originar do texto gerado (Constitution: "nenhum número exibido pode ter origem em LLM").
 - **FR-004**: A chamada ao narrador MUST ficar fora do caminho crítico da submissão — o resultado do engine aparece imediatamente; a explicação carrega de forma assíncrona/separada (ADR-006).
 - **FR-005**: O sistema MUST cachear a explicação do narrador por hash do `Design` + `Workload`, nunca repetindo a chamada ao provedor de LLM pro mesmo par (ADR-006, RNF-6).
 - **FR-006**: A chave de API do provedor de LLM MUST viver só no servidor (Server Action / Route Handler) — nunca exposta ao client (restrição de segurança padrão do projeto).
