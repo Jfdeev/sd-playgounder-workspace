@@ -143,9 +143,9 @@ raciocínio associado a pelo menos uma decisão de capacidade (spec.md, US3).
 **Independent Test**: informar a escala do Encurtador de URL na calculadora, confirmar que bate com
 `toWorkload()` pro mesmo problema (spec.md, US4).
 
-- [ ] T035 [US4] Criar `apps/web/src/components/canvas/capacity-calculator-panel.tsx` — inputs de DAU/requisições por usuário/dia/pico, usa `averageRps`/`peakRps` de `capacity-formula.ts` (T007), sempre acessível independente de desafio ativo
-- [ ] T036 [US4] Adicionar botão "Calculadora" em `apps/web/src/components/canvas/challenge-topbar.tsx`, ao lado de Desafios/Templates
-- [ ] T037 [US4] Teste em `apps/web/test/capacity-calculator-panel.spec.ts` (se houver lógica além de UI pura — caso contrário, cobertura já herdada de T009) ou verificação manual, conforme o que a implementação de T035 revelar
+- [X] T035 [US4] Criar `apps/web/src/components/canvas/capacity-calculator-panel.tsx` — inputs de DAU/requisições por usuário/dia/pico, usa `averageRps`/`peakRps` de `capacity-formula.ts` (T007), sempre acessível independente de desafio ativo
+- [X] T036 [US4] Adicionar botão "Calculadora" em `apps/web/src/components/canvas/challenge-topbar.tsx`, ao lado de Desafios/Templates
+- [X] T037 (resolvido) — sem teste dedicado: toda a lógica de cálculo já está em `capacity-formula.ts` (coberta por T009); o único código novo no componente (`formatRps`) é formatação pura de exibição dentro de um arquivo `.tsx`, mesmo padrão já estabelecido de não testar componentes de UI diretamente (`score-panel.tsx`, `result-panel.tsx`, `narrator-panel.tsx` também não têm spec próprio)
 
 **Checkpoint**: `tsc` limpo, `pnpm --filter web exec vitest run --exclude "**/password.spec.ts"` verde, verificação manual no browser (US4 do quickstart.md).
 
