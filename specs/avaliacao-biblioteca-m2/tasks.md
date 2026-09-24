@@ -104,16 +104,17 @@ contradiz `SimulationResult`.
 **Independent Test**: submeter o mesmo design duas vezes, confirmar cache hit na segunda vez, sem
 nova chamada ao provedor (spec.md, US2).
 
-- [ ] T022 [US2] [P] Criar `packages/narrator/src/design-hash.ts` — `hashDesign(design, workload)` usando `crypto.subtle.digest` sobre a versão canonicalizada (nodes/edges ordenados por id, research.md §3)
-- [ ] T023 [US2] [P] Criar `packages/narrator/src/schema.ts` — `responseSchema` estruturado do Gemini (contracts/narrator-contract.md §2), sem nenhum campo numérico
-- [ ] T024 [US2] [P] Criar `packages/narrator/src/prompt.ts` — monta o prompt a partir só de `SimulationResult` (nunca de `Design`/`Workload` brutos, contracts/narrator-contract.md Regra 2)
-- [ ] T025 [US2] Adicionar tabela `narratorExplanations` em `apps/web/src/db/schema.ts` (data-model.md) e gerar a migration com `pnpm --filter web db:generate`
-- [ ] T026 [US2] Criar `apps/web/src/app/api/narrator/route.ts` — Route Handler seguindo `contracts/narrator-contract.md`: `auth()` direto na rota, hash → cache lookup → chamada Gemini (`responseSchema`, timeout RNF-5) → parse/validação contra o schema → persiste → devolve; nunca devolve 200 com corpo inventado em caso de erro
-- [ ] T027 [US2] [P] Criar `apps/web/src/components/canvas/narrator-panel.tsx` — busca a explicação via `POST /api/narrator`, estado de loading/erro próprio, nunca bloqueia `<ResultPanel>`/`<ScorePanel>` (FR-010)
-- [ ] T028 [US2] Integrar `<NarratorPanel>` em `apps/web/src/components/canvas/canvas.tsx`
-- [ ] T029 [US2] Testes em `packages/narrator/test/`: `design-hash.spec.ts` (mesmo design em ordem diferente de nodes/edges → mesmo hash; designs diferentes → hashes diferentes), `schema.spec.ts` (schema não aceita campo numérico), `prompt.spec.ts` (prompt gerado nunca inclui campos fora de `SimulationResult`) — sem chamada real à API
-- [ ] T030 [US2] Testes em `apps/web/test/` pro Route Handler: mockar o SDK do Gemini (`@google/generative-ai`) — cache hit não chama o mock; cache miss chama e persiste; resposta fora do schema → `INVALID_RESPONSE`; timeout simulado → `TIMEOUT`, nunca 200 inventado
-- [ ] T031 [US2] Coverage pass: `design-hash.ts`, `schema.ts`, Route Handler — decision points (cache hit/miss, validação de schema, branches de erro) cobertos; escrever os testes faltantes
+- [X] T022 [US2] [P] Criar `packages/narrator/src/design-hash.ts` — `hashDesign(design, workload)` usando `crypto.subtle.digest` sobre a versão canonicalizada (nodes/edges ordenados por id, research.md §3)
+- [X] T023 [US2] [P] Criar `packages/narrator/src/schema.ts` — `responseSchema` estruturado do Gemini (contracts/narrator-contract.md §2), sem nenhum campo numérico
+- [X] T024 [US2] [P] Criar `packages/narrator/src/prompt.ts` — monta o prompt a partir só de `SimulationResult` (nunca de `Design`/`Workload` brutos, contracts/narrator-contract.md Regra 2)
+- [X] T024b (achado durante a implementação, fora do plano original) Adicionar `lastWorkload` ao canvas-store, capturado atomicamente com `lastDesign`/`lastResult` em `applySimulationResult` — o narrador precisa do `Workload` exato que gerou o resultado pra hashear (FR-005), e a store só guardava `lastResult`/`lastDesign` até aqui (gap não previsto em data-model.md)
+- [X] T025 [US2] Adicionar tabela `narratorExplanations` em `apps/web/src/db/schema.ts` (data-model.md) e gerar a migration com `pnpm --filter web db:generate`
+- [X] T026 [US2] Criar `apps/web/src/app/api/narrator/route.ts` — Route Handler seguindo `contracts/narrator-contract.md`: `auth()` direto na rota, hash → cache lookup → chamada Gemini (`responseSchema`, timeout RNF-5 via `Promise.race` próprio) → parse/validação contra o schema → persiste → devolve; nunca devolve 200 com corpo inventado em caso de erro
+- [X] T027 [US2] [P] Criar `apps/web/src/components/canvas/narrator-panel.tsx` — busca a explicação via `POST /api/narrator` só quando o usuário abre o painel, estado de loading/erro próprio, nunca bloqueia `<ResultPanel>`/`<ScorePanel>` (FR-010)
+- [X] T028 [US2] Integrar `<NarratorPanel>` em `apps/web/src/components/canvas/canvas.tsx`
+- [X] T029 [US2] Testes em `packages/narrator/test/`: `design-hash.spec.ts`, `schema.spec.ts` (schema não aceita campo numérico + `parseNarratorExplanation`), `prompt.spec.ts` (nunca cita campo fora de `SimulationResult`) — sem chamada real à API
+- [X] T030 (revisado durante a implementação) — **Route Handler NÃO ganhou teste unitário**: contradiz a convenção já estabelecida do projeto desde M0.5 (`apps/web` restrito a módulos puros em `src/lib/**`, wiring/framework nunca testado) — confirmado que nenhum dos Route Handlers já existentes (`api/account/signup`, `api/account/confirm-email`) tem teste próprio. Route Handler novo segue a mesma convenção: verificado por `tsc`/build/checagem manual no browser, não por unit test com o SDK mockado como este task originalmente planejava.
+- [X] T031 [US2] Coverage pass: `design-hash.ts`, `schema.ts`, `prompt.ts` (96.6% coverage) — Route Handler fora do escopo de coverage por unit test (ver T030)
 
 **Checkpoint**: `pnpm --filter narrator test`, `pnpm --filter web exec vitest run --exclude "**/password.spec.ts"` verdes, `tsc` limpo, verificação manual no browser (US2 do quickstart.md, incluindo o cache hit via Network tab).
 

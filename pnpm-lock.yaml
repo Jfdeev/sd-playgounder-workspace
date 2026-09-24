@@ -22,6 +22,9 @@ importers:
       '@sdp/engine':
         specifier: workspace:*
         version: link:../../packages/engine
+      '@sdp/narrator':
+        specifier: workspace:*
+        version: link:../../packages/narrator
       '@sdp/problems':
         specifier: workspace:*
         version: link:../../packages/problems
