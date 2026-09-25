@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-25
 
-**Status**: Draft
+**Status**: Ready
 
 **Input**: User description: "M2.6 — Fundamentos de arquitetura. Base de conhecimento pesquisada previamente condensando Clean Architecture (Robert C. Martin), Fundamentals of Software Architecture (Mark Richards & Neal Ford) e Patterns of Enterprise Application Architecture (Martin Fowler), conectada às 7 dimensões de score e aos 4 templates de arquitetura já existentes."
 
@@ -15,6 +15,13 @@ referência e catálogo de templates de arquitetura (M1.5). Este marco não adic
 de cálculo nova — estende três pontos de extensão que já existem (dimensões de score, templates,
 `Hint`) com conteúdo bibliográfico real, e dá ao narrador um vocabulário citável em vez de só
 números.
+
+## Clarifications
+
+### Session 2026-09-25
+
+- Q: Onde este conteúdo novo mora no monorepo? → A: Pacote novo `packages/knowledge` (dado puro, mesmo padrão de `packages/problems`) — `packages/problems` referencia `packages/knowledge` pras dicas citarem uma ficha; `packages/narrator` importa direto pro prompt.
+- Q: A "ficha" dos critérios de saída precisa de uma superfície de UI nova neste marco? → A: Sim — UI nova (ícone/modal nas dimensões do `ScorePanel` e nos templates da topbar), pra satisfazer literalmente "uma pessoa consegue abrir a ficha".
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -168,11 +175,10 @@ conteúdo autorado das US1-US3 (nunca uma citação inventada).
 - O conteúdo é redigido em português (pt-br), mesmo padrão do resto do catálogo de problemas —
   citações de título de obra/nome de padrão em inglês (termo técnico consagrado) são aceitáveis
   dentro do texto em português, mesmo padrão já usado em `docs/product-context.md`.
-- [NEEDS CLARIFICATION: onde este conteúdo novo mora no monorepo — um pacote novo (dado puro, mesmo
-  padrão de `packages/problems`), ou dentro de um pacote já existente (`packages/problems` ou
-  `packages/narrator`)? Afeta a estrutura de todo o resto do marco.]
-- [NEEDS CLARIFICATION: a "ficha" dos critérios de saída (SC-001/SC-002) precisa de uma superfície
-  de UI nova neste marco (ex. um ícone/modal em cada dimensão do painel de score e em cada template
-  da topbar), ou o critério de saída é satisfeito por algo mais simples (o conteúdo existe como
-  dado real, verificável por teste, sem UI nova neste marco — a UI visível de "wiki" fica pra M4,
-  que já reserva esse escopo no roadmap)?]
+- O conteúdo novo mora num pacote novo, `packages/knowledge` — dado puro, mesmo padrão de
+  `packages/problems`. `packages/problems` passa a depender de `packages/knowledge` (pras dicas
+  citarem uma ficha); `packages/narrator` importa direto pro prompt. Resolvido via
+  `/speckit-clarify`, Session 2026-09-25.
+- Este marco entrega uma superfície de UI nova (ícone/modal nas dimensões do painel de score e nos
+  templates da topbar) — não fica só como dado verificável por teste. Resolvido via
+  `/speckit-clarify`, Session 2026-09-25.
