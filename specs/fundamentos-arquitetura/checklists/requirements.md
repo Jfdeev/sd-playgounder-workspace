@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,6 +31,5 @@
 
 ## Notes
 
-- 2 itens [NEEDS CLARIFICATION] pendentes (onde o conteúdo mora no monorepo; se o critério de
-  saída exige UI nova neste marco ou não) — ambos lacunas genuínas de produto já identificadas
-  antes de escrever a spec, aguardando resposta do autor via `/speckit-clarify`.
+- Ambos os itens [NEEDS CLARIFICATION] resolvidos em `/speckit-clarify`, Session 2026-09-25 (ver
+  `## Clarifications` em spec.md). Checklist 15/16 → 16/16 items passing.
