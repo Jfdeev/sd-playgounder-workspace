@@ -139,8 +139,12 @@ conteúdo autorado das US1-US3 (nunca uma citação inventada).
   Architecture* (Repository, Data Mapper, Active Record, Table Module) MUST virar mecânica nova do
   produto (componente novo, cálculo novo) — esses padrões, se citados, ficam só como referência de
   leitura dentro do conteúdo já definido acima.
-- **FR-006**: O conteúdo MUST ser autorado à mão (dado versionado), nunca gerado por LLM em tempo
-  de autoria nem de execução — mesmo padrão já usado em `rubric`/`hints`/`referenceSolution`.
+- **FR-006**: O conteúdo MUST ser dado versionado, nunca gerado por LLM em tempo de execução —
+  mesmo padrão já usado em `rubric`/`hints`/`referenceSolution`. O rascunho pode ser assistido por
+  LLM (como o rascunho deste próprio spec), mas MUST ser revisado e aprovado pelo autor antes de
+  `/speckit-implement` — mesmo tipo de gate já usado pra fórmulas de score em M2 (Constitution VI).
+  Reformulado durante `/speckit-plan` (Session 2026-09-25): a redação original ("autorado à mão")
+  contradizia a própria autoria deste conteúdo, que é assistida por LLM.
 - **FR-007**: O narrador MAY citar um item do conteúdo autorado ao explicar um resultado, sempre
   atribuído à fonte — nunca é obrigado a citar em toda resposta, e nunca inventa uma citação que
   não exista no conteúdo autorado.
@@ -152,8 +156,10 @@ conteúdo autorado das US1-US3 (nunca uma citação inventada).
 - **Característica de arquitetura**: ficha ligada 1:1 a uma `Dimension` já existente no engine —
   definição formal, fonte, trade-offs nomeados contra outras dimensões.
 - **Estilo de arquitetura**: ficha ligada 1:1 a um template já existente (`ArchitectureTemplate`) —
-  quando usar, trade-offs, fonte. Pode incluir estilos sem template correspondente ainda (referência
-  pura, sem virar mecânica nova neste marco).
+  quando usar, trade-offs, fonte. Escopo fechado nos 4 templates já existentes neste marco (avaliar
+  estilos sem template correspondente — ex. Microkernel — ficou fora de escopo, decisão tomada em
+  `/speckit-plan`, Session 2026-09-25: `Record<TemplateId, ...>` exige 1:1 exato, e agregar um
+  template novo tem custo — catálogo de componentes, canvas-templates.ts — que este marco não cobre).
 - **Dica de responsabilidade/acoplamento**: mesmo tipo `Hint` já existente, associada a um ou mais
   problemas do catálogo, citando a fonte.
 
