@@ -315,6 +315,15 @@ sendo verificada. US4 espera essa verificação de M2 ser feita primeiro. Verifi
 US1-US3 (abrir as fichas no browser) também pendente — login em `/app` não disponível pro agente
 nesta sessão, mesma limitação já registrada em M2. Ver `specs/fundamentos-arquitetura/tasks.md`.
 
+**Ordem fora de sequência (decisão do autor, 2026-09-26, mesmo padrão de M2.5)**: US1-US3 de M2.6
+foram implementadas antes do M2 chegar a `Done` (falta a verificação empírica das 20 submissões,
+acima) e antes do M2.5 — furando, na prática, a regra de `CLAUDE.md` ("nenhum marco começa antes
+do critério de saída do anterior ser atingido"). Nenhuma dependência de código real força essa
+ordem (M2.6 não toca no que falta verificar em M2; M2.5 é ortogonal a M2.6), então o autor optou
+por deixar a sequência de implementação avançar assim em vez de bloquear M2.6 até M2/M2.5 fecharem
+formalmente — igual à decisão que já tinha inserido M0.5/M1.5/M2.5 fora da ordem original do
+roadmap. US4 continua sendo a única parte de M2.6 propriamente bloqueada por M2 (ver acima).
+
 ### M3 — Primeiro diferencial: Modo Incidente
 Arquitetura pronta + alerta + métricas simuladas; o usuário diagnostica a causa raiz
 plantada e propõe o fix. Reaproveita 100% do engine. Chaos: derrubar nó, derrubar AZ,
