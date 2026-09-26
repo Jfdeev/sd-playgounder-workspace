@@ -3,8 +3,8 @@ import type { Design, Dimension, SimulationResult } from '@sdp/engine';
 import { getProblem } from '../src/index.js';
 import { isProblemSolved } from '../src/types.js';
 
-// SimulationResult.scores é placeholder (M0, FR-020) — @sdp/engine não exporta ALL_DIMENSIONS
-// como valor (só o tipo Dimension), então a fixture de teste lista as 7 dimensões diretamente.
+// Fixture de teste com as 7 dimensões zeradas (score real já é calculado desde M2 — esta fixture
+// só precisa de um shape válido, não do valor real de cada dimensão).
 const ZERO_SCORES: Record<Dimension, number> = {
   escalabilidade: 0,
   disponibilidade: 0,

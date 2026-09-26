@@ -46,10 +46,12 @@ verificação de 20 submissões de M2 contra o prompt novo depois de US4.
 
 **Achado durante a implementação, fora do escopo original de tasks.md**: `@sdp/engine` não
 exportava `ALL_DIMENSIONS` como valor (só o tipo `Dimension`) — `packages/problems/test/rubric.spec.ts`
-já hardcodava a lista de 7 dimensões por conta disso (comentado como gap conhecido naquele arquivo).
+hardcodava a lista de 7 dimensões por conta disso (comentário do gap corrigido no mesmo commit).
 `packages/knowledge/test/architecture-characteristic.spec.ts` precisava da mesma lista; em vez de
 hardcodar uma terceira vez, `packages/engine/src/index.ts` passou a reexportar `ALL_DIMENSIONS` de
-`types.ts` (adição pura, sem lógica nova, sem violar Constitution II).
+`types.ts` (adição pura, sem lógica nova, sem violar Constitution II) — mudança de superfície
+pública real, então `pnpm -r test` (não só `typecheck`) roda de novo sobre `engine`/`narrator`
+antes do Polish (quickstart.md atualizado).
 
 **Checkpoint**: `pnpm --filter knowledge test && pnpm --filter web test template-ids && pnpm -r exec tsc --noEmit` passam antes de abrir qualquer user story.
 
