@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { hashDesign } from '../src/design-hash.js';
+import { NARRATOR_PROMPT_VERSION } from '../src/prompt.js';
 import type { Design, Workload } from '@sdp/engine';
 
 const workload: Workload = { rps: 1000, readWriteRatio: 0.9, payloadBytes: 500, peakMultiplier: 1 };
@@ -52,5 +53,17 @@ describe('hashDesign', () => {
   it('devolve um hash hexadecimal de 64 caracteres (SHA-256)', async () => {
     const hash = await hashDesign(design(), workload);
     expect(hash).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('promptVersion diferente gera hash diferente pro mesmo design/workload (research.md §1.6)', async () => {
+    const a = await hashDesign(design(), workload, 1);
+    const b = await hashDesign(design(), workload, 2);
+    expect(a).not.toBe(b);
+  });
+
+  it('sem promptVersion explícito, usa a versão atual do prompt — mesmo hash que passá-la explicitamente', async () => {
+    const a = await hashDesign(design(), workload);
+    const b = await hashDesign(design(), workload, NARRATOR_PROMPT_VERSION);
+    expect(a).toBe(b);
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildNarratorPrompt } from '../src/prompt.js';
-import type { SimulationResult } from '@sdp/engine';
+import { buildNarratorPrompt, selectRelevantKnowledge } from '../src/prompt.js';
+import type { Dimension, SimulationResult } from '@sdp/engine';
 
 function result(overrides: Partial<SimulationResult> = {}): SimulationResult {
   return {
@@ -23,7 +23,58 @@ function result(overrides: Partial<SimulationResult> = {}): SimulationResult {
   };
 }
 
+const HEALTHY_SCORES: Record<Dimension, number> = {
+  escalabilidade: 80,
+  disponibilidade: 90,
+  latencia: 70,
+  consistencia: 100,
+  custo: 60,
+  complexidade_operacional: 95,
+  seguranca: 85,
+};
+
+describe('selectRelevantKnowledge', () => {
+  it('sem violação mapeada e com todos os scores saudáveis, não seleciona nenhuma ficha', () => {
+    expect(selectRelevantKnowledge(result({ scores: HEALTHY_SCORES }))).toEqual([]);
+  });
+
+  it('violação "spof" seleciona a ficha de Disponibilidade', () => {
+    const characteristics = selectRelevantKnowledge(
+      result({
+        scores: HEALTHY_SCORES,
+        violations: [{ type: 'spof', nodeIds: ['app-1'], message: 'app-1 é um ponto único de falha' }],
+      }),
+    );
+    expect(characteristics.map((c) => c.dimension)).toEqual(['disponibilidade']);
+  });
+
+  it('dimensão com score abaixo de 40 seleciona a ficha da própria dimensão', () => {
+    const characteristics = selectRelevantKnowledge(
+      result({ scores: { ...HEALTHY_SCORES, custo: 10 } }),
+    );
+    expect(characteristics.map((c) => c.dimension)).toEqual(['custo']);
+  });
+
+  it('nunca lê Design/Workload — assinatura de tipo só aceita SimulationResult', () => {
+    // Garantia de compilação, não de runtime: `selectRelevantKnowledge` não tem parâmetro
+    // algum além de `SimulationResult` (contracts/narrator-contract.md Regra 2).
+    expect(selectRelevantKnowledge.length).toBe(1);
+  });
+});
+
 describe('buildNarratorPrompt', () => {
+  it('com todos os scores saudáveis e sem violação, nunca menciona "Contexto adicional"', () => {
+    const prompt = buildNarratorPrompt(result({ scores: HEALTHY_SCORES }));
+    expect(prompt).not.toContain('Contexto adicional');
+  });
+
+  it('com uma dimensão de score baixo, inclui a ficha correspondente com a fonte', () => {
+    const prompt = buildNarratorPrompt(result({ scores: { ...HEALTHY_SCORES, seguranca: 5 } }));
+    expect(prompt).toContain('Contexto adicional');
+    expect(prompt).toContain('id "seguranca"');
+    expect(prompt).toContain('Fundamentals of Software Architecture');
+  });
+
   it('cita o throughput, o gargalo, a latência e o custo já calculados', () => {
     const prompt = buildNarratorPrompt(result());
     expect(prompt).toContain('900 rps');

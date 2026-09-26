@@ -16,13 +16,30 @@
 
 import { useEffect, useState } from 'react';
 import { ChevronUp, Loader2, Sparkles, X } from 'lucide-react';
+import { ARCHITECTURE_CHARACTERISTICS, ARCHITECTURE_STYLES, isKnownKnowledgeId, type TemplateId } from '@sdp/knowledge';
+import type { Dimension } from '@sdp/engine';
 import { useCanvasStore } from '@/stores/canvas-store';
 
 type NarratorExplanation = {
   summary: string;
   bottleneck_explanation: string;
   recommendation?: string;
+  citation_id?: string;
 };
+
+/**
+ * Resolve `citation_id` pra uma ficha real (característica OU estilo, os dois domínios que
+ * `@sdp/knowledge` cobre) — nunca exibe um id sem atribuição de fonte. `citation_id` já passou por
+ * `parseNarratorExplanation` no servidor (só ids reais chegam aqui), mas resolve de novo aqui em
+ * vez de confiar num texto pronto — a UI nunca deveria exibir uma citação que não consiga atribuir.
+ */
+function resolveCitation(citationId: string | undefined) {
+  if (!citationId || !isKnownKnowledgeId(citationId)) return null;
+  if (citationId in ARCHITECTURE_CHARACTERISTICS) {
+    return ARCHITECTURE_CHARACTERISTICS[citationId as Dimension];
+  }
+  return ARCHITECTURE_STYLES[citationId as TemplateId];
+}
 
 type NarratorResponseBody = (NarratorExplanation & { cached: boolean }) | { error: string; message: string };
 
@@ -123,6 +140,16 @@ export function NarratorPanel() {
           <p>{explanation.summary}</p>
           <p>{explanation.bottleneck_explanation}</p>
           {explanation.recommendation && <p className="text-zinc-400">{explanation.recommendation}</p>}
+          {(() => {
+            const citation = resolveCitation(explanation.citation_id);
+            if (!citation) return null;
+            return (
+              <p className="border-t border-zinc-800 pt-2 text-zinc-500">
+                Princípio citado: <span className="text-zinc-400">{citation.label}</span> — fonte:{' '}
+                {citation.source.book}, {citation.source.author}
+              </p>
+            );
+          })()}
         </div>
       )}
     </section>

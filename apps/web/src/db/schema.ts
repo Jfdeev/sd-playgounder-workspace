@@ -123,6 +123,8 @@ export const narratorExplanations = pgTable('narratorExplanations', {
   summary: text('summary').notNull(),
   bottleneckExplanation: text('bottleneckExplanation').notNull(),
   recommendation: text('recommendation'),
+  /** Id de uma ficha de @sdp/knowledge citada pelo narrador (M2.6, US4) — nunca uma string solta. */
+  citationId: text('citationId'),
   createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
 });
 

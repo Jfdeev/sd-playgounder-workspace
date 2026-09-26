@@ -304,25 +304,29 @@ canvas ou um cálculo novo do engine.
 templates já existentes, uma pessoa consegue abrir a ficha correspondente e ver a definição
 formal + a fonte bibliográfica exata — nenhum conteúdo sem citação rastreável.
 
-**Status (2026-09-26)**: código de US1-US3 completo — `packages/knowledge` (novo), fichas das 7
+**Status (2026-09-26)**: código completo de US1-US4 — `packages/knowledge` (novo), fichas das 7
 dimensões + 4 estilos, dicas de responsabilidade/acoplamento nos 3 problemas, UI nova em
-`ScorePanel`/`ChallengeTopBar` (botão "?" abrindo a ficha) — `tsc`/testes/build limpos nos pacotes
-tocados (`knowledge`, `problems`, `web`). **US4 (narrador citando fonte) deliberadamente não
-implementada ainda** — decisão do autor, 2026-09-26: o critério de saída oficial de M2 (20
-submissões consecutivas sem o narrador contradizer o engine) ainda não foi observado com uma
-`GEMINI_API_KEY` real; alterar o prompt do narrador antes disso deixaria ambíguo qual versão está
-sendo verificada. US4 espera essa verificação de M2 ser feita primeiro. Verificação manual de
-US1-US3 (abrir as fichas no browser) também pendente — login em `/app` não disponível pro agente
-nesta sessão, mesma limitação já registrada em M2. Ver `specs/fundamentos-arquitetura/tasks.md`.
+`ScorePanel`/`ChallengeTopBar` (botão "?" abrindo a ficha), narrador (`packages/narrator`) citando
+uma ficha real via `citation_id` (validado contra o catálogo de `@sdp/knowledge`, nunca uma citação
+inventada — FR-007) e a UI do narrador exibindo "Princípio citado" com a fonte atribuída — `tsc`/
+testes/build limpos nos 5 pacotes do monorepo (433 testes). **US4 foi desbloqueada e implementada
+antes do critério de saída de M2 ser verificado** — decisão do autor, 2026-09-26 (ver "Ordem fora
+de sequência" abaixo): consequência assumida é que a verificação de 20 submissões consecutivas de
+M2 precisa ser refeita contra o prompt atual (`NARRATOR_PROMPT_VERSION`), não contra o prompt de M2
+original. `hashDesign` inclui `promptVersion` no hash de cache exatamente pra isso não colidir
+silenciosamente com explicações cacheadas do prompt antigo. Verificação manual (abrir as fichas e a
+citação do narrador no browser) pendente — login em `/app` não disponível pro agente nesta sessão,
+mesma limitação já registrada em M2. Ver `specs/fundamentos-arquitetura/tasks.md`.
 
-**Ordem fora de sequência (decisão do autor, 2026-09-26, mesmo padrão de M2.5)**: US1-US3 de M2.6
-foram implementadas antes do M2 chegar a `Done` (falta a verificação empírica das 20 submissões,
+**Ordem fora de sequência (decisão do autor, 2026-09-26, mesmo padrão de M2.5)**: M2.6 (incluindo
+US4) foi implementado antes do M2 chegar a `Done` (falta a verificação empírica das 20 submissões,
 acima) e antes do M2.5 — furando, na prática, a regra de `CLAUDE.md` ("nenhum marco começa antes
 do critério de saída do anterior ser atingido"). Nenhuma dependência de código real força essa
-ordem (M2.6 não toca no que falta verificar em M2; M2.5 é ortogonal a M2.6), então o autor optou
-por deixar a sequência de implementação avançar assim em vez de bloquear M2.6 até M2/M2.5 fecharem
+ordem (M2.5 é ortogonal a M2.6; a única dependência real de M2.6 em M2 era não invalidar a
+verificação pendente de M2, resolvida pelo versionamento do prompt), então o autor optou por deixar
+a sequência de implementação avançar assim em vez de bloquear M2.6 até M2/M2.5 fecharem
 formalmente — igual à decisão que já tinha inserido M0.5/M1.5/M2.5 fora da ordem original do
-roadmap. US4 continua sendo a única parte de M2.6 propriamente bloqueada por M2 (ver acima).
+roadmap.
 
 ### M3 — Primeiro diferencial: Modo Incidente
 Arquitetura pronta + alerta + métricas simuladas; o usuário diagnostica a causa raiz

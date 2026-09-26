@@ -38,16 +38,20 @@ browser autenticada disponível pro agente; author confirma isso manualmente).
 
 ## US4 — O narrador cita um princípio ao explicar (P4)
 
-**Bloqueado por decisão de sequenciamento pendente do autor** (ver plan.md "Nota de governança") —
-não executar esta verificação antes dessa decisão.
+Gate de governança resolvido pelo autor (2026-09-26) — implementado sem esperar M2 chegar a `Done`
+(ver product-context.md, "Ordem fora de sequência"). Consequência: a verificação de 20 submissões
+consecutivas do M2, quando feita, precisa usar o prompt atual (`NARRATOR_PROMPT_VERSION`), não o de
+M2 original.
 
-1. `pnpm --filter narrator test` — confirma automaticamente: `selectRelevantKnowledge` nunca lê
-   `Design`/`Workload`; `parseNarratorExplanation` rejeita qualquer `citation_id` fora do enum
+1. `pnpm --filter narrator test` — confirma automaticamente: `selectRelevantKnowledge` seleciona a
+   ficha certa por violação (`spof` → Disponibilidade) e por score baixo (< 40), e retorna `[]`
+   quando nada é relevante; `parseNarratorExplanation` rejeita qualquer `citation_id` fora do enum
    conhecido; `hashDesign` com `promptVersion` diferente produz hash diferente pro mesmo
    design/workload.
-2. Manual (precisa de `GEMINI_API_KEY` real, mesma limitação de M2): submeter um design com SPOF,
-   abrir a explicação do narrador, confirmar que se houver `citation_id` ele corresponde a uma ficha
-   real (nunca um erro silencioso) e que a UI mostra a citação atribuída à fonte.
+2. Manual (precisa de `GEMINI_API_KEY` real, mesma limitação de M2): submeter um design com SPOF ou
+   com uma dimensão de score baixo, abrir a explicação do narrador, confirmar que se houver
+   `citation_id` ele corresponde a uma ficha real (nunca um erro silencioso) e que a UI mostra
+   "Princípio citado" com a fonte atribuída (`narrator-panel.tsx`).
 
 ## Checagens de todo o marco (Polish)
 

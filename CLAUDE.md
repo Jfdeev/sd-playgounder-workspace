@@ -18,6 +18,7 @@ lá, pare e pergunte ao autor — não assuma, não improvise.
 ```
 apps/web/            # Next.js: canvas, problemas, resultado
 packages/engine/      # cálculo puro — o ativo real do projeto
+packages/knowledge/    # fichas de característica/estilo de arquitetura, dado versionado (M2.6)
 packages/narrator/    # prompt + parsing da explicação em linguagem natural
 packages/problems/    # catálogo de problemas + rubricas, como dados versionados
 packages/ui/          # componentes compartilhados
@@ -36,13 +37,16 @@ do anterior ser atingido.
 **Plano ativo**: M2.6 — Fundamentos de arquitetura
 ([specs/fundamentos-arquitetura/plan.md](specs/fundamentos-arquitetura/plan.md)), branch
 `feature/001-architecture-fundamentals-knowledge-base` (contém também todos os commits de M2, que
-não foi PR'd/merged antes desta branch ser criada). **Código de US1-US3 completo** (pacote novo
+não foi PR'd/merged antes desta branch ser criada). **Código completo de US1-US4** (pacote novo
 `packages/knowledge` — 7 fichas de característica + 4 de estilo, dicas de responsabilidade/
-acoplamento nos 3 problemas, UI de ficha em `ScorePanel`/`ChallengeTopBar`) — `tsc`/testes/build
-limpos. **US4 (narrador citando fonte) deliberadamente não implementada** — decisão do autor,
-2026-09-26: espera o critério de saída de M2 ser verificado primeiro (ver abaixo), pra não alterar
-o prompt do narrador antes dele ser observado. Verificação manual de US1-US3 também pendente
-(login em `/app` indisponível pro agente). Ver `specs/fundamentos-arquitetura/tasks.md`.
+acoplamento nos 3 problemas, UI de ficha em `ScorePanel`/`ChallengeTopBar`, narrador citando uma
+ficha real via `citation_id` com fonte atribuída na UI) — `tsc`/433 testes/build limpos nos 5
+pacotes. **US4 foi desbloqueada e implementada antes do critério de saída de M2 ser verificado** —
+decisão do autor, 2026-09-26 (ver `docs/product-context.md`, "Ordem fora de sequência"):
+consequência é que a verificação de 20 submissões de M2 precisa ser refeita contra o prompt atual
+(`NARRATOR_PROMPT_VERSION`, versiona o hash de cache pra não colidir com o prompt antigo).
+Verificação manual (browser) pendente — login em `/app` indisponível pro agente. Ver
+`specs/fundamentos-arquitetura/tasks.md`.
 
 M2 — Avaliação e biblioteca ([specs/avaliacao-biblioteca-m2/plan.md](specs/avaliacao-biblioteca-m2/plan.md)):
 **código completo** (US1-US4: score por dimensão, narrador via Google Gemini `gemini-2.5-flash`,
@@ -51,8 +55,8 @@ Catálogo de problemas fica em 3 (não 6) neste marco — decisão de `/speckit-
 spec continua `Ready`, não `Done`**: o critério de saída oficial ("narrador nunca contradiz o
 engine em 20 submissões consecutivas") exige observação empírica com uma `GEMINI_API_KEY` real e
 login manual no browser — nenhum dos dois disponível pro agente nesta sessão. Falta ao autor:
-configurar a chave, verificar `quickstart.md`, e promover `spec.md` pra `Done` depois de confirmar
-as 20 submissões — isso também desbloqueia a US4 de M2.6.
+configurar a chave, verificar `quickstart.md` (agora contra o prompt versão 2, de M2.6/US4 — não o
+prompt original de M2), e promover `spec.md` pra `Done` depois de confirmar as 20 submissões.
 
 Marcos concluídos: M1.5 (Catálogo expandido de componentes,
 [specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md)), M1 (Canvas e

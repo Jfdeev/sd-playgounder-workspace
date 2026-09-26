@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SchemaType, type Schema } from '@google/generative-ai';
+import { ALL_KNOWLEDGE_IDS } from '@sdp/knowledge';
 import { EXPLAIN_RESULT_SCHEMA, parseNarratorExplanation } from '../src/schema.js';
 
 /** Percorre um Schema recursivamente coletando todo `type` encontrado (properties + items). */
@@ -21,9 +22,15 @@ describe('EXPLAIN_RESULT_SCHEMA', () => {
     expect(types).not.toContain(SchemaType.INTEGER);
   });
 
-  it('exige summary e bottleneck_explanation; recommendation é opcional', () => {
+  it('exige summary e bottleneck_explanation; recommendation e citation_id são opcionais', () => {
     expect(EXPLAIN_RESULT_SCHEMA.required).toEqual(['summary', 'bottleneck_explanation']);
     expect(Object.keys(EXPLAIN_RESULT_SCHEMA.properties ?? {})).toContain('recommendation');
+    expect(Object.keys(EXPLAIN_RESULT_SCHEMA.properties ?? {})).toContain('citation_id');
+  });
+
+  it('citation_id tem enum com todos os ids reais de @sdp/knowledge, nenhum inventado (FR-007)', () => {
+    const citationSchema = EXPLAIN_RESULT_SCHEMA.properties?.citation_id;
+    expect(citationSchema?.enum?.sort()).toEqual([...ALL_KNOWLEDGE_IDS].sort());
   });
 });
 
@@ -65,5 +72,30 @@ describe('parseNarratorExplanation', () => {
     expect(parseNarratorExplanation([])).toBeNull();
     expect(parseNarratorExplanation('texto solto')).toBeNull();
     expect(parseNarratorExplanation(42)).toBeNull();
+  });
+
+  it('aceita citation_id quando é um id real de @sdp/knowledge', () => {
+    const result = parseNarratorExplanation({
+      summary: 'resumo',
+      bottleneck_explanation: 'explicação',
+      citation_id: ALL_KNOWLEDGE_IDS[0],
+    });
+    expect(result?.citation_id).toBe(ALL_KNOWLEDGE_IDS[0]);
+  });
+
+  it('rejeita citation_id inventado — mesmo tratamento de qualquer alucinação (FR-007)', () => {
+    expect(
+      parseNarratorExplanation({
+        summary: 'resumo',
+        bottleneck_explanation: 'explicação',
+        citation_id: 'microkernel',
+      }),
+    ).toBeNull();
+  });
+
+  it('rejeita citation_id que não é string', () => {
+    expect(
+      parseNarratorExplanation({ summary: 'resumo', bottleneck_explanation: 'explicação', citation_id: 42 }),
+    ).toBeNull();
   });
 });
