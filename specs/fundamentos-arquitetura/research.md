@@ -1,13 +1,20 @@
 # Research: M2.6 — Fundamentos de arquitetura
 
-**Aviso de gate (ler antes de tudo)**: o conteúdo autorado abaixo (fichas + dicas) foi rascunhado
-com assistência de LLM nesta sessão de planejamento — nunca visitado/conferido linha a linha contra
-os livros originais. Isso é exatamente o tipo de risco que FR-006 (reformulado nesta sessão, ver
-spec.md) exige mitigar: mesmo padrão de gate já usado pras 7 fórmulas de score em M2 (Constitution
-VI). **Este research.md não deve ser tratado como aprovado** — é a proposta de conteúdo que o autor
-revisa antes de `/speckit-implement` copiar isso pra `packages/knowledge`. Nenhuma citação abaixo
-tem número de página/capítulo — só livro + autor, o nível que FR-004 exige e que pode ser verificado
-sem reabrir o livro.
+**Aviso de gate**: o conteúdo autorado abaixo (fichas + dicas) foi rascunhado com assistência de
+LLM nesta sessão de planejamento — nunca visitado/conferido linha a linha contra os livros
+originais. Isso é exatamente o tipo de risco que FR-006 (reformulado nesta sessão, ver spec.md)
+exige mitigar: mesmo padrão de gate já usado pras 7 fórmulas de score em M2 (Constitution VI).
+Nenhuma citação abaixo tem número de página/capítulo — só livro + autor, o nível que FR-004 exige e
+que pode ser verificado sem reabrir o livro.
+
+**Aprovação (2026-09-26)**: o autor aprovou este conteúdo como está, ao responder a pergunta de
+fechamento do `/speckit-plan` ("Posso seguir com o conteúdo das 11 fichas em research.md (§2-§4)
+como está, ou você quer revisar antes?") com "Aprovado como está". Isso é aprovação do texto
+proposto — não uma conferência linha a linha contra os livros originais, que continua fora do
+alcance desta sessão (nenhum acesso aos livros-fonte). Uma imprecisão de citação encontrada numa
+leitura real ainda pode ser corrigida depois sem reabrir o gate de Constitution VI — só editar o
+texto; os testes de `packages/knowledge` continuam garantindo a estrutura (fonte sempre uma das 3
+constantes, >= 1 trade-off por ficha), não o conteúdo em si.
 
 ## 1. Decisões de arquitetura (technical, não de conteúdo)
 

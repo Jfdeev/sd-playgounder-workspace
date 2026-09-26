@@ -13,9 +13,14 @@ import { DIMENSION_UI } from '@/lib/canvas-ui-catalog';
 
 export function CharacteristicSheet({ dimension }: { dimension: Dimension }) {
   const characteristic = ARCHITECTURE_CHARACTERISTICS[dimension];
+  const { icon: Icon } = DIMENSION_UI[dimension];
 
   return (
     <div className="rounded-lg border border-violet-700/50 bg-violet-950/20 p-3 text-xs">
+      <p className="mb-1.5 flex items-center gap-1.5 font-semibold text-violet-300">
+        <Icon className="size-3.5" aria-hidden />
+        {characteristic.label}
+      </p>
       <p className="text-zinc-300">{characteristic.definition}</p>
       {characteristic.note && <p className="mt-1.5 italic text-zinc-500">{characteristic.note}</p>}
       <p className="mt-2.5 text-zinc-500">

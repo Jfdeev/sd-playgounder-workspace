@@ -52,13 +52,13 @@ não executar esta verificação antes dessa decisão.
 ## Checagens de todo o marco (Polish)
 
 ```bash
-pnpm --filter knowledge test
-pnpm --filter problems test
-pnpm --filter narrator test
-pnpm --filter web test template-ids
+pnpm -r test
 pnpm -r exec tsc --noEmit
 pnpm --filter web build
 ```
 
-Nenhum destes cobre `packages/engine` — este marco não toca `packages/engine`, então
-`no-runtime-deps.spec.ts` (guarda de fronteira) não precisa de novo padrão proibido.
+`pnpm -r test` cobre `packages/engine` também: `ALL_DIMENSIONS` passou a ser reexportado por
+`packages/engine/src/index.ts` (research.md/tasks.md, achado durante a implementação) — uma
+mudança de superfície pública pequena, mas real, então os testes do engine (e do narrator, que
+depende dele) precisam rodar de novo, não só o `typecheck`. `no-runtime-deps.spec.ts` (guarda de
+fronteira) não precisa de novo padrão proibido — nenhuma dependência nova entrou no engine.
