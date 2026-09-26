@@ -13,6 +13,7 @@
  */
 
 import type { ComponentType, EdgeKind } from '@sdp/engine';
+import type { TemplateId } from '@sdp/knowledge';
 import type { ClientVariant, FlowNodeData } from './canvas-types';
 import type { CanvasEdge, CanvasNode } from '@/stores/canvas-store';
 
@@ -22,8 +23,13 @@ type TemplateNodeDef =
 
 type TemplateEdgeDef = { from: string; to: string; kind: EdgeKind };
 
+/**
+ * `id: TemplateId` (não `string`) — `TemplateId` vive em `@sdp/knowledge` (M2.6) e é a mesma
+ * união fechada que indexa `ARCHITECTURE_STYLES`, então um template novo sem ficha correspondente
+ * não compila (research.md §1.2 de specs/fundamentos-arquitetura/).
+ */
 export type ArchitectureTemplate = {
-  id: string;
+  id: TemplateId;
   label: string;
   description: string;
   nodes: readonly TemplateNodeDef[];

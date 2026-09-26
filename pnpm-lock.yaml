@@ -22,6 +22,9 @@ importers:
       '@sdp/engine':
         specifier: workspace:*
         version: link:../../packages/engine
+      '@sdp/knowledge':
+        specifier: workspace:*
+        version: link:../../packages/knowledge
       '@sdp/narrator':
         specifier: workspace:*
         version: link:../../packages/narrator
@@ -114,6 +117,25 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.32.0)
 
+  packages/knowledge:
+    dependencies:
+      '@sdp/engine':
+        specifier: workspace:*
+        version: link:../engine
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.1
+      '@vitest/coverage-v8':
+        specifier: ^3.2.4
+        version: 3.2.7(vitest@3.2.7(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.32.0))
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.32.0)
+
   packages/narrator:
     dependencies:
       '@google/generative-ai':
@@ -141,6 +163,9 @@ importers:
       '@sdp/engine':
         specifier: workspace:*
         version: link:../engine
+      '@sdp/knowledge':
+        specifier: workspace:*
+        version: link:../knowledge
     devDependencies:
       '@types/node':
         specifier: ^22.10.2

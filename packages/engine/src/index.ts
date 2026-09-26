@@ -19,7 +19,10 @@ import { calculateQueueWaitMs } from './metrics/queue.js';
 import { calculateThroughput } from './metrics/throughput.js';
 import { calculateUtilization } from './metrics/utilization.js';
 import { calculateScores } from './scores/calculate.js';
+import { ALL_DIMENSIONS } from './types.js';
 import type { Design, NodeId, NodeResult, NodeStatus, SimulationResult, Workload } from './types.js';
+
+export { ALL_DIMENSIONS };
 
 /** ρ abaixo deste limiar é 'healthy'; entre este e 1 é 'warning'; ρ ≥ 1 é 'saturated'. */
 const WARNING_UTILIZATION_THRESHOLD = 0.7;
