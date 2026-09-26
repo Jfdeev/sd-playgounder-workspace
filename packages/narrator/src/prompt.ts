@@ -28,6 +28,23 @@ const VIOLATION_TO_DIMENSION: Partial<Record<ViolationType, Dimension>> = {
 };
 
 /**
+ * `latencia`/`custo` MUST ficar fora do gatilho por score baixo (achado do advisor durante
+ * `/speckit-plan`, aplicado no `/speckit-implement`): fora de um desafio (sandbox/"Simular" sem
+ * `scoreContext`), `calculateScores` retorna 0 pra essas duas dimensões por construção — 0 aí
+ * significa "não aplicável" (sem orçamento de referência), nunca "ruim" (`packages/engine/src/
+ * scores/calculate.ts`, `latencyScore`/`costScore`). `SimulationResult` não distingue as duas
+ * situações (nenhum campo diz se havia `scoreContext`), então o narrador não tem como saber —
+ * citar a ficha de Custo/Latência num sandbox seria apontar um problema que não existe.
+ */
+const SCORE_TRIGGER_DIMENSIONS: readonly Dimension[] = [
+  'escalabilidade',
+  'disponibilidade',
+  'consistencia',
+  'complexidade_operacional',
+  'seguranca',
+];
+
+/**
  * Seleciona as fichas de `@sdp/knowledge` relevantes pro resultado — nunca lê `Design`/`Workload`
  * (só `SimulationResult`, Contract Rule 2). Uma violação mapeada ou uma dimensão com score baixo
  * disparam a ficha correspondente; nada além disso.
@@ -40,8 +57,8 @@ export function selectRelevantKnowledge(result: SimulationResult): ArchitectureC
     if (dimension) dimensions.add(dimension);
   }
 
-  for (const [dimension, value] of Object.entries(result.scores) as [Dimension, number][]) {
-    if (value < SCORE_CITATION_THRESHOLD) dimensions.add(dimension);
+  for (const dimension of SCORE_TRIGGER_DIMENSIONS) {
+    if (result.scores[dimension] < SCORE_CITATION_THRESHOLD) dimensions.add(dimension);
   }
 
   return [...dimensions].map((dimension) => ARCHITECTURE_CHARACTERISTICS[dimension]);

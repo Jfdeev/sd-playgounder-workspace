@@ -19,7 +19,14 @@ nunca fonte de verificação de progressão/rubrica, que já roda inteiramente n
 
 **Regra 2**: `design`/`workload` só são usados para computar o hash de cache (research.md §3) —
 nunca enviados ao provedor de LLM. Só `result` (já resumido: nós, gargalo, latência, custo,
-violações) vai no prompt, nunca a estrutura bruta do grafo.
+violações, e — desde M2.6/US4 — o bloco de conhecimento selecionado por
+`selectRelevantKnowledge(result)`) vai no prompt, nunca a estrutura bruta do grafo.
+
+**Regra 2.1 (M2.6, US4)**: o hash de cache (`hashDesign`) inclui `NARRATOR_PROMPT_VERSION` desde
+que o bloco de conhecimento foi adicionado ao prompt — uma explicação cacheada de antes dessa
+mudança nunca é servida como se refletisse o prompt atual. A verificação de 20 submissões
+consecutivas (exit criterion deste marco) MUST rodar contra o prompt na versão atual, não contra a
+versão original de M2 sem citação.
 
 ## Response (200 — sucesso, cache hit ou miss)
 
@@ -28,9 +35,17 @@ type NarratorResponse = {
   summary: string;
   bottleneckExplanation: string;
   recommendation?: string;
+  citation_id?: string; // M2.6, US4 — id de uma ficha de @sdp/knowledge; ausente na maioria das respostas
   cached: boolean; // true = veio de narratorExplanations, sem chamada nova ao provedor (RNF-6)
 };
 ```
+
+**Regra 3 (M2.6, US4)**: `citation_id`, quando presente, MUST ser um id que estava genuinamente no
+bloco de conhecimento enviado ao provedor nesta chamada (`selectRelevantKnowledge(result)`) — nunca
+só "um id real de `@sdp/knowledge`" (o schema valida isso, mas não que o modelo o tenha visto). O
+Route Handler descarta (não rejeita a resposta inteira) qualquer `citation_id` fora desse conjunto
+antes de cachear/responder — mesmo princípio da Regra 1 de nunca confiar cegamente no que o
+provedor devolveu.
 
 ## Response (erro — provedor indisponível, timeout, schema inválido devolvido pelo LLM)
 

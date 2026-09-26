@@ -136,12 +136,33 @@ Gate resolvido — ver nota no topo deste arquivo ("Gate antes de T024 — resol
 
 **Trabalho adicional fora do tasks.md original, necessário para US4 ser genuinamente utilizável**:
 - `apps/web/src/db/schema.ts` — coluna `citationId` (nullable) em `narratorExplanations`; migração
-  gerada em `apps/web/src/db/migrations/0003_regular_prowler.sql` (não aplicada a nenhum banco
-  live nesta sessão, mesmo padrão de M2).
-- `apps/web/src/app/api/narrator/route.ts` — lê/grava `citation_id` no cache e na resposta.
+  gerada em `apps/web/src/db/migrations/0003_regular_prowler.sql` (**não aplicada a nenhum banco
+  live** — o agente não roda migração contra o Neon compartilhado; falta ao autor rodar
+  `pnpm --filter web db:migrate` antes de qualquer chamada real ao narrador, ver quickstart.md).
+- `apps/web/src/app/api/narrator/route.ts` — lê/grava `citation_id` no cache e na resposta; groundeia
+  `citation_id` contra `selectRelevantKnowledge(result)` antes de aceitar (ver achado abaixo).
 - `apps/web/src/components/canvas/narrator-panel.tsx` — resolve `citation_id` contra
   `ARCHITECTURE_CHARACTERISTICS`/`ARCHITECTURE_STYLES` e renderiza "Princípio citado" com a fonte
   atribuída (sem isso, US4 calcularia a citação no servidor mas nunca a mostraria ao usuário).
+
+**Dois achados do advisor pós-implementação, corrigidos no mesmo lote**:
+1. **Falso positivo de sandbox**: `calculateScores` retorna 0 pra `latencia`/`custo` quando não há
+   `scoreContext` (sandbox/"Simular" fora de desafio) — 0 aí significa "sem orçamento de
+   referência", nunca "ruim" (`packages/engine/src/scores/calculate.ts`). O gatilho por score baixo
+   de `selectRelevantKnowledge` disparava essas duas fichas em TODO sandbox, mesmo sem problema
+   real. `SimulationResult` não distingue as duas situações, então a correção foi excluir
+   `latencia`/`custo` do gatilho por score (ficam fora só desse gatilho — o resto do prompt
+   continua citando os números reais dessas dimensões normalmente). Perda aceita: em desafio, um
+   score genuinamente baixo de latência/custo não dispara mais a ficha proativamente — a citação é
+   um enriquecimento oportunista (FR-007), não obrigatório.
+2. **Citação não groundada**: o `enum` do schema valida "é um dos 11 ids reais de
+   `@sdp/knowledge`", mas não "é um dos ids que entraram no prompt desta chamada" — um estilo
+   (nunca injetado, já que `selectRelevantKnowledge` retorna só `ArchitectureCharacteristic[]`, não
+   o `Array<ArchitectureCharacteristic | ArchitectureStyle>` do data-model.md original) ou uma
+   dimensão não selecionada passaria a validação mesmo sem o modelo ter visto aquela ficha —
+   violando a garantia do edge case do spec ("nunca inventa uma citação que não viu"). Corrigido em
+   `route.ts`: `citation_id` só é aceito se pertencer a `selectRelevantKnowledge(result)`; caso
+   contrário é descartado (não rejeita a resposta inteira — só a citação solta).
 
 ## Phase 7: Polish
 

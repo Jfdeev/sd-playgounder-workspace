@@ -2,7 +2,13 @@ import { NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { GoogleGenerativeAI, type GenerateContentResult, type GenerativeModel } from '@google/generative-ai';
 import type { Design, SimulationResult, Workload } from '@sdp/engine';
-import { EXPLAIN_RESULT_SCHEMA, buildNarratorPrompt, hashDesign, parseNarratorExplanation } from '@sdp/narrator';
+import {
+  EXPLAIN_RESULT_SCHEMA,
+  buildNarratorPrompt,
+  hashDesign,
+  parseNarratorExplanation,
+  selectRelevantKnowledge,
+} from '@sdp/narrator';
 import { auth } from '@/auth';
 import { db } from '@/db/client';
 import { narratorExplanations } from '@/db/schema';
@@ -138,19 +144,31 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  // FR-007 (achado durante /speckit-implement): `citation_id` já passou pelo enum do schema — é um
+  // id REAL de @sdp/knowledge, mas o enum lista os 11 ids conhecidos, não só os que entraram no
+  // prompt desta vez (`selectRelevantKnowledge(result)`). Aceitar sem groundar deixaria passar uma
+  // citação "real, mas nunca mostrada ao modelo" — exatamente o que o edge case do spec proíbe
+  // ("nunca inventa uma citação que não exista no conteúdo autorado... que não viu"). Groundar
+  // aqui em vez de rejeitar a resposta inteira: a explicação em si continua boa, só a citação
+  // solta é descartada.
+  const groundedIds: ReadonlySet<string> = new Set(
+    selectRelevantKnowledge(result).map((characteristic) => characteristic.dimension),
+  );
+  const citationId = explanation.citation_id && groundedIds.has(explanation.citation_id) ? explanation.citation_id : null;
+
   await db.insert(narratorExplanations).values({
     designHash,
     summary: explanation.summary,
     bottleneckExplanation: explanation.bottleneck_explanation,
     recommendation: explanation.recommendation ?? null,
-    citationId: explanation.citation_id ?? null,
+    citationId,
   });
 
   return NextResponse.json({
     summary: explanation.summary,
     bottleneck_explanation: explanation.bottleneck_explanation,
     recommendation: explanation.recommendation,
-    citation_id: explanation.citation_id,
+    citation_id: citationId ?? undefined,
     cached: false,
   });
 }
