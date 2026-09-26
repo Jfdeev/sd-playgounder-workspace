@@ -22,6 +22,7 @@
  */
 
 import type { Design, SimulationResult } from '@sdp/engine';
+import type { Source } from '@sdp/knowledge';
 
 export type ProblemScale = {
   /** Usuários ativos por dia. */
@@ -55,6 +56,8 @@ export type Hint = {
   prompt: string;
   /** Texto completo da dica, revelado sob demanda. */
   body: string;
+  /** Presente só quando a dica cita um princípio da literatura clássica (M2.6, FR-003/FR-004). */
+  source?: Source;
 };
 
 export type Problem = {

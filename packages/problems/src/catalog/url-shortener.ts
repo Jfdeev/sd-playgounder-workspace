@@ -11,6 +11,7 @@
  * (2000 rps) o design passa a escoar a carga — o "aha" pedagógico de capacidade e redundância.
  */
 
+import { CLEAN_ARCHITECTURE } from '@sdp/knowledge';
 import type { Problem } from '../types.js';
 
 const RUBRIC: Problem['rubric'] = [
@@ -68,6 +69,18 @@ const HINTS: Problem['hints'] = [
       'Um nó com 1 réplica é um ponto único de falha (SPOF): se essa réplica cair, aquele trecho ' +
       'do sistema para inteiro. Como o requisito de disponibilidade deste problema é 99,9%, todo ' +
       'nó no caminho crítico precisa de pelo menos 2 réplicas para não ser um SPOF.',
+  },
+  {
+    id: 'responsibility-coupling',
+    prompt: 'Por que separar Cache e Store em vez do App Server acessar tudo direto?',
+    body:
+      'Clean Architecture (Robert C. Martin) descreve isso como responsabilidade única e a regra ' +
+      'de dependência: App Server é responsável por servir a requisição; Cache e Store são ' +
+      'responsáveis por guardar o dado em velocidades diferentes. Se o App Server tivesse que ' +
+      'decidir, a cada chamada, onde o dado mora e como reconciliar as duas fontes, ele estaria ' +
+      'acumulando uma responsabilidade que não é dele — daí a topologia em camadas em vez de um ' +
+      'nó só fazendo tudo.',
+    source: CLEAN_ARCHITECTURE,
   },
 ];
 

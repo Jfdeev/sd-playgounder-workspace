@@ -12,36 +12,44 @@ verificação de 20 submissões de M2 contra o prompt novo depois de US4.
 
 ## Phase 1: Setup
 
-- [ ] T001 Criar scaffold de `packages/knowledge/` (`package.json` nome `@sdp/knowledge`,
+- [x] T001 Criar scaffold de `packages/knowledge/` (`package.json` nome `@sdp/knowledge`,
       `tsconfig.json`, `vitest.config.ts`) espelhando exatamente `packages/problems/`
-- [ ] T002 Adicionar `"@sdp/knowledge": "workspace:*"` em `apps/web/package.json`,
-      `packages/problems/package.json` e `packages/narrator/package.json`
-- [ ] T003 Adicionar `"@sdp/knowledge"` em `transpilePackages` de `apps/web/next.config.ts`
+- [x] T002 Adicionar `"@sdp/knowledge": "workspace:*"` em `apps/web/package.json` e
+      `packages/problems/package.json` (`packages/narrator/package.json` fica pra quando US4 for
+      desbloqueada — decisão do autor, 2026-09-26)
+- [x] T003 Adicionar `"@sdp/knowledge"` em `transpilePackages` de `apps/web/next.config.ts`
 
 ## Phase 2: Foundational (bloqueia todas as user stories)
 
-- [ ] T004 Criar `packages/knowledge/src/source.ts` — `Source`, `CLEAN_ARCHITECTURE`,
+- [x] T004 Criar `packages/knowledge/src/source.ts` — `Source`, `CLEAN_ARCHITECTURE`,
       `FUNDAMENTALS_OF_SOFTWARE_ARCHITECTURE`, `PATTERNS_OF_ENTERPRISE_APPLICATION_ARCHITECTURE`
       (data-model.md §source.ts)
-- [ ] T005 [P] Criar `packages/knowledge/src/architecture-characteristic.ts` — tipos
+- [x] T005 [P] Criar `packages/knowledge/src/architecture-characteristic.ts` — tipos
       `ArchitectureCharacteristic`/`Tradeoff` + `ARCHITECTURE_CHARACTERISTICS` com as 7 fichas de
-      research.md §2 (conteúdo aprovado pelo autor — ver gate acima)
-- [ ] T006 [P] Criar `packages/knowledge/src/architecture-style.ts` — `TemplateId`,
+      research.md §2 (conteúdo aprovado pelo autor, 2026-09-26)
+- [x] T006 [P] Criar `packages/knowledge/src/architecture-style.ts` — `TemplateId`,
       `ArchitectureStyle`, `ARCHITECTURE_STYLES` com as 4 fichas de research.md §3 (conteúdo
-      aprovado pelo autor — ver gate acima)
-- [ ] T007 Criar `packages/knowledge/src/index.ts` reexportando os 3 módulos acima
-- [ ] T008 [P] Escrever `packages/knowledge/test/architecture-characteristic.spec.ts` — as 7
+      aprovado pelo autor, 2026-09-26)
+- [x] T007 Criar `packages/knowledge/src/index.ts` reexportando os 3 módulos acima
+- [x] T008 [P] Escrever `packages/knowledge/test/architecture-characteristic.spec.ts` — as 7
       `Dimension` têm ficha; cada ficha tem >= 1 `tradeoff`; `tradeoff.against` nunca é a própria
       dimensão; `source` é uma referência a uma das 3 constantes de `source.ts` (identidade, não
       comparação de string)
-- [ ] T009 [P] Escrever `packages/knowledge/test/architecture-style.spec.ts` — os 4 `TemplateId`
+- [x] T009 [P] Escrever `packages/knowledge/test/architecture-style.spec.ts` — os 4 `TemplateId`
       têm ficha; cada ficha tem >= 1 trade-off; `source` é uma das 3 constantes
-- [ ] T010 [P] Editar `apps/web/src/lib/canvas-templates.ts` — `ArchitectureTemplate.id: TemplateId`
+- [x] T010 [P] Editar `apps/web/src/lib/canvas-templates.ts` — `ArchitectureTemplate.id: TemplateId`
       (import de `@sdp/knowledge`) em vez de `id: string`
-- [ ] T011 Escrever `apps/web/test/template-ids.spec.ts` — `Set` dos ids de
+- [x] T011 Escrever `apps/web/test/template-ids.spec.ts` — `Set` dos ids de
       `ARCHITECTURE_TEMPLATES` é exatamente igual ao `Set` das chaves de `ARCHITECTURE_STYLES`, sem
       duplicata em nenhum dos dois lados (prova a mão dupla que `Record<TemplateId,...>` sozinho não
       garante — research.md §1.2)
+
+**Achado durante a implementação, fora do escopo original de tasks.md**: `@sdp/engine` não
+exportava `ALL_DIMENSIONS` como valor (só o tipo `Dimension`) — `packages/problems/test/rubric.spec.ts`
+já hardcodava a lista de 7 dimensões por conta disso (comentado como gap conhecido naquele arquivo).
+`packages/knowledge/test/architecture-characteristic.spec.ts` precisava da mesma lista; em vez de
+hardcodar uma terceira vez, `packages/engine/src/index.ts` passou a reexportar `ALL_DIMENSIONS` de
+`types.ts` (adição pura, sem lógica nova, sem violar Constitution II).
 
 **Checkpoint**: `pnpm --filter knowledge test && pnpm --filter web test template-ids && pnpm -r exec tsc --noEmit` passam antes de abrir qualquer user story.
 
@@ -50,42 +58,48 @@ verificação de 20 submissões de M2 contra o prompt novo depois de US4.
 **Goal**: usuário abre a ficha de qualquer dimensão a partir do `ScorePanel`.
 **Independent Test**: quickstart.md §US1.
 
-- [ ] T012 [US1] Criar `apps/web/src/components/canvas/characteristic-sheet.tsx` — modal/painel
-      que recebe uma `Dimension`, lê `ARCHITECTURE_CHARACTERISTICS[dimension]` de `@sdp/knowledge` e
-      renderiza definição + fonte + trade-offs
-- [ ] T013 [US1] Editar `apps/web/src/components/canvas/score-panel.tsx` — botão "?" por linha de
+- [x] T012 [US1] Criar `apps/web/src/components/canvas/characteristic-sheet.tsx` — painel inline
+      (mesmo padrão de `reference-solution-panel.tsx`, sem overlay/modal novo) que recebe uma
+      `Dimension`, lê `ARCHITECTURE_CHARACTERISTICS[dimension]` de `@sdp/knowledge` e renderiza
+      definição + fonte + trade-offs
+- [x] T013 [US1] Editar `apps/web/src/components/canvas/score-panel.tsx` — botão "?" por linha de
       dimensão, abre `CharacteristicSheet` com a dimensão clicada (estado local, sem tocar no store)
-- [ ] T014 [US1] Verificação manual — quickstart.md §US1 (todas as 7 dimensões abrem com conteúdo)
+- [ ] T014 [US1] Verificação manual — quickstart.md §US1 pendente: `/app` fica atrás de login
+      (mesma limitação já registrada em M2 — sem sessão de browser autenticada disponível pro
+      agente). Build de produção e `tsc` confirmam que a UI compila e renderiza sem erro de servidor
+      até a tela de login; a checagem visual das 7 fichas abrindo com conteúdo fica para o autor.
 
 ## Phase 4: US2 — Entender um estilo de arquitetura (P2)
 
 **Goal**: usuário abre a ficha de qualquer template a partir do dropdown de Templates.
 **Independent Test**: quickstart.md §US2.
 
-- [ ] T015 [US2] Criar `apps/web/src/components/canvas/style-sheet.tsx` — modal/painel que recebe
+- [x] T015 [US2] Criar `apps/web/src/components/canvas/style-sheet.tsx` — painel inline que recebe
       um `TemplateId`, lê `ARCHITECTURE_STYLES[templateId]` de `@sdp/knowledge` e renderiza quando
       usar + trade-offs + fonte (+ `furtherReading`, se presente)
-- [ ] T016 [US2] Editar `apps/web/src/components/canvas/challenge-topbar.tsx` — botão "?" por
-      template no dropdown, abre `StyleSheet` com o template clicado
-- [ ] T017 [US2] Verificação manual — quickstart.md §US2 (todos os 4 templates abrem com conteúdo)
+- [x] T016 [US2] Editar `apps/web/src/components/canvas/challenge-topbar.tsx` — botão "?" por
+      template no dropdown, abre `StyleSheet` com o template clicado (sem disparar `onApplyTemplate`)
+- [ ] T017 [US2] Verificação manual — quickstart.md §US2 pendente pelo mesmo motivo de T014
+      (login manual necessário)
 
 ## Phase 5: US3 — Receber uma dica sobre responsabilidade e acoplamento (P3)
 
 **Goal**: pelo menos 1 hint por problema cita Clean Architecture com fonte.
 **Independent Test**: quickstart.md §US3.
 
-- [ ] T018 [US3] Editar `packages/problems/src/types.ts` — `Hint.source?: Source` (import de
+- [x] T018 [US3] Editar `packages/problems/src/types.ts` — `Hint.source?: Source` (import de
       `@sdp/knowledge`)
-- [ ] T019 [P] [US3] Editar `packages/problems/src/catalog/url-shortener.ts` — adicionar hint nova
+- [x] T019 [P] [US3] Editar `packages/problems/src/catalog/url-shortener.ts` — adicionar hint nova
       citando `CLEAN_ARCHITECTURE` (conteúdo de research.md §4.1, aprovado pelo autor)
-- [ ] T020 [P] [US3] Editar `packages/problems/src/catalog/social-feed.ts` — adicionar hint nova
+- [x] T020 [P] [US3] Editar `packages/problems/src/catalog/social-feed.ts` — adicionar hint nova
       citando `CLEAN_ARCHITECTURE` (research.md §4.2, aprovado)
-- [ ] T021 [P] [US3] Editar `packages/problems/src/catalog/ecommerce-checkout.ts` — adicionar hint
+- [x] T021 [P] [US3] Editar `packages/problems/src/catalog/ecommerce-checkout.ts` — adicionar hint
       nova citando `CLEAN_ARCHITECTURE` (research.md §4.3, aprovado)
-- [ ] T022 [US3] Escrever `packages/problems/test/hints-source.spec.ts` — todo problema do catálogo
+- [x] T022 [US3] Escrever `packages/problems/test/hints-source.spec.ts` — todo problema do catálogo
       tem >= 1 hint com `source` definido (prova positiva de FR-003, research.md §1.5); toda hint
       com `source` referencia uma das 3 constantes reais (nunca uma citação solta)
-- [ ] T023 [US3] Verificação manual — quickstart.md §US3
+- [ ] T023 [US3] Verificação manual — quickstart.md §US3 pendente pelo mesmo motivo de T014
+      (`pnpm --filter problems test hints-source` já roda automaticamente e passa — 4/4 testes)
 
 **Checkpoint**: US1-US3 são o incremento entregável sem tocar no narrador — podem parar aqui até a decisão de governança de US4 (ver gate).
 
@@ -117,15 +131,14 @@ governança"; mensagem enviada ao final do `/speckit-plan`).
 
 ## Phase 7: Polish
 
-- [ ] T029 Rodar `pnpm -r exec tsc --noEmit` — todos os pacotes tocados (`knowledge`, `problems`,
-      `narrator`, `web`) sem erro
-- [ ] T030 Rodar `pnpm --filter web build` — build de produção limpo com `@sdp/knowledge` em
+- [x] T029 Rodar `pnpm -r exec tsc --noEmit` (via `typecheck` por pacote: `knowledge`, `problems`,
+      `web` — `narrator` não foi tocado, US4 ainda bloqueada) — sem erro
+- [x] T030 Rodar `pnpm --filter web build` — build de produção limpo com `@sdp/knowledge` em
       `transpilePackages`
-- [ ] T031 Atualizar `docs/product-context.md` §10 — seção M2.6 refletindo o que foi de fato
-      implementado (US1-US3 sempre; US4 conforme a decisão de sequenciamento)
-- [ ] T032 Atualizar `CLAUDE.md` "Plano ativo" — apontar pra `specs/fundamentos-arquitetura/`, status
-      real (o mesmo cuidado de não declarar `Done` antes do critério de saída — aqui, antes das
-      verificações manuais de quickstart.md serem feitas pelo autor)
+- [x] T031 Atualizar `docs/product-context.md` §10 — seção M2.6 refletindo o que foi de fato
+      implementado (US1-US3; US4 explicitamente pendente da decisão de sequenciamento com M2)
+- [x] T032 Atualizar `CLAUDE.md` "Plano ativo" — apontar pra `specs/fundamentos-arquitetura/`, status
+      real (código de US1-US3 completo, verificação manual e US4 pendentes)
 
 ## Dependencies
 

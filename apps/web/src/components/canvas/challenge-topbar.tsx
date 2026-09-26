@@ -11,12 +11,14 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { Blocks, Calculator, ChevronDown, Lock, Sparkles } from 'lucide-react';
+import { Blocks, Calculator, ChevronDown, HelpCircle, Lock, Sparkles } from 'lucide-react';
 import { ALL_PROBLEM_IDS, getProblem } from '@sdp/problems';
+import type { TemplateId } from '@sdp/knowledge';
 import { ARCHITECTURE_TEMPLATES, type ArchitectureTemplate } from '@/lib/canvas-templates';
 import { isChallengeUnlocked } from '@/lib/challenge-progression';
 import { useProgressionStore } from '@/stores/progression-store';
 import { CapacityCalculatorPanel } from './capacity-calculator-panel';
+import { StyleSheet } from './style-sheet';
 
 // Nomes do site de inspiração que ainda não têm um Problem completo autorado — aparecem na lista
 // como "em breve" (sempre bloqueados), pra manter a lista visualmente parecida com o site sem
@@ -43,6 +45,7 @@ export function ChallengeTopBar({
   onApplyTemplate: (template: ArchitectureTemplate) => void;
 }) {
   const [openMenu, setOpenMenu] = useState<'challenges' | 'templates' | 'calculator' | null>(null);
+  const [openStyleId, setOpenStyleId] = useState<TemplateId | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   useClickOutside(containerRef, () => setOpenMenu(null));
 
@@ -116,18 +119,31 @@ export function ChallengeTopBar({
         {openMenu === 'templates' && (
           <div className="absolute left-0 top-full z-20 mt-1 w-80 rounded-lg border border-zinc-800 bg-zinc-900 p-1.5 shadow-xl">
             {ARCHITECTURE_TEMPLATES.map((template) => (
-              <button
-                key={template.id}
-                type="button"
-                onClick={() => {
-                  onApplyTemplate(template);
-                  setOpenMenu(null);
-                }}
-                className="flex w-full flex-col gap-0.5 rounded-md px-2.5 py-2 text-left transition hover:bg-zinc-800"
-              >
-                <span className="text-sm font-medium text-zinc-200">{template.label}</span>
-                <span className="text-xs text-zinc-500">{template.description}</span>
-              </button>
+              <div key={template.id}>
+                <div className="flex items-center gap-1 rounded-md transition hover:bg-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onApplyTemplate(template);
+                      setOpenMenu(null);
+                    }}
+                    className="flex w-full flex-col gap-0.5 px-2.5 py-2 text-left"
+                  >
+                    <span className="text-sm font-medium text-zinc-200">{template.label}</span>
+                    <span className="text-xs text-zinc-500">{template.description}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOpenStyleId((id) => (id === template.id ? null : template.id))}
+                    aria-label={`Quando usar ${template.label}?`}
+                    title={`Quando usar ${template.label}?`}
+                    className="mr-1.5 shrink-0 rounded-full p-1 text-zinc-600 hover:text-violet-400"
+                  >
+                    <HelpCircle className="size-3.5" aria-hidden />
+                  </button>
+                </div>
+                {openStyleId === template.id && <StyleSheet templateId={template.id} />}
+              </div>
             ))}
           </div>
         )}
