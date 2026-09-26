@@ -1,5 +1,5 @@
 {
-  "name": "@sdp/problems",
+  "name": "@sdp/knowledge",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,8 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@sdp/engine": "workspace:*",
-    "@sdp/knowledge": "workspace:*"
+    "@sdp/engine": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
