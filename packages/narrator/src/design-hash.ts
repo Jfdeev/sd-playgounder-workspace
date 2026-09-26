@@ -8,6 +8,7 @@
  */
 
 import type { Design, Workload } from '@sdp/engine';
+import { NARRATOR_PROMPT_VERSION } from './prompt.js';
 
 function canonicalizeDesign(design: Design): string {
   const nodes = [...design.nodes]
@@ -36,8 +37,19 @@ async function sha256Hex(input: string): Promise<string> {
     .join('');
 }
 
-/** Hash determinístico de (Design, Workload) — mesmo par lógico sempre gera o mesmo hash. */
-export async function hashDesign(design: Design, workload: Workload): Promise<string> {
-  const canonical = `${canonicalizeDesign(design)}|${JSON.stringify(workload)}`;
+/**
+ * Hash determinístico de (Design, Workload) — mesmo par lógico sempre gera o mesmo hash.
+ *
+ * `promptVersion` (M2.6, research.md §1.6) entra no material hasheado — o default já é a versão
+ * atual do prompt, então uma explicação cacheada de antes de uma mudança de prompt nunca colide
+ * com o cache novo pro mesmo design/workload (senão o cache serviria uma explicação sem citação,
+ * por exemplo, mesmo depois do prompt passar a suportar citação).
+ */
+export async function hashDesign(
+  design: Design,
+  workload: Workload,
+  promptVersion: number = NARRATOR_PROMPT_VERSION,
+): Promise<string> {
+  const canonical = `${canonicalizeDesign(design)}|${JSON.stringify(workload)}|v${promptVersion}`;
   return sha256Hex(canonical);
 }

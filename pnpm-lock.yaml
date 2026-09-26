@@ -144,6 +144,9 @@ importers:
       '@sdp/engine':
         specifier: workspace:*
         version: link:../engine
+      '@sdp/knowledge':
+        specifier: workspace:*
+        version: link:../knowledge
     devDependencies:
       '@types/node':
         specifier: ^22.10.2

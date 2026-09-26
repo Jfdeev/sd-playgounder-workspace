@@ -6,9 +6,12 @@
 revisar/aprovar o conteúdo proposto em research.md §2-§4 — mesmo tipo de gate que as fórmulas de
 score tiveram em M2 (Constitution VI). Ver mensagem de fechamento do `/speckit-plan` no chat.
 
-**Gate antes de T024**: nenhuma task de US4 (T024-T028) começa antes do autor decidir o
-sequenciamento com M2 (plan.md, "Nota de governança") — esperar M2 fechar (`Done`) ou re-rodar a
-verificação de 20 submissões de M2 contra o prompt novo depois de US4.
+**Gate antes de T024 — resolvido (decisão do autor, 2026-09-26)**: o autor optou por desbloquear
+US4 sem esperar o M2 chegar a `Done` — "implementar US4 agora mesmo assim", em resposta direta à
+pergunta de fechamento desta fase. Consequência assumida: a verificação de 20 submissões consecutivas
+de M2 (ainda pendente) vai precisar ser refeita contra o prompt novo (com o bloco de citação), não
+contra o prompt de M2 original — `NARRATOR_PROMPT_VERSION` (T025) existe exatamente pra isso não
+colidir silenciosamente com cache antigo.
 
 ## Phase 1: Setup
 
@@ -103,44 +106,55 @@ antes do Polish (quickstart.md atualizado).
 - [ ] T023 [US3] Verificação manual — quickstart.md §US3 pendente pelo mesmo motivo de T014
       (`pnpm --filter problems test hints-source` já roda automaticamente e passa — 4/4 testes)
 
-**Checkpoint**: US1-US3 são o incremento entregável sem tocar no narrador — podem parar aqui até a decisão de governança de US4 (ver gate).
+**Checkpoint**: US1-US3 eram o incremento entregável sem tocar no narrador — o gate de US4 abaixo
+foi resolvido pelo autor (desbloqueado) antes desta fase ser retomada.
 
 ## Phase 6: US4 — O narrador cita um princípio ao explicar (P4)
 
-⚠️ **NÃO INICIAR sem a decisão do autor sobre sequenciamento com M2** (plan.md "Nota de
-governança"; mensagem enviada ao final do `/speckit-plan`).
+Gate resolvido — ver nota no topo deste arquivo ("Gate antes de T024 — resolvido").
 
 **Goal**: narrador cita, quando relevante, uma ficha real com fonte — nunca inventa.
 **Independent Test**: quickstart.md §US4.
 
-- [ ] T024 [US4] Editar `packages/narrator/src/schema.ts` — `citation_id` opcional em
+- [x] T024 [US4] Editar `packages/narrator/src/schema.ts` — `citation_id` opcional em
       `EXPLAIN_RESULT_SCHEMA` (`SchemaType.STRING`, `enum` com todos os ids válidos de
       `@sdp/knowledge`); `parseNarratorExplanation` rejeita (`null`) qualquer `citation_id` fora do
       enum ou de tipo errado
-- [ ] T025 [US4] Editar `packages/narrator/src/prompt.ts` — `NARRATOR_PROMPT_VERSION` (nova
-      constante) + `selectRelevantKnowledge(result: SimulationResult)` (mapeia
-      `violations[].type` → característica relacionada, e `scores[dimension] < 40` → característica
-      da dimensão; nunca lê `Design`/`Workload`); `buildNarratorPrompt` inclui o bloco de contexto
-      só quando `selectRelevantKnowledge` retorna algo
-- [ ] T026 [US4] Editar `packages/narrator/src/design-hash.ts` — `hashDesign` ganha 3º parâmetro
+- [x] T025 [US4] Editar `packages/narrator/src/prompt.ts` — `NARRATOR_PROMPT_VERSION = 2` +
+      `selectRelevantKnowledge(result: SimulationResult)` (mapeia `violations[].type === 'spof'` →
+      característica Disponibilidade, e `scores[dimension] < 40` → característica da própria
+      dimensão; nunca lê `Design`/`Workload`); `buildNarratorPrompt` inclui o bloco de contexto só
+      quando `selectRelevantKnowledge` retorna algo
+- [x] T026 [US4] Editar `packages/narrator/src/design-hash.ts` — `hashDesign` ganha 3º parâmetro
       `promptVersion` (default `NARRATOR_PROMPT_VERSION`), incluído no material hasheado
-- [ ] T027 [US4] Escrever/estender testes em `packages/narrator/test/` — `selectRelevantKnowledge`
-      nunca acessa `Design`/`Workload` (assinatura de tipo já garante, teste confirma o mapeamento
-      de violação/score); `parseNarratorExplanation` rejeita `citation_id` fora do enum; `hashDesign`
-      com `promptVersion` diferente muda o hash pro mesmo design/workload
-- [ ] T028 [US4] Verificação manual — quickstart.md §US4 (precisa de `GEMINI_API_KEY` real, mesma
-      limitação de M2)
+- [x] T027 [US4] Escrever/estender testes em `packages/narrator/test/` — `selectRelevantKnowledge`
+      confirma o mapeamento de violação/score (12 testes novos em `prompt.spec.ts`);
+      `parseNarratorExplanation` rejeita `citation_id` fora do enum (`schema.spec.ts`); `hashDesign`
+      com `promptVersion` diferente muda o hash pro mesmo design/workload (`design-hash.spec.ts`)
+- [ ] T028 [US4] Verificação manual — quickstart.md §US4 pendente pelo mesmo motivo de T014
+      (precisa de `GEMINI_API_KEY` real + login manual, nenhum dos dois disponível pro agente)
+
+**Trabalho adicional fora do tasks.md original, necessário para US4 ser genuinamente utilizável**:
+- `apps/web/src/db/schema.ts` — coluna `citationId` (nullable) em `narratorExplanations`; migração
+  gerada em `apps/web/src/db/migrations/0003_regular_prowler.sql` (não aplicada a nenhum banco
+  live nesta sessão, mesmo padrão de M2).
+- `apps/web/src/app/api/narrator/route.ts` — lê/grava `citation_id` no cache e na resposta.
+- `apps/web/src/components/canvas/narrator-panel.tsx` — resolve `citation_id` contra
+  `ARCHITECTURE_CHARACTERISTICS`/`ARCHITECTURE_STYLES` e renderiza "Princípio citado" com a fonte
+  atribuída (sem isso, US4 calcularia a citação no servidor mas nunca a mostraria ao usuário).
 
 ## Phase 7: Polish
 
-- [x] T029 Rodar `pnpm -r exec tsc --noEmit` (via `typecheck` por pacote: `knowledge`, `problems`,
-      `web` — `narrator` não foi tocado, US4 ainda bloqueada) — sem erro
-- [x] T030 Rodar `pnpm --filter web build` — build de produção limpo com `@sdp/knowledge` em
-      `transpilePackages`
+- [x] T029 Rodar `pnpm -r exec tsc --noEmit` — todos os 5 pacotes (`engine`, `knowledge`, `narrator`,
+      `problems`, `web`) sem erro
+- [x] T030 Rodar `pnpm --filter web build` — build de produção limpo (`@sdp/narrator` continua fora
+      de `transpilePackages` — build passou sem precisar adicioná-lo, gap pré-existente de M2, não
+      deste marco)
 - [x] T031 Atualizar `docs/product-context.md` §10 — seção M2.6 refletindo o que foi de fato
-      implementado (US1-US3; US4 explicitamente pendente da decisão de sequenciamento com M2)
-- [x] T032 Atualizar `CLAUDE.md` "Plano ativo" — apontar pra `specs/fundamentos-arquitetura/`, status
-      real (código de US1-US3 completo, verificação manual e US4 pendentes)
+      implementado (código completo US1-US4; verificação manual e o re-teste das 20 submissões de
+      M2 contra o prompt novo continuam pendentes)
+- [x] T032 Atualizar `CLAUDE.md` "Plano ativo" — apontar pra `specs/fundamentos-arquitetura/`,
+      status real (código completo, verificação manual pendente)
 
 ## Dependencies
 
@@ -149,9 +163,9 @@ governança"; mensagem enviada ao final do `/speckit-plan`).
   Foundational
 - US3 (T018-T023) só depende do Foundational (T004, T007 — `Source`/reexports), independente de
   US1/US2
-- US4 (T024-T028) depende do Foundational E é bloqueada pelo gate de governança — sempre a última
-- Polish (T029-T032) depende de todas as fases anteriores concluídas (ou de US1-US3 concluídas, se
-  US4 ficar pra depois)
+- US4 (T024-T028) depende do Foundational — gate de governança resolvido pelo autor, implementada
+  na sequência
+- Polish (T029-T032) depende de todas as fases anteriores concluídas
 
 ## Parallel Example
 
@@ -167,5 +181,4 @@ T005 (architecture-characteristic.ts) + T006 (architecture-style.ts) + T010 (can
 ## Implementation Strategy
 
 **MVP = US1 apenas** (T001-T014) — já cumpre a metade mais visível do critério de saída (SC-001).
-US2/US3 são incrementos pequenos e independentes. US4 fica atrás do gate de governança e pode virar
-um M2.6-b separado no tempo, sem bloquear o resto do marco.
+US2/US3/US4 são incrementos pequenos, cada um independente dos outros dois.

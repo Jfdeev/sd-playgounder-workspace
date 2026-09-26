@@ -84,6 +84,7 @@ export async function POST(request: Request): Promise<Response> {
       summary: cached.summary,
       bottleneck_explanation: cached.bottleneckExplanation,
       recommendation: cached.recommendation ?? undefined,
+      citation_id: cached.citationId ?? undefined,
       cached: true,
     });
   }
@@ -142,12 +143,14 @@ export async function POST(request: Request): Promise<Response> {
     summary: explanation.summary,
     bottleneckExplanation: explanation.bottleneck_explanation,
     recommendation: explanation.recommendation ?? null,
+    citationId: explanation.citation_id ?? null,
   });
 
   return NextResponse.json({
     summary: explanation.summary,
     bottleneck_explanation: explanation.bottleneck_explanation,
     recommendation: explanation.recommendation,
+    citation_id: explanation.citation_id,
     cached: false,
   });
 }

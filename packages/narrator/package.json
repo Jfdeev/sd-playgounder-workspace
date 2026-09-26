@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
-    "@sdp/engine": "workspace:*"
+    "@sdp/engine": "workspace:*",
+    "@sdp/knowledge": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

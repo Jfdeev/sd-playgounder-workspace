@@ -8,4 +8,4 @@
 
 export { hashDesign } from './design-hash.js';
 export { EXPLAIN_RESULT_SCHEMA, parseNarratorExplanation, type NarratorExplanation } from './schema.js';
-export { buildNarratorPrompt } from './prompt.js';
+export { buildNarratorPrompt, selectRelevantKnowledge, NARRATOR_PROMPT_VERSION } from './prompt.js';
