@@ -13,6 +13,7 @@
  * `apps/web/test/social-feed-scenario.spec.ts`.
  */
 
+import { CLEAN_ARCHITECTURE } from '@sdp/knowledge';
 import type { Problem } from '../types.js';
 
 const RUBRIC: Problem['rubric'] = [
@@ -71,6 +72,18 @@ const HINTS: Problem['hints'] = [
       'não é sempre o App Server. Olhe a utilização (ρ) de cada nó no painel de resultado: o nó ' +
       'com ρ mais alto (mais perto de 1, ou acima) é quem precisa de mais réplicas, seja ele ' +
       'compute, cache ou banco.',
+  },
+  {
+    id: 'responsibility-coupling',
+    prompt: 'O Cache e o NoSQL Store guardam o mesmo feed — por que não é duplicação de responsabilidade?',
+    body:
+      'Clean Architecture (Robert C. Martin) separa política de alto nível (a regra de negócio: ' +
+      '"qual conteúdo aparece no feed") de detalhe de baixo nível (o mecanismo: "onde e como esse ' +
+      'dado fica armazenado rápido o suficiente"). O NoSQL Store é a fonte da verdade ' +
+      '(persistência durável); o Cache é um mecanismo de acesso rápido a uma cópia dela. ' +
+      'Concentrar as duas coisas — fonte da verdade e acesso rápido — num componente só seria o ' +
+      'tipo de acoplamento que a topologia em nós distintos evita.',
+    source: CLEAN_ARCHITECTURE,
   },
 ];
 

@@ -11,6 +11,7 @@
  * problemas, provado em `apps/web/test/ecommerce-checkout-scenario.spec.ts`.
  */
 
+import { CLEAN_ARCHITECTURE } from '@sdp/knowledge';
 import type { Problem } from '../types.js';
 
 const RUBRIC: Problem['rubric'] = [
@@ -67,6 +68,19 @@ const HINTS: Problem['hints'] = [
       'chamada de rede pública real se comporta. O limite de 2000ms deste problema já reserva ' +
       'espaço pra essa latência externa — não é um bug do seu design, é o trade-off real de ' +
       'depender de um provedor de pagamento terceirizado.',
+  },
+  {
+    id: 'responsibility-coupling',
+    prompt: 'Por que Payment é um nó próprio, e por que Rate Limiter vem antes do App Server?',
+    body:
+      'Clean Architecture (Robert C. Martin) chama de isolar uma dependência volátil: um serviço ' +
+      'externo lento e fora do seu controle (aqui, Payment) nunca deveria ficar acoplado direto à ' +
+      'lógica central que processa o pedido — ele fica atrás de uma borda própria, com sua ' +
+      'própria latência e taxa de falha isoladas. O mesmo raciocínio vale pro Rate Limiter: ele ' +
+      'intercepta a requisição antes dela chegar na lógica de negócio, então a decisão de limitar ' +
+      'tráfego fica isolada da decisão de processar o pedido — inverter a ordem misturaria as ' +
+      'duas responsabilidades.',
+    source: CLEAN_ARCHITECTURE,
   },
 ];
 

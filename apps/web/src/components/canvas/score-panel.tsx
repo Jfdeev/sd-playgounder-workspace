@@ -10,9 +10,10 @@
  */
 
 import { useState } from 'react';
-import { ChevronUp, X } from 'lucide-react';
-import type { SimulationResult } from '@sdp/engine';
+import { ChevronUp, HelpCircle, X } from 'lucide-react';
+import type { Dimension, SimulationResult } from '@sdp/engine';
 import { DIMENSION_UI } from '@/lib/canvas-ui-catalog';
+import { CharacteristicSheet } from './characteristic-sheet';
 
 const DIMENSION_ORDER = [
   'escalabilidade',
@@ -32,6 +33,7 @@ function barColorClass(value: number): string {
 
 export function ScorePanel({ result }: { result: SimulationResult | null }) {
   const [collapsed, setCollapsed] = useState(true);
+  const [openDimension, setOpenDimension] = useState<Dimension | null>(null);
 
   if (!result) return null;
 
@@ -72,6 +74,15 @@ export function ScorePanel({ result }: { result: SimulationResult | null }) {
                 <span className="flex items-center gap-1.5 text-zinc-400">
                   <Icon className="size-3.5" aria-hidden />
                   {label}
+                  <button
+                    type="button"
+                    onClick={() => setOpenDimension((d) => (d === dimension ? null : dimension))}
+                    aria-label={`O que é ${label}?`}
+                    title={`O que é ${label}?`}
+                    className="rounded-full text-zinc-600 hover:text-violet-400"
+                  >
+                    <HelpCircle className="size-3.5" aria-hidden />
+                  </button>
                 </span>
                 <span className="font-medium text-zinc-200">{value}</span>
               </div>
@@ -82,6 +93,11 @@ export function ScorePanel({ result }: { result: SimulationResult | null }) {
           );
         })}
       </div>
+      {openDimension && (
+        <div className="mt-2">
+          <CharacteristicSheet dimension={openDimension} />
+        </div>
+      )}
     </section>
   );
 }

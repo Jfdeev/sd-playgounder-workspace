@@ -280,9 +280,10 @@ que M1/M1.5/M2 já construíram:
   continuam valendo sem exceção).
 - **Estilos de arquitetura** (Richards & Ford) — ficha curta por template já existente (Monolito,
   3 Camadas, Microsserviços, Orientado a Eventos — `canvas-templates.ts`, M1.5) com quando usar
-  cada um e os trade-offs principais, citando a fonte. 2-3 estilos novos (ex. Microkernel,
-  Baseado em Serviços) avaliados pra virar template também, só se couberem no catálogo de
-  componentes já existente.
+  cada um e os trade-offs principais, citando a fonte. Escopo fechado nos 4 templates já
+  existentes (decisão tomada em `/speckit-plan`, Session 2026-09-25 — ver
+  `specs/fundamentos-arquitetura/research.md` §1.3): agregar um estilo novo exige catálogo de
+  componentes/template novos, fora do escopo deste marco.
 - **Responsabilidade e acoplamento** (Clean Architecture) — adaptado pro vocabulário de
   infraestrutura da plataforma (a Regra de Dependência de Martin fala de camadas de código, não
   de topologia de sistema — a tradução pro domínio daqui é o alvo desta parte, não uma cópia
@@ -303,12 +304,16 @@ canvas ou um cálculo novo do engine.
 templates já existentes, uma pessoa consegue abrir a ficha correspondente e ver a definição
 formal + a fonte bibliográfica exata — nenhum conteúdo sem citação rastreável.
 
-> Nota de quem escreveu isto: numeração (M2.6), posição no roadmap (logo após M2.5, antes de
-> M3) e o corte de escopo acima (dentro/fora) são uma proposta — mesmo tipo de decisão que M2.5
-> registrou como "decisão do autor" quando foi inserida. Nenhum código foi criado pra este
-> marco ainda; nenhum `/speckit-specify` foi rodado. Fica pro autor confirmar ou ajustar antes
-> de qualquer implementação começar (CLAUDE.md: "nenhuma feature... fora do que está descrito
-> nestes documentos... pare e pergunte ao autor").
+**Status (2026-09-26)**: código de US1-US3 completo — `packages/knowledge` (novo), fichas das 7
+dimensões + 4 estilos, dicas de responsabilidade/acoplamento nos 3 problemas, UI nova em
+`ScorePanel`/`ChallengeTopBar` (botão "?" abrindo a ficha) — `tsc`/testes/build limpos nos pacotes
+tocados (`knowledge`, `problems`, `web`). **US4 (narrador citando fonte) deliberadamente não
+implementada ainda** — decisão do autor, 2026-09-26: o critério de saída oficial de M2 (20
+submissões consecutivas sem o narrador contradizer o engine) ainda não foi observado com uma
+`GEMINI_API_KEY` real; alterar o prompt do narrador antes disso deixaria ambíguo qual versão está
+sendo verificada. US4 espera essa verificação de M2 ser feita primeiro. Verificação manual de
+US1-US3 (abrir as fichas no browser) também pendente — login em `/app` não disponível pro agente
+nesta sessão, mesma limitação já registrada em M2. Ver `specs/fundamentos-arquitetura/tasks.md`.
 
 ### M3 — Primeiro diferencial: Modo Incidente
 Arquitetura pronta + alerta + métricas simuladas; o usuário diagnostica a causa raiz
