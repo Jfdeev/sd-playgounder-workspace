@@ -6,7 +6,15 @@ US3/US4 têm uma parte de unit test (conteúdo/seleção) e uma parte manual (ve
 
 ## Pré-requisito
 
+**Antes de qualquer verificação de US4**: a coluna `citationId` (migração
+`0003_regular_prowler.sql`) precisa estar aplicada no banco live — sem isso, toda chamada ao
+narrador falha na leitura do cache (`db.select().from(narratorExplanations)` já seleciona
+`citationId` por nome), antes até de chegar no provedor. Isso bloquearia inclusive a verificação
+pendente das 20 submissões de M2. **O agente não roda isto** — é uma migração contra o Neon
+compartilhado, fora do escopo de uma sessão automatizada.
+
 ```bash
+pnpm --filter web db:migrate
 pnpm --filter web dev
 ```
 

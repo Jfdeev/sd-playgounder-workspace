@@ -50,9 +50,16 @@ describe('selectRelevantKnowledge', () => {
 
   it('dimensão com score abaixo de 40 seleciona a ficha da própria dimensão', () => {
     const characteristics = selectRelevantKnowledge(
-      result({ scores: { ...HEALTHY_SCORES, custo: 10 } }),
+      result({ scores: { ...HEALTHY_SCORES, seguranca: 10 } }),
     );
-    expect(characteristics.map((c) => c.dimension)).toEqual(['custo']);
+    expect(characteristics.map((c) => c.dimension)).toEqual(['seguranca']);
+  });
+
+  it('latencia/custo em 0 (fora de desafio, sem scoreContext) NUNCA disparam ficha — 0 aí é "não aplicável", não "ruim"', () => {
+    const characteristics = selectRelevantKnowledge(
+      result({ scores: { ...HEALTHY_SCORES, latencia: 0, custo: 0 } }),
+    );
+    expect(characteristics).toEqual([]);
   });
 
   it('nunca lê Design/Workload — assinatura de tipo só aceita SimulationResult', () => {
