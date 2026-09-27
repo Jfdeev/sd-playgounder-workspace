@@ -57,8 +57,9 @@ type NarratorErrorResponse = {
 ```
 
 Status HTTP: `502` (`PROVIDER_UNAVAILABLE`/`INVALID_RESPONSE`) ou `504` (`TIMEOUT`, RNF-5: acima de
-5s). **Nunca 200 com um corpo inventado** — se o narrador falha, a UI mostra o erro, nunca um texto
-que pareça uma explicação válida (edge case do spec.md).
+15s — subido de 5s em 2026-09-27, `specs/fundamentos-arquitetura/tasks.md` achado 4). **Nunca 200
+com um corpo inventado** — se o narrador falha, a UI mostra o erro, nunca um texto que pareça uma
+explicação válida (edge case do spec.md).
 
 ## Autenticação
 

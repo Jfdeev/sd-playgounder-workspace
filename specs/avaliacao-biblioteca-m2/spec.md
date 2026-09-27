@@ -53,7 +53,7 @@ Depois de ver os números (utilização por nó, gargalo, latência, custo, viol
 
 1. **Given** um resultado de simulação (de "Simular" ou "Submeter"), **When** o usuário abre a explicação do narrador, **Then** o texto gerado descreve o gargalo, a latência e o custo já calculados pelo engine — nenhum número no texto pode divergir do que `SimulationResult` já contém.
 2. **Given** o mesmo design (mesmo hash) submetido duas vezes, **When** o narrador é solicitado nas duas vezes, **Then** a segunda vez usa a explicação cacheada, sem uma nova chamada ao provedor de LLM (RNF-6: custo zero em cache hit).
-3. **Given** a chamada ao provedor de LLM falha ou demora acima do limite (RNF-5: p95 < 5s), **When** isso acontece, **Then** o resultado numérico do engine continua visível normalmente — o narrador nunca bloqueia nem esconde o resultado determinístico já calculado.
+3. **Given** a chamada ao provedor de LLM falha ou demora acima do limite (RNF-5: p95 < 15s), **When** isso acontece, **Then** o resultado numérico do engine continua visível normalmente — o narrador nunca bloqueia nem esconde o resultado determinístico já calculado.
 
 ---
 
@@ -122,7 +122,9 @@ O usuário informa uma escala (ex. número de usuários ativos, requisições po
 
 - **SC-001**: O narrador nunca contradiz o engine em 20 submissões de teste consecutivas (critério de saída oficial do marco, `docs/product-context.md` §10) — nenhuma explicação gerada cita um número ausente de, ou divergente de, `SimulationResult`.
 - **SC-002**: Um usuário que resolve um desafio vê as 7 dimensões de score preenchidas com valores reais (não todas zero) em 100% das submissões que passam na rubrica.
-- **SC-003**: 95% das explicações do narrador aparecem em até 5 segundos (RNF-5, p95).
+- **SC-003**: 95% das explicações do narrador aparecem em até 15 segundos (RNF-5, p95 — subido de
+  5s, decisão do autor, 2026-09-27, `specs/fundamentos-arquitetura/tasks.md` achado 4: 5s batia
+  timeout na prática contra `gemini-2.5-flash` com `responseSchema`, medido em ~5.8s).
 - **SC-004**: Uma segunda submissão do mesmo design nunca gera uma nova chamada ao provedor de LLM — custo zero em cache hit (RNF-6).
 - **SC-005**: Todo problema do catálogo tem uma solução de referência que passa 100% da própria rubrica quando simulada.
 

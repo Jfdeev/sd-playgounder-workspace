@@ -321,11 +321,12 @@ conta de teste throwaway criada e apagada na mesma sessão) — US1/US2/US3/US4 
 funcionando de ponta a ponta com dados reais (banco live, narrador via Gemini real). Achou e
 corrigiu 1 bug real pré-existente de M2 (`POST /api/narrator` 500-ava pra qualquer design saturado
 — `Infinity` da latência não sobrevive à travessia JSON, vira `null`; `packages/narrator/src/
-prompt.ts`, commit `9956fcf`). Encontrou 1 problema em aberto, não corrigido, que precisa de
-decisão do autor: `NARRATOR_TIMEOUT_MS = 5_000` (RNF-5, contrato de M2) é curto demais na prática
-pra `gemini-2.5-flash` com `responseSchema` — medido diretamente em ~5.8s, batendo 504 duas vezes
-seguidas na verificação. Ver `specs/fundamentos-arquitetura/tasks.md` (achados 3 e 4) e
-`quickstart.md`.
+prompt.ts`, commit `9956fcf`). Encontrou 1 problema de RNF-5 (`NARRATOR_TIMEOUT_MS = 5_000` curto
+demais na prática pra `gemini-2.5-flash` com `responseSchema` — medido diretamente em ~5.8s,
+batendo 504 duas vezes seguidas na verificação) — **resolvido em 2026-09-27** subindo o timeout
+pra 15s (decisão do autor); RNF-5/SC-003 de M2 (`spec.md`, `plan.md`, `contracts/narrator-
+contract.md`) e a tabela de NFRs acima atualizados pro novo valor. Ver
+`specs/fundamentos-arquitetura/tasks.md` (achados 3 e 4) e `quickstart.md`.
 
 **Ordem fora de sequência (decisão do autor, 2026-09-26, mesmo padrão de M2.5)**: M2.6 (incluindo
 US4) foi implementado antes do M2 chegar a `Done` (falta a verificação empírica das 20 submissões,
@@ -363,7 +364,7 @@ via Yjs · modo turma com painel do professor. **Nada aqui começa antes de M4 f
 | RNF-2 | Preview de métrica ao editar o canvas | < 100 ms, no browser |
 | RNF-3 | Cobertura de teste de `packages/engine` | ≥ 80% |
 | RNF-4 | Determinismo | 100% reprodutível, sem RNG não-semeado |
-| RNF-5 | Latência da explicação do narrador | < 5 s p95 |
+| RNF-5 | Latência da explicação do narrador | < 15 s p95 (subido de 5s em 2026-09-27 — 5s batia timeout na prática contra `gemini-2.5-flash` com `responseSchema`, medido em ~5.8s; decisão do autor, `specs/fundamentos-arquitetura/tasks.md` achado 4) |
 | RNF-6 | Custo de LLM por submissão | zero em cache hit; 1 chamada em cache miss |
 | RNF-7 | Canvas fluido | 60 fps até 50 nós |
 | RNF-8 | Acessibilidade | navegação por teclado no canvas |

@@ -25,10 +25,18 @@ import { isSameOriginRequest } from '@/lib/csrf';
  */
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
-/** RNF-5 — narrador nunca deve segurar a resposta além disso. Timeout próprio via Promise.race em
- *  vez do `requestOptions.timeout` do SDK — mais simples de testar (mock não precisa simular o
- *  comportamento exato de abort do SDK) e não depende de um detalhe de implementação da lib. */
-const NARRATOR_TIMEOUT_MS = 5_000;
+/**
+ * RNF-5 — narrador nunca deve segurar a resposta além disso. Timeout próprio via Promise.race em
+ * vez do `requestOptions.timeout` do SDK — mais simples de testar (mock não precisa simular o
+ * comportamento exato de abort do SDK) e não depende de um detalhe de implementação da lib.
+ *
+ * Subido de 5s pra 15s (decisão do autor, 2026-09-27, specs/fundamentos-arquitetura/tasks.md
+ * achado 4): 5s batia timeout na prática — uma chamada real medida contra `gemini-2.5-flash` com
+ * o mesmo `responseSchema` desta rota levou ~5.8s. RNF-5/SC-003 (specs/avaliacao-biblioteca-m2) e
+ * a tabela de NFRs de docs/product-context.md atualizados junto pra não ficarem descrevendo um
+ * limite que o código não respeita mais.
+ */
+const NARRATOR_TIMEOUT_MS = 15_000;
 
 type NarratorRequestBody = { design: Design; workload: Workload; result: SimulationResult };
 

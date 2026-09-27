@@ -30,7 +30,8 @@ marco — os 3 problemas novos (pra completar 6) ficam pra um incremento futuro 
 
 **Project Type**: Web application (monorepo já existente) — estende `packages/engine` (score), `packages/problems` (solução de referência) e `apps/web` (narrador, calculadora); `packages/narrator` deixa de ser um README stub e ganha código real (prompt, parsing/validação da resposta estruturada)
 
-**Performance Goals**: RNF-5 (latência do narrador < 5s p95, já definido em `docs/product-context.md`); cálculo de score, por ser puro e síncrono, soma tempo desprezível a `simulate()` (mesma ordem de grandeza das outras métricas já calculadas ali)
+**Performance Goals**: RNF-5 (latência do narrador < 15s p95 — subido de 5s em 2026-09-27, ver
+spec.md SC-003; valor original definido em `docs/product-context.md`); cálculo de score, por ser puro e síncrono, soma tempo desprezível a `simulate()` (mesma ordem de grandeza das outras métricas já calculadas ali)
 
 **Constraints**: chave de API do Gemini (`GEMINI_API_KEY`) só em variável de ambiente server-only, nunca `NEXT_PUBLIC_*` (mesmo padrão de `RESEND_API_KEY`, FR-006); narrador MUST ficar fora do caminho crítico da submissão (FR-004) — resultado do engine nunca espera a resposta do LLM; resposta do narrador MUST vir em schema estruturado sem campos numéricos (`responseSchema` nativo do Gemini) — não é permitido extrair número de texto livre, único jeito de garantir mecanicamente a regra "nenhum número exibido pode ter origem em LLM"
 

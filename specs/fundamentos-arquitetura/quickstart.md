@@ -6,10 +6,9 @@ US3/US4 têm uma parte de unit test (conteúdo/seleção) e uma parte manual (ve
 
 **Verificado de ponta a ponta em 2026-09-27** (login via conta de teste throwaway criada e apagada
 na mesma sessão) — US1/US2/US3/US4 confirmados funcionando com dados reais (Neon live, Gemini
-real). Achou e corrigiu 1 bug real no processo (narrador 500-ava em qualquer design saturado —
-tasks.md, achado 3) e encontrou 1 problema em aberto que precisa de decisão do autor: o timeout de
-5s do narrador (`NARRATOR_TIMEOUT_MS`, M2) é curto demais na prática pra `gemini-2.5-flash` com
-`responseSchema` (~5.8s medido) — ver tasks.md, achado 4, antes de repetir esta verificação.
+real). Achou e corrigiu 2 bugs reais no processo (tasks.md, achados 3 e 4): narrador 500-ava em
+qualquer design saturado, e o timeout de 5s (`NARRATOR_TIMEOUT_MS`) era curto demais na prática pra
+`gemini-2.5-flash` com `responseSchema` (~5.8s medido) — subido pra 15s.
 
 ## Pré-requisito
 
