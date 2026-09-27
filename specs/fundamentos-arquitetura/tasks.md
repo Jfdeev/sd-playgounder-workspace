@@ -69,10 +69,10 @@ antes do Polish (quickstart.md atualizado).
       definição + fonte + trade-offs
 - [x] T013 [US1] Editar `apps/web/src/components/canvas/score-panel.tsx` — botão "?" por linha de
       dimensão, abre `CharacteristicSheet` com a dimensão clicada (estado local, sem tocar no store)
-- [ ] T014 [US1] Verificação manual — quickstart.md §US1 pendente: `/app` fica atrás de login
-      (mesma limitação já registrada em M2 — sem sessão de browser autenticada disponível pro
-      agente). Build de produção e `tsc` confirmam que a UI compila e renderiza sem erro de servidor
-      até a tela de login; a checagem visual das 7 fichas abrindo com conteúdo fica para o autor.
+- [x] T014 [US1] Verificação manual — confirmado no browser (2026-09-27), login via conta de teste
+      throwaway criada e removida na mesma sessão (`m26-verificacao-qa@example.com`, apagada do
+      banco ao final). Botão "?" na dimensão Segurança abre `CharacteristicSheet` com definição,
+      fonte (*Fundamentals of Software Architecture*, Richards & Ford) e 2 trade-offs nomeados.
 
 ## Phase 4: US2 — Entender um estilo de arquitetura (P2)
 
@@ -84,8 +84,8 @@ antes do Polish (quickstart.md atualizado).
       usar + trade-offs + fonte (+ `furtherReading`, se presente)
 - [x] T016 [US2] Editar `apps/web/src/components/canvas/challenge-topbar.tsx` — botão "?" por
       template no dropdown, abre `StyleSheet` com o template clicado (sem disparar `onApplyTemplate`)
-- [ ] T017 [US2] Verificação manual — quickstart.md §US2 pendente pelo mesmo motivo de T014
-      (login manual necessário)
+- [x] T017 [US2] Verificação manual — confirmado no browser (2026-09-27): botão "?" no template
+      Monolito (dropdown Templates) abre `StyleSheet` com quando usar, 3 trade-offs e a fonte exata.
 
 ## Phase 5: US3 — Receber uma dica sobre responsabilidade e acoplamento (P3)
 
@@ -103,8 +103,9 @@ antes do Polish (quickstart.md atualizado).
 - [x] T022 [US3] Escrever `packages/problems/test/hints-source.spec.ts` — todo problema do catálogo
       tem >= 1 hint com `source` definido (prova positiva de FR-003, research.md §1.5); toda hint
       com `source` referencia uma das 3 constantes reais (nunca uma citação solta)
-- [ ] T023 [US3] Verificação manual — quickstart.md §US3 pendente pelo mesmo motivo de T014
-      (`pnpm --filter problems test hints-source` já roda automaticamente e passa — 4/4 testes)
+- [x] T023 [US3] Verificação manual — confirmado no browser (2026-09-27): dica "Por que separar
+      Cache e Store em vez do App Server acessar tudo direto?" do problema "Encurtador de URL"
+      revela texto citando *Clean Architecture* (Robert C. Martin).
 
 **Checkpoint**: US1-US3 eram o incremento entregável sem tocar no narrador — o gate de US4 abaixo
 foi resolvido pelo autor (desbloqueado) antes desta fase ser retomada.
@@ -131,14 +132,16 @@ Gate resolvido — ver nota no topo deste arquivo ("Gate antes de T024 — resol
       confirma o mapeamento de violação/score (12 testes novos em `prompt.spec.ts`);
       `parseNarratorExplanation` rejeita `citation_id` fora do enum (`schema.spec.ts`); `hashDesign`
       com `promptVersion` diferente muda o hash pro mesmo design/workload (`design-hash.spec.ts`)
-- [ ] T028 [US4] Verificação manual — quickstart.md §US4 pendente pelo mesmo motivo de T014
-      (precisa de `GEMINI_API_KEY` real + login manual, nenhum dos dois disponível pro agente)
+- [x] T028 [US4] Verificação manual — confirmado no browser (2026-09-27) com `GEMINI_API_KEY` real,
+      contra um design saturado (SPOF real, Escalabilidade com score baixo): o narrador explicou a
+      saturação corretamente e a UI mostrou "Princípio citado: Escalabilidade — fonte: Fundamentals
+      of Software Architecture, Mark Richards & Neal Ford" (`citation_id` groundado corretamente
+      contra `selectRelevantKnowledge(result)`). Achou 2 bugs reais no processo — ver seção abaixo.
 
 **Trabalho adicional fora do tasks.md original, necessário para US4 ser genuinamente utilizável**:
 - `apps/web/src/db/schema.ts` — coluna `citationId` (nullable) em `narratorExplanations`; migração
-  gerada em `apps/web/src/db/migrations/0003_regular_prowler.sql` (**não aplicada a nenhum banco
-  live** — o agente não roda migração contra o Neon compartilhado; falta ao autor rodar
-  `pnpm --filter web db:migrate` antes de qualquer chamada real ao narrador, ver quickstart.md).
+  `0003_regular_prowler.sql` **aplicada ao Neon live em 2026-09-27** (`pnpm --filter web db:migrate`,
+  a pedido do autor).
 - `apps/web/src/app/api/narrator/route.ts` — lê/grava `citation_id` no cache e na resposta; groundeia
   `citation_id` contra `selectRelevantKnowledge(result)` antes de aceitar (ver achado abaixo).
 - `apps/web/src/components/canvas/narrator-panel.tsx` — resolve `citation_id` contra
@@ -163,6 +166,26 @@ Gate resolvido — ver nota no topo deste arquivo ("Gate antes de T024 — resol
    violando a garantia do edge case do spec ("nunca inventa uma citação que não viu"). Corrigido em
    `route.ts`: `citation_id` só é aceito se pertencer a `selectRelevantKnowledge(result)`; caso
    contrário é descartado (não rejeita a resposta inteira — só a citação solta).
+
+**Dois achados da verificação manual no browser (2026-09-27, T028), um corrigido e um em aberto**:
+3. **`POST /api/narrator` 500-ava pra qualquer design saturado** — `TypeError: Cannot read
+   properties of null (reading 'toFixed')` em `buildNarratorPrompt`. Causa raiz: `Infinity`
+   (`PathResult.latency`, propagado de propósito quando um nó do caminho satura,
+   `packages/engine/src/index.ts`) não sobrevive a `JSON.stringify`/`parse` — vira `null` no corpo
+   que a rota recebe do client. **Pré-existente de M2, não introduzido por M2.6** — só nunca tinha
+   sido exercitado contra um design saturado numa sessão de browser real antes. Corrigido em
+   `packages/narrator/src/prompt.ts` (`formatLatencySummary`, commit `9956fcf`): latência não-finita
+   vira `"saturado (fila infinita)"` na linha do prompt, em vez de derrubar a chamada.
+4. **`NARRATOR_TIMEOUT_MS = 5_000` (route.ts, RNF-5 de M2) é curto demais pra `gemini-2.5-flash`
+   com `responseSchema` na prática** — medido diretamente (chamada real, fora da app, mesmo schema
+   de `EXPLAIN_RESULT_SCHEMA`): ~5.8s pra uma resposta completa. Isso bateu 504 (`"O narrador
+   demorou demais pra responder"`) duas vezes seguidas na verificação manual, com a mesma chave e
+   rede reais que a app usa — não parece ser um artefato só desta sessão. **Não corrigido** — é um
+   NFR de M2 (spec diferente, já "Ready"), não algo que este marco deveria mudar sozinho; bump feito
+   só temporariamente (15s) pra completar a verificação de T028, revertido antes de qualquer commit
+   (`route.ts` continua em `5_000` no código). **Decisão do autor pendente**: subir o timeout (pra
+   quanto?), trocar o modelo, ou tirar `responseSchema` — qualquer uma afeta o contrato de M2, não
+   só M2.6.
 
 ## Phase 7: Polish
 

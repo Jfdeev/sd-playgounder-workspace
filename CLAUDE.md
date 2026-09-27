@@ -45,18 +45,20 @@ pacotes. **US4 foi desbloqueada e implementada antes do critério de saída de M
 decisão do autor, 2026-09-26 (ver `docs/product-context.md`, "Ordem fora de sequência"):
 consequência é que a verificação de 20 submissões de M2 precisa ser refeita contra o prompt atual
 (`NARRATOR_PROMPT_VERSION`, versiona o hash de cache pra não colidir com o prompt antigo).
-Verificação manual (browser) pendente — login em `/app` indisponível pro agente. Ver
-`specs/fundamentos-arquitetura/tasks.md`.
+**Verificação manual concluída em 2026-09-27** (US1-US4 confirmados no browser, dados reais) — achou
+e corrigiu 1 bug real pré-existente de M2 (commit `9956fcf`, narrador 500-ava em design saturado) e
+encontrou 1 problema em aberto pendente de decisão do autor: timeout de 5s do narrador curto demais
+pra `gemini-2.5-flash` com `responseSchema` na prática (~5.8s medido). Ver
+`specs/fundamentos-arquitetura/tasks.md` (achados 3 e 4).
 
 M2 — Avaliação e biblioteca ([specs/avaliacao-biblioteca-m2/plan.md](specs/avaliacao-biblioteca-m2/plan.md)):
 **código completo** (US1-US4: score por dimensão, narrador via Google Gemini `gemini-2.5-flash`,
 solução de referência, calculadora de capacidade) — `tsc`/381 testes/build limpos nos 4 pacotes.
 Catálogo de problemas fica em 3 (não 6) neste marco — decisão de `/speckit-clarify`. **Status da
 spec continua `Ready`, não `Done`**: o critério de saída oficial ("narrador nunca contradiz o
-engine em 20 submissões consecutivas") exige observação empírica com uma `GEMINI_API_KEY` real e
-login manual no browser — nenhum dos dois disponível pro agente nesta sessão. Falta ao autor:
-configurar a chave, verificar `quickstart.md` (agora contra o prompt versão 2, de M2.6/US4 — não o
-prompt original de M2), e promover `spec.md` pra `Done` depois de confirmar as 20 submissões.
+engine em 20 submissões consecutivas") ainda exige a observação formal das 20 submissões (agora
+contra o prompt versão 2, de M2.6/US4 — não o original de M2) e uma decisão sobre o timeout de 5s
+do narrador (achado 4 de M2.6, acima) antes de promover `spec.md` pra `Done`.
 
 Marcos concluídos: M1.5 (Catálogo expandido de componentes,
 [specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md)), M1 (Canvas e
