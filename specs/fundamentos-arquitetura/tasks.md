@@ -167,7 +167,7 @@ Gate resolvido — ver nota no topo deste arquivo ("Gate antes de T024 — resol
    `route.ts`: `citation_id` só é aceito se pertencer a `selectRelevantKnowledge(result)`; caso
    contrário é descartado (não rejeita a resposta inteira — só a citação solta).
 
-**Dois achados da verificação manual no browser (2026-09-27, T028), um corrigido e um em aberto**:
+**Dois achados da verificação manual no browser (2026-09-27, T028), ambos corrigidos**:
 3. **`POST /api/narrator` 500-ava pra qualquer design saturado** — `TypeError: Cannot read
    properties of null (reading 'toFixed')` em `buildNarratorPrompt`. Causa raiz: `Infinity`
    (`PathResult.latency`, propagado de propósito quando um nó do caminho satura,
@@ -180,12 +180,12 @@ Gate resolvido — ver nota no topo deste arquivo ("Gate antes de T024 — resol
    com `responseSchema` na prática** — medido diretamente (chamada real, fora da app, mesmo schema
    de `EXPLAIN_RESULT_SCHEMA`): ~5.8s pra uma resposta completa. Isso bateu 504 (`"O narrador
    demorou demais pra responder"`) duas vezes seguidas na verificação manual, com a mesma chave e
-   rede reais que a app usa — não parece ser um artefato só desta sessão. **Não corrigido** — é um
-   NFR de M2 (spec diferente, já "Ready"), não algo que este marco deveria mudar sozinho; bump feito
-   só temporariamente (15s) pra completar a verificação de T028, revertido antes de qualquer commit
-   (`route.ts` continua em `5_000` no código). **Decisão do autor pendente**: subir o timeout (pra
-   quanto?), trocar o modelo, ou tirar `responseSchema` — qualquer uma afeta o contrato de M2, não
-   só M2.6.
+   rede reais que a app usa — não parece ser um artefato só desta sessão. **Resolvido em
+   2026-09-27** — decisão do autor: subir `NARRATOR_TIMEOUT_MS` pra `15_000`. Como isso é um NFR de
+   M2 (spec diferente), RNF-5/SC-003 de `specs/avaliacao-biblioteca-m2/spec.md`, o Performance Goal
+   de `plan.md`, `contracts/narrator-contract.md` e a tabela de NFRs de `docs/product-context.md`
+   foram atualizados junto pro novo valor — nenhum documento continua descrevendo um limite de 5s
+   que o código não respeita mais.
 
 ## Phase 7: Polish
 
