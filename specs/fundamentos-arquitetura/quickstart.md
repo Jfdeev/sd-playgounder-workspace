@@ -4,17 +4,19 @@ Verificação manual por user story, mesmo padrão já usado em M1/M1.5/M2 — `
 componentes React por unit test (convenção de M0.5), então US1/US2 são confirmadas no browser.
 US3/US4 têm uma parte de unit test (conteúdo/seleção) e uma parte manual (ver a citação renderizada).
 
+**Verificado de ponta a ponta em 2026-09-27** (login via conta de teste throwaway criada e apagada
+na mesma sessão) — US1/US2/US3/US4 confirmados funcionando com dados reais (Neon live, Gemini
+real). Achou e corrigiu 1 bug real no processo (narrador 500-ava em qualquer design saturado —
+tasks.md, achado 3) e encontrou 1 problema em aberto que precisa de decisão do autor: o timeout de
+5s do narrador (`NARRATOR_TIMEOUT_MS`, M2) é curto demais na prática pra `gemini-2.5-flash` com
+`responseSchema` (~5.8s medido) — ver tasks.md, achado 4, antes de repetir esta verificação.
+
 ## Pré-requisito
 
-**Antes de qualquer verificação de US4**: a coluna `citationId` (migração
-`0003_regular_prowler.sql`) precisa estar aplicada no banco live — sem isso, toda chamada ao
-narrador falha na leitura do cache (`db.select().from(narratorExplanations)` já seleciona
-`citationId` por nome), antes até de chegar no provedor. Isso bloquearia inclusive a verificação
-pendente das 20 submissões de M2. **O agente não roda isto** — é uma migração contra o Neon
-compartilhado, fora do escopo de uma sessão automatizada.
+Migração `0003_regular_prowler.sql` (coluna `citationId`) **já aplicada ao Neon live em
+2026-09-27** (`pnpm --filter web db:migrate`, a pedido do autor).
 
 ```bash
-pnpm --filter web db:migrate
 pnpm --filter web dev
 ```
 

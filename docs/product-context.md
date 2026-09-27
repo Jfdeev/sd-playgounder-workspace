@@ -314,9 +314,18 @@ antes do critério de saída de M2 ser verificado** — decisão do autor, 2026-
 de sequência" abaixo): consequência assumida é que a verificação de 20 submissões consecutivas de
 M2 precisa ser refeita contra o prompt atual (`NARRATOR_PROMPT_VERSION`), não contra o prompt de M2
 original. `hashDesign` inclui `promptVersion` no hash de cache exatamente pra isso não colidir
-silenciosamente com explicações cacheadas do prompt antigo. Verificação manual (abrir as fichas e a
-citação do narrador no browser) pendente — login em `/app` não disponível pro agente nesta sessão,
-mesma limitação já registrada em M2. Ver `specs/fundamentos-arquitetura/tasks.md`.
+silenciosamente com explicações cacheadas do prompt antigo.
+
+**Verificação manual concluída em 2026-09-27** (migração `0003` aplicada ao Neon live; login via
+conta de teste throwaway criada e apagada na mesma sessão) — US1/US2/US3/US4 confirmados
+funcionando de ponta a ponta com dados reais (banco live, narrador via Gemini real). Achou e
+corrigiu 1 bug real pré-existente de M2 (`POST /api/narrator` 500-ava pra qualquer design saturado
+— `Infinity` da latência não sobrevive à travessia JSON, vira `null`; `packages/narrator/src/
+prompt.ts`, commit `9956fcf`). Encontrou 1 problema em aberto, não corrigido, que precisa de
+decisão do autor: `NARRATOR_TIMEOUT_MS = 5_000` (RNF-5, contrato de M2) é curto demais na prática
+pra `gemini-2.5-flash` com `responseSchema` — medido diretamente em ~5.8s, batendo 504 duas vezes
+seguidas na verificação. Ver `specs/fundamentos-arquitetura/tasks.md` (achados 3 e 4) e
+`quickstart.md`.
 
 **Ordem fora de sequência (decisão do autor, 2026-09-26, mesmo padrão de M2.5)**: M2.6 (incluindo
 US4) foi implementado antes do M2 chegar a `Done` (falta a verificação empírica das 20 submissões,
