@@ -80,6 +80,24 @@ function formatKnowledgeContext(result: SimulationResult): string {
   ].join('\n');
 }
 
+/**
+ * `PathResult.latency.p50/p95/p99` é tipado como `number`, e o engine propaga `Infinity` de
+ * propósito quando um nó do caminho está saturado (`packages/engine/src/index.ts`, comentário
+ * sobre `queueLatencyMs = Infinity`). `Infinity` é um `number` válido em JS, mas não sobrevive a
+ * `JSON.stringify`/`JSON.parse` — vira `null` na travessia HTTP client → `POST /api/narrator`
+ * (achado ao verificar US4 manualmente no browser: um design saturado gerava
+ * `TypeError: Cannot read properties of null (reading 'toFixed')` aqui). Trata `null` e qualquer
+ * valor não-finito (`Infinity` chegaria assim se algum dia o transporte mudasse) da mesma forma —
+ * nunca chama `.toFixed` num valor que não é um número finito real.
+ */
+function formatLatencySummary(latency: { p50: number; p95: number; p99: number }): string {
+  // Infinity propaga igualmente pros 3 percentis quando o nó saturado está no caminho (a mesma
+  // fórmula soma o mesmo termo infinito em cada um) — daí checar só p50 pra decidir o formato da
+  // linha inteira, em vez de formatar cada percentil separadamente.
+  if (!Number.isFinite(latency.p50)) return 'saturado (fila infinita)';
+  return `${latency.p50.toFixed(1)}/${latency.p95.toFixed(1)}/${latency.p99.toFixed(1)} ms`;
+}
+
 function formatNodesSummary(result: SimulationResult): string {
   const entries = Object.entries(result.nodes);
   if (entries.length === 0) return '(nenhum nó no design)';
@@ -102,7 +120,7 @@ export function buildNarratorPrompt(result: SimulationResult): string {
     '',
     `Throughput: ${result.path.throughputRps.toFixed(0)} rps`,
     `Gargalo: ${result.path.bottleneckId ?? 'nenhum'}`,
-    `Latência p50/p95/p99: ${result.path.latency.p50.toFixed(1)}/${result.path.latency.p95.toFixed(1)}/${result.path.latency.p99.toFixed(1)} ms`,
+    `Latência p50/p95/p99: ${formatLatencySummary(result.path.latency)}`,
     `Custo mensal: $${result.cost.monthlyTotal}`,
     '',
     'Nós:',
