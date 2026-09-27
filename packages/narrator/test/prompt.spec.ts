@@ -95,6 +95,16 @@ describe('buildNarratorPrompt', () => {
     expect(prompt).toContain('Gargalo: nenhum');
   });
 
+  it('latência null (Infinity que virou null na travessia JSON) não derruba o prompt — achado ao verificar US4 no browser', () => {
+    // `Infinity` (nó saturado, packages/engine/src/index.ts) não sobrevive a JSON.stringify — vira
+    // `null` no corpo que o Route Handler recebe. `as unknown as number` simula exatamente esse
+    // shape, do jeito que ele chega em runtime apesar do tipo dizer `number`.
+    const saturatedLatency = { p50: null, p95: null, p99: null } as unknown as { p50: number; p95: number; p99: number };
+    expect(() => buildNarratorPrompt(result({ path: { throughputRps: 500, bottleneckId: 'app-1', latency: saturatedLatency } }))).not.toThrow();
+    const prompt = buildNarratorPrompt(result({ path: { throughputRps: 500, bottleneckId: 'app-1', latency: saturatedLatency } }));
+    expect(prompt).toContain('saturado (fila infinita)');
+  });
+
   it('sem violações, indica isso explicitamente em vez de omitir a seção', () => {
     const prompt = buildNarratorPrompt(result({ violations: [] }));
     expect(prompt).toContain('Nenhuma violação estrutural.');
