@@ -113,7 +113,7 @@ export type NodeResult = {
 };
 
 export type PathResult = {
-  /** min(capacidade de cada nó no caminho), nunca > rps ofertado — FR-006. */
+  /** λ / max(1, ρ_max) sobre os nós alcançáveis, nunca > rps ofertado — FR-006. */
   throughputRps: number;
   bottleneckId: NodeId | null;
   latency: { p50: number; p95: number; p99: number };

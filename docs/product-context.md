@@ -102,12 +102,16 @@ type SimulationResult = {
 ## 7. Modelo matemático (o engine implementa exatamente isto)
 
 ```
-Vazão do caminho    throughput = min(capacidade de cada nó no caminho)
+Vazão do sistema    throughput = λ / max(1, ρ_max)   ρ_max = maior ρ entre os nós alcançáveis
+                    gargalo = nó de ρ_max, só quando ρ_max ≥ 1
+                    caminho linear sem split/cache ⇒ = min(λ, capacidade de cada nó)
                     nunca reportar acima da carga oferecida
 Utilização          ρ = λ / (c · μ)
 Fila (M/M/1)        W = 1 / (μ − λ)        ρ=0.5 ok · ρ=0.9 → 10x · ρ=0.99 → 100x
 Lei de Little       L = λ · W
-Cache               latência = h·L_cache + (1−h)·(L_cache + L_db)
+Cache               latência média = h·L_cache + (1−h)·(L_cache + L_db)
+                    percentil p: nó após o cache conta inteiro se (1−h) ≥ (1−p), senão zero
+                    (limiar de cauda — h=0.9 ⇒ db fora do p50, inteiro no p95/p99)
                     carga_no_db = λ · (1 − h)
 Cauda em fan-out    P(todas rápidas) = (1 − p)^N
 Retry storm         λ_efetivo = λ · (1 + r + r² + …)

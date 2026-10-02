@@ -74,7 +74,7 @@ type NodeResult = {
 };
 
 type PathResult = {
-  throughputRps: number;      // min(capacidade de cada nó no caminho), nunca > rps ofertado — FR-006
+  throughputRps: number;      // λ / max(1, ρ_max) sobre os nós alcançáveis, nunca > rps ofertado — FR-006 (corrigido 2026-10-02, ver docs/product-context.md §7)
   bottleneckId: NodeId | null; // FR-007
   latency: { p50: number; p95: number; p99: number }; // FR-005, ver research.md §3
 };
@@ -122,7 +122,8 @@ benchmarks reais (`docs/product-context.md` §4: "não é simulador de produçã
 | `cdn` | 100 000 | 0.2 / 1 | 70 |
 
 Cada linha corresponde a `μ` (capacidade de serviço por instância) e à latência base usada em
-`latência_efetiva = h·L_cache + (1−h)·(L_cache + L_db)` (FR-008) e na soma de latência do caminho.
+`latência_efetiva = h·L_cache + (1−h)·(L_cache + L_db)` (FR-008) e na soma de latência do caminho
+(percentis usam o limiar de cauda de `docs/product-context.md` §7 desde 2026-10-02).
 
 ## Relações
 

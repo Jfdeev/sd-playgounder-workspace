@@ -4,10 +4,8 @@
  * FR-008, fórmulas de docs/product-context.md §7 implementadas literalmente:
  *   carga_no_db      = λ · (1 − h)
  *   latência_efetiva = h·L_cache + (1 − h)·(L_cache + L_db)
- *                     = L_cache + (1 − h)·L_db   (forma equivalente, usada na integração do
- *                       caminho — ver graph/propagate.ts e src/index.ts: o hit rate reduz a
- *                       carga/peso de tudo que vem depois do cache no caminho, não só do próximo
- *                       nó, generalizando a mesma fórmula para caminhos com mais de 2 nós.)
+ *   (latência MÉDIA. Os percentis p50/p95/p99 do caminho usam o limiar de cauda de
+ *   metrics/latency.ts — ponderar um percentil por (1−h) subestimaria a cauda.)
  */
 
 /** carga_no_db = λ · (1 − h) — FR-008. */
