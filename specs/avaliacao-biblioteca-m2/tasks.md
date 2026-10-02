@@ -157,6 +157,19 @@ raciocínio associado a pelo menos uma decisão de capacidade (spec.md, US3).
 - [X] T039 `pnpm --filter web build` limpo (`/api/narrator` registrado, `/app` e `/app/[problemId]` em 196 kB First Load JS)
 - [X] T040 Atualizar `docs/product-context.md` §10 — **não** marcado como "concluído" (diferente de M1/M1.5): o critério de saída oficial ("narrador nunca contradiz o engine em 20 submissões de teste consecutivas") exige observação empírica do provedor real, que nenhum teste automatizado com mock satisfaz, e o agente nunca teve uma `GEMINI_API_KEY` real. Registrado como "código completo, exit criterion pendente de verificação humana" em vez disso.
 - [ ] T041 Promover `**Status**` de `specs/avaliacao-biblioteca-m2/spec.md` para `Done` — **não promovido**, pela mesma razão de T040. Fica `Ready` até o autor confirmar as 20 submissões consecutivas com uma chave real.
+  - **Verificação SC-001 em andamento (2026-10-02, prompt v3, `gemini-2.5-flash` real)** — 20 casos
+    (5 variações por problema: referência, app 1 réplica, cache h=0.5, carga 2x, tudo 1 réplica; +5
+    sandbox: saudável, saturado, cache h=0.9, worker async saturado, órfão+ciclo), mesmo caminho da
+    rota (`simulate` → `buildNarratorPrompt` → Gemini com `EXPLAIN_RESULT_SCHEMA` →
+    `parseNarratorExplanation`). **17/20 respondidas, 0 contradições**: nenhum número fora do
+    `SimulationResult` (checagem automática) e gargalo/ausência de gargalo/violações sempre batendo
+    com o engine (revisão manual). Uma resposta trouxe `citation_id` não groundado — já descartado
+    pela rota. **Faltam 3** (`url-shortener: tudo 1 réplica`, `social-feed: referência`,
+    `ecommerce-checkout: app 1 réplica`): 503 por alta demanda e depois 429 da cota.
+  - **Achado A — cota**: o free tier do Gemini permite **20 requisições/dia** por projeto pra
+    `gemini-2.5-flash` — limite real do produto, não só da verificação.
+  - **Achado B — SC-003 não passa hoje**: 5 das 17 respostas acima de 15s (18s, 31s, 45s, 54s, 68s),
+    no mesmo período de 503 por alta demanda — remedir antes de concluir sobre o RNF-5.
 
 ---
 

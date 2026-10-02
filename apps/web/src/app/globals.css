@@ -11,6 +11,18 @@
     ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
 }
 
+/* Sem `color-scheme: dark` o navegador desenha controles nativos (barra de rolagem da paleta, do
+   painel de resultado, do card do desafio) no tema claro — trilho branco em cima do zinc-950.
+   `scrollbar-color` herda; `scrollbar-width` não, por isso vai no seletor universal. */
+:root {
+  color-scheme: dark;
+  scrollbar-color: var(--color-zinc-700) transparent;
+}
+
+* {
+  scrollbar-width: thin;
+}
+
 body {
   background-color: var(--color-zinc-950);
   color: var(--color-zinc-100);
