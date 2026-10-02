@@ -23,7 +23,7 @@ import type { Design, Workload } from '../../src/types.js';
  *   caminho.p95 = 75.1020 + 4.9929  ≈ 80.0949 ms
  *   caminho.p99 = 80 + 7.6753       ≈ 87.6753 ms
  *
- * Throughput: min(λ=400, capacidade=1000) = 400 — capacidade (1000) > carga (400) ⇒ sem gargalo.
+ * Throughput: ρ_max = 0.4 < 1 ⇒ throughput = λ = 400, sem gargalo.
  * ----------------------
  */
 describe('Design de referência A — nó único, ρ<1', () => {

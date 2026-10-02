@@ -109,10 +109,13 @@ Onde você mais vai aprender. Modelo analítico (não discrete-event) já entreg
 
 ### 3.1 Modelo base
 
-**Vazão pelo caminho** — throughput real é o mínimo da capacidade ao longo do caminho:
+**Vazão do sistema** — o sistema satura quando o primeiro nó chega a ρ = 1 (cada nó recebe só a
+sua fração da carga, depois de split e cache):
 ```
-throughput = min(capacidade de cada nó no caminho da requisição)
+throughput = λ / max(1, ρ_max)      ρ_max = maior ρ entre os nós alcançáveis
+gargalo    = nó de ρ_max, só quando ρ_max ≥ 1
 ```
+Num caminho linear sem split nem cache, isso é o mesmo que min(capacidade de cada nó).
 Nunca reportar throughput acima da carga oferecida. Nó saturado colapsa o que vem depois.
 
 **Utilização**:
@@ -135,9 +138,12 @@ L = λ · W            (requisições em voo = taxa × tempo)
 
 **Cache**:
 ```
-latência_efetiva = h · L_cache + (1 − h) · (L_cache + L_db)
+latência_efetiva = h · L_cache + (1 − h) · (L_cache + L_db)     (média)
 carga_no_db      = λ · (1 − h)
+percentil p      = o que vem depois do cache conta inteiro se (1 − h) ≥ (1 − p), senão zero
 ```
+Cache melhora a mediana, não salva a cauda: com h = 0.9, 10% das requisições vão ao DB, e o p99
+cai inteiro dentro delas.
 Deixe o usuário ver o que acontece com hit rate 0.99 → 0.95 (o DB leva 5x mais carga).
 
 **Amplificação de cauda em fan-out** — o insight mais subestimado do system design:

@@ -58,8 +58,11 @@ solução de referência, calculadora de capacidade) — `tsc`/381 testes/build 
 Catálogo de problemas fica em 3 (não 6) neste marco — decisão de `/speckit-clarify`. **Status da
 spec continua `Ready`, não `Done`**: o critério de saída oficial ("narrador nunca contradiz o
 engine em 20 submissões consecutivas") ainda exige a observação formal das 20 submissões, agora
-contra o prompt versão 2 (M2.6/US4) e o timeout de 15s (achado 4 acima) — antes de promover
-`spec.md` pra `Done`.
+contra o prompt versão 3 e o timeout de 15s (achado 4 acima) — antes de promover `spec.md` pra
+`Done`. **v3 (2026-10-02)**: correção de 3 bugs do engine (throughput/gargalo comparava capacidade
+com o λ total em vez de usar ρ; ramo async pesado escondia o ramo síncrono da latência; cache
+ponderava percentis por (1−h) em vez do limiar de cauda) — números mudam pro mesmo design, então
+o cache do narrador foi invalidado e submissões observadas antes disso não contam.
 
 Marcos concluídos: M1.5 (Catálogo expandido de componentes,
 [specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md)), M1 (Canvas e

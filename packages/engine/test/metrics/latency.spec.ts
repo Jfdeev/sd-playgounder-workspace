@@ -64,14 +64,34 @@ describe('calculatePathLatency (FR-005)', () => {
     expect(calculatePathLatency([])).toEqual({ p50: 0, p95: 0, p99: 0 });
   });
 
-  it('pondera a contribuição de um nó pelo `weight` (FR-008)', () => {
-    const node = { baseLatencyMs: { p50: 10, p99: 10 }, queueWaitMs: 0 };
+  describe('limiar de cauda por `reachProbability` (FR-008)', () => {
+    const entry = { baseLatencyMs: { p50: 1, p99: 1 }, queueWaitMs: 0 };
+    const downstream = { baseLatencyMs: { p50: 10, p99: 10 }, queueWaitMs: 0 };
 
-    const fullWeight = calculatePathLatency([{ ...node, weight: 1 }]);
-    const halfWeight = calculatePathLatency([{ ...node, weight: 0.5 }]);
-    const defaultWeight = calculatePathLatency([node]); // weight omitido ⇒ default 1
+    it('reachProbability omitido ⇒ 1, o nó conta em todos os percentis', () => {
+      expect(calculatePathLatency([downstream])).toEqual(
+        calculatePathLatency([{ ...downstream, reachProbability: 1 }]),
+      );
+    });
 
-    expect(halfWeight.p50).toBeCloseTo(5);
-    expect(defaultWeight).toEqual(fullWeight);
+    it('miss de 10% (h=0.9): nó fora do p50, inteiro no p95 e no p99 — nunca 0.1× a latência', () => {
+      const result = calculatePathLatency([entry, { ...downstream, reachProbability: 0.1 }]);
+      expect(result).toEqual({ p50: 1, p95: 11, p99: 11 });
+    });
+
+    it('miss de 2% (h=0.98): só a p99 cai entre os misses', () => {
+      const result = calculatePathLatency([entry, { ...downstream, reachProbability: 0.02 }]);
+      expect(result).toEqual({ p50: 1, p95: 1, p99: 11 });
+    });
+
+    it('fronteira exata (1−h) = (1−p) conta o nó, apesar do erro de ponto flutuante de 1 − 0.99', () => {
+      const result = calculatePathLatency([entry, { ...downstream, reachProbability: 1 - 0.99 }]);
+      expect(result.p99).toBe(11);
+    });
+
+    it('miss de 0.5% (h=0.995): o nó não entra em nenhum dos percentis reportados', () => {
+      const result = calculatePathLatency([entry, { ...downstream, reachProbability: 0.005 }]);
+      expect(result).toEqual({ p50: 1, p95: 1, p99: 1 });
+    });
   });
 });

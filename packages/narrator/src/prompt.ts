@@ -14,9 +14,11 @@ import { ARCHITECTURE_CHARACTERISTICS, type ArchitectureCharacteristic } from '@
  * Versão do prompt — M2.6, research.md §1.6. Incrementar sempre que `buildNarratorPrompt` mudar
  * de forma que uma explicação já cacheada (por `hashDesign`) deixe de refletir o prompt atual —
  * evita servir uma explicação de antes de US4 (sem bloco de citação) pro mesmo design/workload
- * depois do deploy.
+ * depois do deploy. Também é incrementada quando o engine passa a devolver números diferentes pro
+ * mesmo (Design, Workload) — v3: correção de throughput/gargalo e do limiar de cauda do cache
+ * (2026-10-02), senão o cache serviria uma explicação que contradiz o resultado atual.
  */
-export const NARRATOR_PROMPT_VERSION = 2;
+export const NARRATOR_PROMPT_VERSION = 3;
 
 /** Mesmo limiar que já pinta a barra vermelha no `ScorePanel` (`apps/web/src/lib/canvas-ui-catalog.ts`). */
 const SCORE_CITATION_THRESHOLD = 40;

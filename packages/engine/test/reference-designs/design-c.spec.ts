@@ -22,14 +22,14 @@ import type { Design, Workload } from '../../src/types.js';
  *
  * Custo (FR-013): lb-1=2×50=100 · cache-1=1×60=60 · db-1=1×120=120 ⇒ total=280
  *
- * Throughput (FR-006/FR-007): min(500, {20000,50000,1000}) = 500 (capacidade db 1000 > 500) ⇒
- *   sem gargalo real, bottleneckId=null, throughputRps=500
+ * Throughput (FR-006/FR-007): ρ_max = 0.05 (db-1) < 1 ⇒ sem gargalo real, bottleneckId=null,
+ *   throughputRps = λ = 500
  *
- * Latência ponderada (FR-005, FR-008): peso 1 para lb-1 e cache-1; peso (1−0.9)=0.1 para db-1
- * (só é visitado em 10% dos casos — miss do cache):
- *   p50 ≈ 1×1.035542 + 1×0.514003 + 0.1×5.729628 ≈ 2.122508 ms
- *   p95 ≈ 1×2.990362 + 1×1.938071 + 0.1×26.520749 ≈ 7.580508 ms
- *   p99 ≈ 1×3.236163 + 1×2.093034 + 0.1×29.847547 ≈ 8.313951 ms
+ * Latência com limiar de cauda (FR-005, FR-008): db-1 só é visitado em 10% das requisições
+ * (miss). 10% < 50% ⇒ fora do p50; 10% ≥ 5% e ≥ 1% ⇒ entra inteiro no p95 e no p99:
+ *   p50 ≈ 1.035542 + 0.514003                 ≈ 1.549545 ms
+ *   p95 ≈ 2.990362 + 1.938071 + 26.520749     ≈ 31.449182 ms
+ *   p99 ≈ 3.236163 + 2.093034 + 29.847547     ≈ 35.176744 ms
  * ----------------------
  */
 describe('Design de referência C — cache + custo + SPOF', () => {
@@ -72,9 +72,9 @@ describe('Design de referência C — cache + custo + SPOF', () => {
     expect(result.path.throughputRps).toBe(500);
   });
 
-  it('pondera a latência do db por (1−h), batendo com a conta à mão', () => {
-    expect(result.path.latency.p50).toBeCloseTo(2.122508, 4);
-    expect(result.path.latency.p95).toBeCloseTo(7.580508, 3);
-    expect(result.path.latency.p99).toBeCloseTo(8.313951, 3);
+  it('aplica o limiar de cauda ao db atrás do cache, batendo com a conta à mão', () => {
+    expect(result.path.latency.p50).toBeCloseTo(1.549545, 4);
+    expect(result.path.latency.p95).toBeCloseTo(31.449182, 3);
+    expect(result.path.latency.p99).toBeCloseTo(35.176744, 3);
   });
 });
