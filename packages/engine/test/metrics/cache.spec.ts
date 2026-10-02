@@ -59,19 +59,16 @@ describe('integração via simulate(): cache reduz carga e latência do caminho'
     expect(resultAt95.nodes['db-1']!.offeredLoad / resultAt99.nodes['db-1']!.offeredLoad).toBeCloseTo(5);
   });
 
-  it('a latência do caminho pondera o db por (1−h), não soma a latência cheia', () => {
+  it('h=0.99: p50 e p95 são hits (só o cache); o p99 cai na fronteira dos misses e soma o db inteiro', () => {
     const result = simulate(design, workload);
-
-    // Com h=0.99 quase saturando o cache mas não o db (carga no db é só 10 rps), a latência do
-    // caminho deve ficar muito próxima da latência isolada do cache (peso do db ≈ 0.01).
     const cacheOnly = simulate({ ...design, nodes: [design.nodes[0]!], edges: [] }, workload);
-
-    expect(result.path.latency.p50).toBeGreaterThan(cacheOnly.path.latency.p50);
-    // A diferença introduzida pelo db é pequena (ponderada por 1%), não a latência cheia do db.
     const dbOnly = simulate(
       { entryNodeIds: ['db-1'], nodes: [design.nodes[1]!], edges: [] },
       { ...workload, rps: 10 },
     );
-    expect(result.path.latency.p50 - cacheOnly.path.latency.p50).toBeLessThan(dbOnly.path.latency.p50);
+
+    expect(result.path.latency.p50).toBeCloseTo(cacheOnly.path.latency.p50);
+    expect(result.path.latency.p95).toBeCloseTo(cacheOnly.path.latency.p95);
+    expect(result.path.latency.p99).toBeCloseTo(cacheOnly.path.latency.p99 + dbOnly.path.latency.p99);
   });
 });

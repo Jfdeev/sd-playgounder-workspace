@@ -16,8 +16,11 @@
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.7.4",
+    "@google/generative-ai": "^0.21.0",
     "@neondatabase/serverless": "^0.10.4",
     "@sdp/engine": "workspace:*",
+    "@sdp/knowledge": "workspace:*",
+    "@sdp/narrator": "workspace:*",
     "@sdp/problems": "workspace:*",
     "@tailwindcss/postcss": "^4.3.3",
     "@xyflow/react": "^12.11.3",

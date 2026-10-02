@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@sdp/engine": "workspace:*"
+    "@sdp/engine": "workspace:*",
+    "@sdp/knowledge": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

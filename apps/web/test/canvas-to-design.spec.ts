@@ -132,8 +132,10 @@ describe('toWorkload', () => {
       avgPayloadBytes: 500,
       peakMultiplier: 3,
     },
+    latencyBudgetMs: 100,
     rubric: [],
     hints: [],
+    referenceSolution: { design: { nodes: [], edges: [], entryNodeIds: [] }, reasoning: '' },
   };
 
   it('converte DAU + requisições/usuário/dia + pico em rps', () => {

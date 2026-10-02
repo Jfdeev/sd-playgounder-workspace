@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type DragEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import {
   Background,
   MiniMap,
@@ -25,6 +25,8 @@ import { TypedEdge } from './edges/typed-edge';
 import { Palette, buildNodeData, DRAG_MIME } from './palette';
 import { ConfigPanel } from './config-panel';
 import { ResultPanel } from './result-panel';
+import { ScorePanel } from './score-panel';
+import { NarratorPanel } from './narrator-panel';
 import { ChallengeCard } from './challenge-card';
 
 const nodeTypes = { component: ComponentNode, client: ClientNode };
@@ -138,6 +140,15 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
     [screenToFlowPosition, addNode],
   );
 
+  // M2 — insumos da dimensão Custo de score: o custo mensal da própria referenceSolution do
+  // problema, na escala oficial dele. Memoizado por `problem?.id` — só recalcula ao trocar de
+  // desafio, não a cada Simular/Submeter (a referência não muda entre uma submissão e outra).
+  // `null` fora de um desafio (sandbox) — a dimensão Custo aí retorna 0 (scores/calculate.ts).
+  const referenceCostUsd = useMemo(() => {
+    if (!problem) return null;
+    return simulate(problem.referenceSolution.design, toWorkload(problem)).cost.monthlyTotal;
+  }, [problem]);
+
   // FR-008/FR-009/FR-029: roda o design atual contra o engine e propaga status/gargalo de volta
   // pros nós (destaque em ComponentNode). Canvas vazio (edge case do spec) mostra uma mensagem
   // clara em vez de chamar o engine sem feedback. Compartilhada entre "Submeter" (única ação que
@@ -148,7 +159,7 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
     (workload: Workload, { actionLabel, countsForProgression }: { actionLabel: string; countsForProgression: boolean }) => {
       if (nodes.length === 0) {
         setActionError(`Adicione componentes antes de ${actionLabel}.`);
-        applySimulationResult(null, null);
+        applySimulationResult(null, null, null);
         return;
       }
       setActionError(null);
@@ -156,9 +167,12 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
       const flowNodes = nodes.map((n) => toFlowNode(n.id, n.position, n.data));
       const flowEdges = edges.map((e) => toFlowEdge(e.id, e.source, e.target, e.data ?? { kind: 'read' }));
       const design: Design = toDesign(flowNodes, flowEdges);
-      const result = simulate(design, workload);
+      const result = simulate(design, workload, {
+        latencyBudgetMs: problem?.latencyBudgetMs ?? null,
+        referenceCostUsd,
+      });
 
-      applySimulationResult(result, design);
+      applySimulationResult(result, design, workload);
       for (const [nodeId, nodeResult] of Object.entries(result.nodes)) {
         updateNodeConfig(nodeId, {
           result: { status: nodeResult.status, isBottleneck: nodeId === result.path.bottleneckId },
@@ -172,7 +186,7 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
         markChallengeCompleted(problem.id);
       }
     },
-    [nodes, edges, problem, applySimulationResult, updateNodeConfig, markChallengeCompleted],
+    [nodes, edges, problem, referenceCostUsd, applySimulationResult, updateNodeConfig, markChallengeCompleted],
   );
 
   // Sem desafio ativo, o botão de Submeter já vem desabilitado (ver JSX) — handleSubmit nunca
@@ -332,6 +346,8 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
           </div>
         </div>
         <ResultPanel result={lastResult} actionError={actionError} />
+        <ScorePanel result={lastResult} />
+        <NarratorPanel />
       </div>
       <ConfigPanel />
     </div>

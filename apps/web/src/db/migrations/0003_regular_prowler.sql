@@ -1,0 +1,1 @@
+ALTER TABLE "narratorExplanations" ADD COLUMN "citationId" text;

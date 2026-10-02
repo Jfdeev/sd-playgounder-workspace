@@ -18,13 +18,27 @@ import { calculatePathLatency } from './metrics/latency.js';
 import { calculateQueueWaitMs } from './metrics/queue.js';
 import { calculateThroughput } from './metrics/throughput.js';
 import { calculateUtilization } from './metrics/utilization.js';
+import { calculateScores } from './scores/calculate.js';
 import { ALL_DIMENSIONS } from './types.js';
-import type { Design, Dimension, NodeId, NodeResult, NodeStatus, SimulationResult, Workload } from './types.js';
+import type { Design, NodeId, NodeResult, NodeStatus, SimulationResult, Workload } from './types.js';
+
+export { ALL_DIMENSIONS };
 
 /** ρ abaixo deste limiar é 'healthy'; entre este e 1 é 'warning'; ρ ≥ 1 é 'saturated'. */
 const WARNING_UTILIZATION_THRESHOLD = 0.7;
 
-export function simulate(design: Design, workload: Workload): SimulationResult {
+/**
+ * `scoreContext` (M2) — dados que só a camada de aplicação sabe (limiar de latência e custo de
+ * referência vêm da rubrica/`referenceSolution` de um `Problem`, um conceito que `packages/engine`
+ * não conhece — Constitution II). `simulate()` continua puro: recebe os dois números já resolvidos,
+ * nunca busca um `Problem` sozinho. `null`/omitido = fora de um desafio (sandbox/"Simular") — as
+ * dimensões Latência/Custo retornam 0 nesse caso (`scores/calculate.ts`).
+ */
+export function simulate(
+  design: Design,
+  workload: Workload,
+  scoreContext?: { latencyBudgetMs?: number | null; referenceCostUsd?: number | null },
+): SimulationResult {
   const reachable = computeReachableNodeIds(design);
 
   // FR-019: validação estrutural nunca lança; FR-009/FR-010/FR-011: análises estáticas rodam
@@ -56,91 +70,77 @@ export function simulate(design: Design, workload: Workload): SimulationResult {
     };
   }
 
-  // FR-005/FR-006/FR-007: "o caminho" é o caminho crítico (maior latência acumulada) a partir da
-  // entrada — evita somar ramos paralelos de um fan-out como se fossem sequenciais. Um nó
-  // saturado (queueLatencyMs = Infinity) propaga Infinity aqui de propósito: isso garante que a
-  // DP sempre escolhe um caminho que passa por um nó saturado como "o" caminho crítico quando um
-  // existir — Infinity soma e compara corretamente em JS (nunca produz NaN neste fluxo, que só
-  // soma e compara, nunca subtrai/divide Infinity).
-  const criticalPath = findCriticalPath(design, (nodeId) => {
+  // FR-005: "o caminho" é o caminho crítico (maior latência acumulada) a partir da entrada —
+  // evita somar ramos paralelos de um fan-out como se fossem sequenciais. Um nó saturado
+  // (queueLatencyMs = Infinity) propaga Infinity aqui de propósito: isso garante que a DP sempre
+  // escolhe um caminho que passa por um nó saturado como "o" caminho crítico quando um existir —
+  // Infinity soma e compara corretamente em JS (nunca produz NaN neste fluxo, que só soma e
+  // compara, nunca subtrai/divide Infinity).
+  const nodeLatencyWeight = (nodeId: NodeId): number => {
     const result = nodes[nodeId];
     const node = nodeById.get(nodeId);
     if (!result || !node) return 0;
     const baseLatencyP50 = getComponentSpec(node.type).baseLatencyMs.p50;
     return baseLatencyP50 + result.queueLatencyMs;
-  });
+  };
+  const criticalPath = findCriticalPath(design, nodeLatencyWeight);
 
-  const pathNodeResults = criticalPath.map((nodeId) => ({
-    nodeId,
-    node: nodes[nodeId]!,
-    baseLatencyMs: getComponentSpec(nodeById.get(nodeId)!.type).baseLatencyMs,
-  }));
+  // FR-012: aresta assíncrona sai do cálculo de latência do usuário. O caminho da latência é
+  // escolhido num grafo SEM as arestas 'async' — escolher no grafo inteiro e cortar depois
+  // deixava um ramo async pesado (fila → worker) vencer a DP e descartar o ramo síncrono real.
+  const syncDesign: Design = { ...design, edges: design.edges.filter((edge) => edge.kind !== 'async') };
+  const syncPath = findCriticalPath(syncDesign, nodeLatencyWeight);
 
-  // FR-012: aresta assíncrona sai do cálculo de latência do usuário — tudo a jusante de uma
-  // aresta 'async' no caminho não bloqueia a resposta ao usuário, então não soma na latência
-  // (mas ainda conta para throughput/gargalo abaixo, que é uma preocupação de capacidade, não de
-  // latência percebida).
-  const syncPathLength = truncateAtFirstAsyncEdge(design, criticalPath).length;
-  const syncPath = pathNodeResults.slice(0, syncPathLength);
-
-  // FR-008: peso = probabilidade de a requisição realmente passar por este nó. Cai para
-  // (1−h) em tudo que vem depois de um cache com hit rate h — generaliza
-  // latência_efetiva = h·L_cache + (1−h)·(L_cache+L_db) para o caminho inteiro (metrics/latency.ts).
-  let carriedWeight = 1;
-  const latencyInputs = syncPath.map(({ nodeId, node, baseLatencyMs }) => {
-    const weight = carriedWeight;
-    const designNode = nodeById.get(nodeId);
-    if (designNode?.type === 'cache' && designNode.cacheHitRate !== undefined) {
-      carriedWeight *= 1 - designNode.cacheHitRate;
+  // FR-008: probabilidade de a requisição realmente passar por este nó. Cai para (1−h) em tudo
+  // que vem depois de um cache com hit rate h; metrics/latency.ts decide, por percentil, se o nó
+  // conta (limiar de cauda).
+  let carriedProbability = 1;
+  const latencyInputs = syncPath.map((nodeId) => {
+    const reachProbability = carriedProbability;
+    const designNode = nodeById.get(nodeId)!;
+    if (designNode.type === 'cache' && designNode.cacheHitRate !== undefined) {
+      carriedProbability *= 1 - designNode.cacheHitRate;
     }
-    return { baseLatencyMs, queueWaitMs: node.queueLatencyMs, weight };
+    return {
+      baseLatencyMs: getComponentSpec(designNode.type).baseLatencyMs,
+      queueWaitMs: nodes[nodeId]!.queueLatencyMs,
+      reachProbability,
+    };
   });
 
   const latency = calculatePathLatency(latencyInputs);
 
+  // FR-006/FR-007: capacidade é avaliada sobre todo nó alcançável (inclusive atrás de aresta
+  // async — um worker saturado ainda limita o sistema), não só sobre o caminho crítico.
   const { throughputRps, bottleneckId } = calculateThroughput(
     workload.rps,
-    pathNodeResults.map(({ nodeId, node }) => ({ nodeId, capacityRps: node.capacity })),
+    [...reachable].map((nodeId) => ({ nodeId, utilization: nodes[nodeId]!.utilization })),
   );
+
+  const cost = calculateCost(design, reachable);
 
   return {
     nodes,
     path: { throughputRps, bottleneckId, latency },
     violations,
-    cost: calculateCost(design, reachable),
-    scores: placeholderScores(),
+    cost,
+    scores: calculateScores({
+      design,
+      pathNodeIds: criticalPath,
+      nodes,
+      violations,
+      cost,
+      latencyP99Ms: latency.p99,
+      latencyBudgetMs: scoreContext?.latencyBudgetMs ?? null,
+      referenceCostUsd: scoreContext?.referenceCostUsd ?? null,
+    }),
   };
-}
-
-/**
- * FR-012: retorna o prefixo de `path` até (e incluindo) o nó imediatamente antes da primeira
- * aresta marcada como assíncrona — o restante do caminho não conta para a latência do usuário.
- * Se não houver aresta assíncrona no caminho, retorna o caminho inteiro.
- */
-function truncateAtFirstAsyncEdge(design: Design, path: readonly NodeId[]): NodeId[] {
-  for (let i = 0; i < path.length - 1; i++) {
-    const from = path[i]!;
-    const to = path[i + 1]!;
-    const isAsync = design.edges.some((edge) => edge.from === from && edge.to === to && edge.kind === 'async');
-    if (isAsync) {
-      return path.slice(0, i + 1);
-    }
-  }
-  return [...path];
 }
 
 function statusFromUtilization(utilization: number): NodeStatus {
   if (utilization >= 1) return 'saturated';
   if (utilization >= WARNING_UTILIZATION_THRESHOLD) return 'warning';
   return 'healthy';
-}
-
-/** FR-020: placeholder — cálculo real de score por dimensão é escopo do M2. */
-function placeholderScores(): Record<Dimension, number> {
-  return Object.fromEntries(ALL_DIMENSIONS.map((dimension) => [dimension, 0])) as Record<
-    Dimension,
-    number
-  >;
 }
 
 export type {

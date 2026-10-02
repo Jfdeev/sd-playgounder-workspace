@@ -111,6 +111,23 @@ export const loginIpAttempts = pgTable('loginIpAttempts', {
   lockedUntil: timestamp('lockedUntil', { mode: 'date' }),
 });
 
+/**
+ * Cache de explicações do narrador (M2, FR-005) — chave é o hash determinístico de
+ * `(Design, Workload)` (`@sdp/narrator` `hashDesign`), nunca `userId`: a explicação de um design é
+ * a mesma pra qualquer usuário que submeta o mesmo design (cache compartilhado, não por-usuário) —
+ * consistente com RNF-6 ("nunca repetindo a chamada ao provedor de LLM pro mesmo par", independente
+ * de quem submeteu). Sem índice além da PK — todo acesso é por `designHash` exato (get-or-create).
+ */
+export const narratorExplanations = pgTable('narratorExplanations', {
+  designHash: text('designHash').primaryKey(),
+  summary: text('summary').notNull(),
+  bottleneckExplanation: text('bottleneckExplanation').notNull(),
+  recommendation: text('recommendation'),
+  /** Id de uma ficha de @sdp/knowledge citada pelo narrador (M2.6, US4) — nunca uma string solta. */
+  citationId: text('citationId'),
+  createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+});
+
 // Mantido só para satisfazer o tipo esperado pelo adapter em algumas versões — não usado.
 export const authenticators = pgTable(
   'authenticator',

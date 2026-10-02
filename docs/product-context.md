@@ -102,12 +102,16 @@ type SimulationResult = {
 ## 7. Modelo matemático (o engine implementa exatamente isto)
 
 ```
-Vazão do caminho    throughput = min(capacidade de cada nó no caminho)
+Vazão do sistema    throughput = λ / max(1, ρ_max)   ρ_max = maior ρ entre os nós alcançáveis
+                    gargalo = nó de ρ_max, só quando ρ_max ≥ 1
+                    caminho linear sem split/cache ⇒ = min(λ, capacidade de cada nó)
                     nunca reportar acima da carga oferecida
 Utilização          ρ = λ / (c · μ)
 Fila (M/M/1)        W = 1 / (μ − λ)        ρ=0.5 ok · ρ=0.9 → 10x · ρ=0.99 → 100x
 Lei de Little       L = λ · W
-Cache               latência = h·L_cache + (1−h)·(L_cache + L_db)
+Cache               latência média = h·L_cache + (1−h)·(L_cache + L_db)
+                    percentil p: nó após o cache conta inteiro se (1−h) ≥ (1−p), senão zero
+                    (limiar de cauda — h=0.9 ⇒ db fora do p50, inteiro no p95/p99)
                     carga_no_db = λ · (1 − h)
 Cauda em fan-out    P(todas rápidas) = (1 − p)^N
 Retry storm         λ_efetivo = λ · (1 + r + r² + …)
@@ -194,14 +198,60 @@ do encurtador do zero, sem ajuda, e entende por que o resultado foi aquele (garg
 latência, custo, violações estruturais — score por dimensão é escopo de M2; decisão
 do autor, 2026-08-17, `specs/canvas-submissao-m1/spec.md`).
 
+### M1.5 — Catálogo expandido de componentes (inserido após M1 — decisão do autor)
+Paleta reorganizada em 9 categorias · 33 `ComponentType` novos (Traffic & Edge, Compute,
+Storage, Messaging, AI & Agents, External, Observability, Network) sobre os 11 originais
+de M0/M1, cada um com matriz de conectividade e spec de capacidade/latência próprias
+(P0). Concluído — `specs/catalogo-expandido-m1-5/spec.md`.
+
+**Critério de saída de M1.5:** todo `ComponentType` novo tem categoria de paleta,
+matriz de conectividade e spec de capacidade cobertos por teste exaustivo
+(`Record<ComponentType, ...>` força isso em tempo de compilação).
+
+### Canvas sandbox, desafios e templates (resgate de pedidos de chat, fora do fluxo formal — decisão do autor)
+Entre M1.5 e M2, por pedido direto do autor ("faça tudo logo agora", sem passar pelo
+fluxo `/speckit-specify` → clarify → plan → tasks completo — registrado em
+`specs/canvas-sandbox-desafios-templates/decisions.md`, que é a fonte de racional
+detalhado destas decisões):
+
+- **Canvas sandbox**: uma rota só (`/app`), desafio como estado opcional — o usuário
+  monta e simula um design sem precisar de um problema ativo.
+- **Módulo de desafios**: card de desafio no canto inferior esquerdo, **rubrica à
+  mostra** (reverte a "rubrica escondida" de `foundational-doc.md` §2.1 parte 6 — ver
+  `packages/problems/src/types.ts`), dicas estáticas colapsáveis, progressão travada
+  (desafio N só destrava com o desafio N-1 resolvido). 3 problemas completos hoje
+  (Encurtador de URL, Social Feed, E-commerce Checkout).
+- **Templates de arquitetura**: Monolito, 3 Camadas, Microsserviços, Orientado a
+  Eventos — geram o design automaticamente, validados contra a mesma matriz de
+  conectividade do canvas.
+- **Botão "Simular"**: roda o engine com um rps ajustável por slider/input, **sempre
+  exploratório** — nunca conta pra rubrica/progressão (só "Submeter", na escala fixa
+  do problema, faz isso). Nós brilham por status (verde/âmbar/vermelho); arestas
+  mostram tráfego animado depois de simular.
+
+Isso muda o ponto de partida de M2 abaixo: rubrica visível e progressão travada já
+existem para 3 problemas — M2 estende isso (score por dimensão, narrador, solução de
+referência), não o introduz do zero.
+
 ### M2 — Avaliação e biblioteca
 Rubrica por problema · narrador LLM explicando o resultado do engine (nunca gerando
 número) · score por dimensão · solução de referência com raciocínio · calculadora de
 capacidade back-of-envelope · 6 problemas (P0). Fase de clarificação de requisitos,
 defesa textual do design avaliada pelo LLM (P1).
 
-**Critério de saída de M2:** o narrador nunca contradiz o engine em 20 submissões
-de teste consecutivas.
+**Código completo** ([specs/avaliacao-biblioteca-m2/](../specs/avaliacao-biblioteca-m2/spec.md)) —
+score por dimensão real (US1), narrador via Google Gemini `gemini-2.5-flash` (US2), solução de
+referência carregável por problema (US3), calculadora de capacidade independente (US4). 381 testes
+automatizados (engine/problems/narrator/web) e build de produção limpos. **Catálogo permanece em 3
+problemas** (não 6) — decisão de `/speckit-clarify`, 2026-09-23: os 3 problemas novos ficam pra um
+incremento futuro separado.
+
+**Critério de saída de M2:** o narrador nunca contradiz o engine em 20 submissões de teste
+consecutivas. **Ainda não verificado** — exige uma chave real de API do Gemini (`GEMINI_API_KEY`,
+o agente nunca teve uma) e login manual no browser (mesmo gap de auth de todos os marcos
+anteriores); os 20 testes consecutivos são uma observação empírica do comportamento real do
+provedor, não algo que um teste automatizado com mock possa satisfazer. Marco fica em "código
+completo, exit criterion pendente de verificação humana" até o autor confirmar.
 
 ### M2.5 — Arquiteturas de referência (inserido após M2 — decisão do autor)
 Presets de arquiteturas reais de empresas conhecidas, **pesquisadas previamente** (não
@@ -216,6 +266,81 @@ mais GitHub (P0) (decisão do autor, 2026-08-13).
 **Critério de saída de M2.5:** uma pessoa consegue carregar ao menos 1 preset, ver a
 explicação de cada componente pela LLM, e entender por que aquela empresa fez aquela escolha
 de arquitetura.
+
+### M2.6 — Fundamentos de arquitetura (inserido após M2.5 — decisão do autor, 2026-09-24)
+
+Base de conhecimento **pesquisada previamente** (mesma regra de M2.5: fidelidade real, nunca
+gerada pela LLM na hora) condensando princípios da literatura clássica de arquitetura de
+software — *Clean Architecture* (Robert C. Martin), *Fundamentals of Software Architecture*
+(Mark Richards & Neal Ford) e *Patterns of Enterprise Application Architecture* (Martin Fowler)
+— em conteúdo que a própria plataforma já sabe onde encaixar, porque conecta direto em mecânica
+que M1/M1.5/M2 já construíram:
+
+- **Características de arquitetura** (Richards & Ford) — o vocabulário formal por trás das 7
+  dimensões de score que o engine já calcula (M2): cada dimensão (escalabilidade, disponibilidade,
+  latência, consistência, custo, complexidade operacional, segurança) ganha uma ficha curta com
+  definição formal, a fonte, e o trade-off que ela representa contra as outras. Nunca um score
+  novo — só vocabulário e contexto por trás do que o engine já mede (Constitution I/V/VI
+  continuam valendo sem exceção).
+- **Estilos de arquitetura** (Richards & Ford) — ficha curta por template já existente (Monolito,
+  3 Camadas, Microsserviços, Orientado a Eventos — `canvas-templates.ts`, M1.5) com quando usar
+  cada um e os trade-offs principais, citando a fonte. Escopo fechado nos 4 templates já
+  existentes (decisão tomada em `/speckit-plan`, Session 2026-09-25 — ver
+  `specs/fundamentos-arquitetura/research.md` §1.3): agregar um estilo novo exige catálogo de
+  componentes/template novos, fora do escopo deste marco.
+- **Responsabilidade e acoplamento** (Clean Architecture) — adaptado pro vocabulário de
+  infraestrutura da plataforma (a Regra de Dependência de Martin fala de camadas de código, não
+  de topologia de sistema — a tradução pro domínio daqui é o alvo desta parte, não uma cópia
+  literal): dicas estáticas novas (mesmo padrão de `Hint` já usado em M1) que citam o princípio
+  quando um design mostra um nó concentrando responsabilidade demais, ou acoplamento direto entre
+  partes que deveriam estar isoladas.
+- Narrador (M2) ganha esse conteúdo como contexto adicional no prompt — pode citar o nome do
+  princípio/padrão relevante ao explicar um resultado, sempre atribuído à fonte, nunca inventando
+  uma citação (mesma regra que já proíbe o narrador de inventar número).
+
+**Explicitamente fora de escopo**: nenhum padrão de *PoEAA* específico de camada de dado
+(Repository, Data Mapper, Active Record, Table Module) vira mecânica nova — a plataforma simula
+infraestrutura/topologia, não a estrutura de código interno de uma aplicação; esses padrões
+ficam só como leitura recomendada dentro da ficha de conceito, nunca como um componente novo do
+canvas ou um cálculo novo do engine.
+
+**Critério de saída de M2.6:** pra qualquer uma das 7 dimensões de score e qualquer um dos 4
+templates já existentes, uma pessoa consegue abrir a ficha correspondente e ver a definição
+formal + a fonte bibliográfica exata — nenhum conteúdo sem citação rastreável.
+
+**Status (2026-09-26)**: código completo de US1-US4 — `packages/knowledge` (novo), fichas das 7
+dimensões + 4 estilos, dicas de responsabilidade/acoplamento nos 3 problemas, UI nova em
+`ScorePanel`/`ChallengeTopBar` (botão "?" abrindo a ficha), narrador (`packages/narrator`) citando
+uma ficha real via `citation_id` (validado contra o catálogo de `@sdp/knowledge`, nunca uma citação
+inventada — FR-007) e a UI do narrador exibindo "Princípio citado" com a fonte atribuída — `tsc`/
+testes/build limpos nos 5 pacotes do monorepo (433 testes). **US4 foi desbloqueada e implementada
+antes do critério de saída de M2 ser verificado** — decisão do autor, 2026-09-26 (ver "Ordem fora
+de sequência" abaixo): consequência assumida é que a verificação de 20 submissões consecutivas de
+M2 precisa ser refeita contra o prompt atual (`NARRATOR_PROMPT_VERSION`), não contra o prompt de M2
+original. `hashDesign` inclui `promptVersion` no hash de cache exatamente pra isso não colidir
+silenciosamente com explicações cacheadas do prompt antigo.
+
+**Verificação manual concluída em 2026-09-27** (migração `0003` aplicada ao Neon live; login via
+conta de teste throwaway criada e apagada na mesma sessão) — US1/US2/US3/US4 confirmados
+funcionando de ponta a ponta com dados reais (banco live, narrador via Gemini real). Achou e
+corrigiu 1 bug real pré-existente de M2 (`POST /api/narrator` 500-ava pra qualquer design saturado
+— `Infinity` da latência não sobrevive à travessia JSON, vira `null`; `packages/narrator/src/
+prompt.ts`, commit `9956fcf`). Encontrou 1 problema de RNF-5 (`NARRATOR_TIMEOUT_MS = 5_000` curto
+demais na prática pra `gemini-2.5-flash` com `responseSchema` — medido diretamente em ~5.8s,
+batendo 504 duas vezes seguidas na verificação) — **resolvido em 2026-09-27** subindo o timeout
+pra 15s (decisão do autor); RNF-5/SC-003 de M2 (`spec.md`, `plan.md`, `contracts/narrator-
+contract.md`) e a tabela de NFRs acima atualizados pro novo valor. Ver
+`specs/fundamentos-arquitetura/tasks.md` (achados 3 e 4) e `quickstart.md`.
+
+**Ordem fora de sequência (decisão do autor, 2026-09-26, mesmo padrão de M2.5)**: M2.6 (incluindo
+US4) foi implementado antes do M2 chegar a `Done` (falta a verificação empírica das 20 submissões,
+acima) e antes do M2.5 — furando, na prática, a regra de `CLAUDE.md` ("nenhum marco começa antes
+do critério de saída do anterior ser atingido"). Nenhuma dependência de código real força essa
+ordem (M2.5 é ortogonal a M2.6; a única dependência real de M2.6 em M2 era não invalidar a
+verificação pendente de M2, resolvida pelo versionamento do prompt), então o autor optou por deixar
+a sequência de implementação avançar assim em vez de bloquear M2.6 até M2/M2.5 fecharem
+formalmente — igual à decisão que já tinha inserido M0.5/M1.5/M2.5 fora da ordem original do
+roadmap.
 
 ### M3 — Primeiro diferencial: Modo Incidente
 Arquitetura pronta + alerta + métricas simuladas; o usuário diagnostica a causa raiz
@@ -243,7 +368,7 @@ via Yjs · modo turma com painel do professor. **Nada aqui começa antes de M4 f
 | RNF-2 | Preview de métrica ao editar o canvas | < 100 ms, no browser |
 | RNF-3 | Cobertura de teste de `packages/engine` | ≥ 80% |
 | RNF-4 | Determinismo | 100% reprodutível, sem RNG não-semeado |
-| RNF-5 | Latência da explicação do narrador | < 5 s p95 |
+| RNF-5 | Latência da explicação do narrador | < 15 s p95 (subido de 5s em 2026-09-27 — 5s batia timeout na prática contra `gemini-2.5-flash` com `responseSchema`, medido em ~5.8s; decisão do autor, `specs/fundamentos-arquitetura/tasks.md` achado 4) |
 | RNF-6 | Custo de LLM por submissão | zero em cache hit; 1 chamada em cache miss |
 | RNF-7 | Canvas fluido | 60 fps até 50 nós |
 | RNF-8 | Acessibilidade | navegação por teclado no canvas |
@@ -264,8 +389,13 @@ via Yjs · modo turma com painel do professor. **Nada aqui começa antes de M4 f
 - **D1** — Nome do produto e do repositório. Trabalhando com "System Design Playground",
   que é descritivo, não definitivo.
 - **D2** — Gerenciador de pacote do monorepo (pnpm vs. npm workspaces).
-- **D3** — ORM (Drizzle vs. Prisma).
-- **D4** — Provedor de LLM do narrador.
+- ~~**D3** — ORM (Drizzle vs. Prisma).~~ **Resolvido**: Drizzle — já em uso desde M0.5
+  (`apps/web/src/db/`, `@auth/drizzle-adapter`), nunca foi de fato uma escolha em
+  aberto na prática.
+- ~~**D4** — Provedor de LLM do narrador.~~ **Resolvido**: Google Gemini, modelo
+  `gemini-2.5-flash` — decisão do autor durante a implementação de M2, revertendo a
+  escolha inicial (Anthropic Claude API). Saída JSON estruturada via `responseSchema`
+  nativo do Gemini (exigência de ADR-006), chave de API (`GEMINI_API_KEY`) server-only.
 - **D5** — Fonte dos números de custo dos componentes (tabela fixa vs. baseada em
   preço real de cloud).
 

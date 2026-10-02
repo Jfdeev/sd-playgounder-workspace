@@ -21,9 +21,11 @@ import {
   CreditCard,
   Database,
   DatabaseZap,
+  DollarSign,
   DoorOpen,
   Fingerprint,
   Gauge,
+  GitBranch,
   Globe,
   HardDrive,
   HeartPulse,
@@ -43,11 +45,13 @@ import {
   ScrollText,
   SearchCode,
   Server,
+  Shield,
   ShieldAlert,
   ShieldCheck,
   Shuffle,
   Siren,
   Smartphone,
+  TrendingUp,
   Warehouse,
   Waves,
   Waypoints,
@@ -57,7 +61,7 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react';
-import type { ComponentType, EdgeKind } from '@sdp/engine';
+import type { ComponentType, Dimension, EdgeKind } from '@sdp/engine';
 import type { ClientVariant } from './canvas-types';
 
 export const COMPONENT_UI: Record<ComponentType, { label: string; icon: LucideIcon; description: string }> = {
@@ -387,6 +391,21 @@ export const EDGE_KIND_UI: Record<EdgeKind, { label: string; colorClass: string;
  * engine já calcula. Glow em `box-shadow` (não em `border`, que continua reservado pro destaque de
  * gargalo em `ComponentNode`), então os dois efeitos nunca competem pela mesma propriedade CSS.
  */
+/**
+ * Rótulo + ícone por `Dimension` (M2) — usado só por `score-panel.tsx`. As 7 dimensões nunca
+ * aparecem somadas/combinadas em lugar nenhum da UI (Constitution V) — este catálogo só nomeia
+ * cada uma individualmente.
+ */
+export const DIMENSION_UI: Record<Dimension, { label: string; icon: LucideIcon }> = {
+  escalabilidade: { label: 'Escalabilidade', icon: TrendingUp },
+  disponibilidade: { label: 'Disponibilidade', icon: HeartPulse },
+  latencia: { label: 'Latência', icon: Gauge },
+  consistencia: { label: 'Consistência', icon: GitBranch },
+  custo: { label: 'Custo', icon: DollarSign },
+  complexidade_operacional: { label: 'Complexidade operacional', icon: Cog },
+  seguranca: { label: 'Segurança', icon: Shield },
+};
+
 export const NODE_STATUS_UI: Record<'healthy' | 'warning' | 'saturated', { label: string; colorClass: string; glowClass: string }> = {
   healthy: { label: 'Saudável', colorClass: 'border-emerald-500 text-emerald-400', glowClass: 'shadow-[0_0_16px_3px_rgba(16,185,129,0.55)]' },
   warning: { label: 'Atenção', colorClass: 'border-amber-500 text-amber-400', glowClass: 'shadow-[0_0_16px_3px_rgba(245,158,11,0.55)]' },

@@ -11,6 +11,7 @@
  * problemas, provado em `apps/web/test/ecommerce-checkout-scenario.spec.ts`.
  */
 
+import { CLEAN_ARCHITECTURE } from '@sdp/knowledge';
 import type { Problem } from '../types.js';
 
 const RUBRIC: Problem['rubric'] = [
@@ -68,7 +69,51 @@ const HINTS: Problem['hints'] = [
       'espaço pra essa latência externa — não é um bug do seu design, é o trade-off real de ' +
       'depender de um provedor de pagamento terceirizado.',
   },
+  {
+    id: 'responsibility-coupling',
+    prompt: 'Por que Payment é um nó próprio, e por que Rate Limiter vem antes do App Server?',
+    body:
+      'Clean Architecture (Robert C. Martin) chama de isolar uma dependência volátil: um serviço ' +
+      'externo lento e fora do seu controle (aqui, Payment) nunca deveria ficar acoplado direto à ' +
+      'lógica central que processa o pedido — ele fica atrás de uma borda própria, com sua ' +
+      'própria latência e taxa de falha isoladas. O mesmo raciocínio vale pro Rate Limiter: ele ' +
+      'intercepta a requisição antes dela chegar na lógica de negócio, então a decisão de limitar ' +
+      'tráfego fica isolada da decisão de processar o pedido — inverter a ordem misturaria as ' +
+      'duas responsabilidades.',
+    source: CLEAN_ARCHITECTURE,
+  },
 ];
+
+// M2, US3. Mesmo design já provado por `apps/web/test/ecommerce-checkout-scenario.spec.ts` — App
+// Server tem duas arestas de saída (SQL Primary e Payment), e o engine divide a carga entre elas
+// (FR-018, sem peso explícito = split igual): cada uma recebe ~metade do pico (~694 de ~1.389
+// rps). Payment precisa de bem mais réplicas que o normal (20) pra cobrir isso, mesmo sua
+// capacidade unitária sendo baixa (componente externo, spec propositalmente mais lenta/cara).
+const REFERENCE_SOLUTION: Problem['referenceSolution'] = {
+  design: {
+    nodes: [
+      { id: 'rate-limiter-1', type: 'rate_limiter', replicas: 2 },
+      { id: 'app-server-1', type: 'app_server', replicas: 4 },
+      { id: 'sql-primary-1', type: 'sql_primary', replicas: 4 },
+      { id: 'payment-1', type: 'payment', replicas: 20 },
+    ],
+    edges: [
+      { id: 'e1', from: 'rate-limiter-1', to: 'app-server-1', kind: 'read', weight: 1 },
+      { id: 'e2', from: 'app-server-1', to: 'sql-primary-1', kind: 'write', weight: 1 },
+      { id: 'e3', from: 'app-server-1', to: 'payment-1', kind: 'write', weight: 1 },
+    ],
+    entryNodeIds: ['rate-limiter-1'],
+  },
+  reasoning:
+    'Rate Limiter na entrada protege o checkout de tráfego abusivo antes de qualquer lógica de ' +
+    'negócio rodar. Débito de estoque (SQL Primary, consistência forte — não pode dar overselling) ' +
+    'e cobrança (Payment, dependência externa) acontecem em paralelo a partir do App Server; como ' +
+    'o engine divide a carga entre arestas irmãs sem peso explícito, cada um recebe só metade do ' +
+    'pico — mesmo assim o Payment precisa de bem mais réplicas (20) que os outros componentes, ' +
+    'porque sua capacidade por instância é propositalmente baixa (é assim que uma dependência de ' +
+    'rede pública real se comporta). O p99 fica dominado pela latência do Payment, mas ainda cabe ' +
+    'confortavelmente no limite de 2000ms do problema.',
+};
 
 export const ECOMMERCE_CHECKOUT: Problem = {
   id: 'ecommerce-checkout',
@@ -101,6 +146,10 @@ export const ECOMMERCE_CHECKOUT: Problem = {
     peakMultiplier: 4,
   },
 
+  // Mesmo número do critério de rubrica 'latency-p99' abaixo (result.path.latency.p99 <= 2_000).
+  latencyBudgetMs: 2_000,
+
   rubric: RUBRIC,
   hints: HINTS,
+  referenceSolution: REFERENCE_SOLUTION,
 };

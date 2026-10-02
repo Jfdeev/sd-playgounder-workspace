@@ -22,6 +22,7 @@
  */
 
 import type { Design, SimulationResult } from '@sdp/engine';
+import type { Source } from '@sdp/knowledge';
 
 export type ProblemScale = {
   /** Usuários ativos por dia. */
@@ -55,6 +56,8 @@ export type Hint = {
   prompt: string;
   /** Texto completo da dica, revelado sob demanda. */
   body: string;
+  /** Presente só quando a dica cita um princípio da literatura clássica (M2.6, FR-003/FR-004). */
+  source?: Source;
 };
 
 export type Problem = {
@@ -68,10 +71,30 @@ export type Problem = {
   nonFunctionalRequirements: string[];
   /** Anatomia §2.1 parte 5. */
   scale: ProblemScale;
+  /**
+   * Limiar de latência p99 (ms) que o problema exige — mesmo número usado pelo critério de
+   * rubrica `latency-p99` (ver `rubric` abaixo), exposto aqui como campo estruturado porque
+   * `RubricCriterion.evaluate` é uma função opaca: não dá pra extrair o número de dentro dela sem
+   * executá-la. Insumo direto da dimensão Latência de score (M2, `scores/calculate.ts`).
+   */
+  latencyBudgetMs: number;
   /** Anatomia §2.1 parte 6 — à mostra nesta sessão (ver comentário do módulo), não escondida. */
   rubric: RubricCriterion[];
   /** Sistema de dicas estáticas (texto autorado) — educativo, não gerado por IA. */
   hints: Hint[];
+  /**
+   * Solução de referência (M2, US3) — `design` no mesmo shape que o engine consome
+   * (`@sdp/engine` `Design`, sem posição visual: converter pra `CanvasNode[]`/`CanvasEdge[]` com
+   * layout automático é responsabilidade de `apps/web`, nunca deste pacote puro). `reasoning` é
+   * texto autorado à mão, mesmo padrão de `rubric`/`hints` — nunca gerado por LLM. Validado por
+   * teste (`packages/problems/test/reference-solution.spec.ts`): `simulate(design,
+   * toWorkload(problem))` MUST satisfazer 100% de `rubric` — uma referência que a própria rubrica
+   * rejeitaria seria uma contradição.
+   */
+  referenceSolution: {
+    design: Design;
+    reasoning: string;
+  };
 };
 
 /** Um desafio passa quando TODOS os critérios da rubrica passam — usado pra progressão travada. */

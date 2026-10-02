@@ -19,8 +19,9 @@ import type { Design, Workload } from '../../src/types.js';
  * db-1: capacidade = 1×1 000 = 1 000. ρ = 800/1 000 = 0.8 (≥0.7 ⇒ 'warning')
  *        W = 1/(1000−800) s = 5 ms
  *
- * Throughput (FR-006/FR-007): min(λ=800, capacidades do caminho {10000, 500, 1000}) = 500
- *   500 < 800 ⇒ há gargalo real ⇒ bottleneckId = 'app-1'
+ * Throughput (FR-006/FR-007): λ / max(1, ρ_max) = 800 / 1.6 = 500 (ρ_max = app-1)
+ *   ρ_max ≥ 1 ⇒ há gargalo real ⇒ bottleneckId = 'app-1'
+ *   (caminho linear sem split: equivale a min(λ, capacidades {10000, 500, 1000}) = 500)
  *
  * Latência do caminho (FR-005): app-1 está saturado (W=Infinity) e faz parte do caminho ⇒
  *   qualquer percentil que inclua o termo de app-1 é Infinity — resultado correto e esperado:

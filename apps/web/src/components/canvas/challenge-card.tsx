@@ -25,14 +25,16 @@
  */
 
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Circle, LogOut, X } from 'lucide-react';
+import { BookOpen, ChevronDown, ChevronUp, Circle, LogOut, X } from 'lucide-react';
 import type { Problem } from '@sdp/problems';
 import { useCanvasStore } from '@/stores/canvas-store';
+import { ReferenceSolutionPanel } from './reference-solution-panel';
 
 export function ChallengeCard({ problem, onLeave }: { problem: Problem; onLeave: () => void }) {
   const [collapsed, setCollapsed] = useState(false);
   const [hintsOpen, setHintsOpen] = useState(false);
   const [openHintId, setOpenHintId] = useState<string | null>(null);
+  const [referenceSolutionOpen, setReferenceSolutionOpen] = useState(false);
 
   const lastResult = useCanvasStore((s) => s.lastResult);
   const lastDesign = useCanvasStore((s) => s.lastDesign);
@@ -58,6 +60,16 @@ export function ChallengeCard({ problem, onLeave }: { problem: Problem; onLeave:
           <h2 className="text-sm font-semibold text-zinc-100">{problem.title}</h2>
         </div>
         <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setReferenceSolutionOpen((v) => !v)}
+            aria-pressed={referenceSolutionOpen}
+            aria-label="Ver solução de referência"
+            title="Ver solução de referência"
+            className={`rounded-md p-1 hover:bg-zinc-800 ${referenceSolutionOpen ? 'text-violet-400' : 'text-zinc-500 hover:text-zinc-200'}`}
+          >
+            <BookOpen className="size-4" aria-hidden />
+          </button>
           <button
             type="button"
             onClick={() => setCollapsed(true)}
@@ -135,6 +147,8 @@ export function ChallengeCard({ problem, onLeave }: { problem: Problem; onLeave:
             </ul>
           )}
         </div>
+
+        {referenceSolutionOpen && <ReferenceSolutionPanel problem={problem} />}
       </div>
     </div>
   );

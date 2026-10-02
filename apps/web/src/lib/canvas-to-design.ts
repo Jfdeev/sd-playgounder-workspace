@@ -11,7 +11,6 @@
 
 import type { Design, DesignEdge, DesignNode, NodeId, Workload } from '@sdp/engine';
 import type { FlowEdge, FlowNode } from './canvas-types';
-import type { Problem } from '@sdp/problems';
 
 /**
  * Traduz o canvas montado pelo usuário para o Design que o engine consome.
@@ -61,20 +60,11 @@ export function toDesign(nodes: readonly FlowNode[], edges: readonly FlowEdge[])
 }
 
 /**
- * Traduz a escala do problema para o Workload que o engine consome — conversão DAU → RPS
- * (research.md §5). Determinística: mesmo Problem, mesmo Workload, sempre.
+ * Reexportada de `@sdp/problems` (M2, Foundational) — a conversão só depende de `Problem`, tipo
+ * que aquele pacote possui; morava aqui por conveniência histórica de M1. Mantido como reexport
+ * pra nenhum ponto de chamada existente em `apps/web` precisar mudar de import.
  */
-export function toWorkload(problem: Problem): Workload {
-  const { dau, requestsPerUserPerDay, readWriteRatio, avgPayloadBytes, peakMultiplier } = problem.scale;
-  const averageRps = (dau * requestsPerUserPerDay) / 86_400;
-
-  return {
-    rps: averageRps * peakMultiplier,
-    readWriteRatio,
-    payloadBytes: avgPayloadBytes,
-    peakMultiplier,
-  };
-}
+export { toWorkload } from '@sdp/problems';
 
 /**
  * Workload manual do botão "Simular" — usa só o rps escolhido livremente pelo usuário no canvas
