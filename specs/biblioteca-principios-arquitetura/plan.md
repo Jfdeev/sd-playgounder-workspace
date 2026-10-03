@@ -74,7 +74,11 @@ specs/biblioteca-principios-arquitetura/
 ```text
 packages/knowledge/
 ├── src/
-│   ├── library.ts                 # NOVO — tipos + LIBRARY_ENTRIES + getLibraryEntry + labels
+│   ├── library.ts                 # NOVO — tipos + LIBRARY_ENTRIES + getLibraryEntry + labels + validação
+│   ├── library/                   # NOVO — uma categoria por arquivo (um gate de aprovação cada):
+│   │   ├── clean-architecture.ts  #        9 entradas
+│   │   ├── characteristics.ts     #        19 entradas
+│   │   └── poeaa.ts               #        11 entradas
 │   └── index.ts                   # + reexport de library
 └── test/library.spec.ts           # NOVO — invariantes da lista
 
