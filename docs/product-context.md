@@ -341,6 +341,51 @@ a sequência de implementação avançar assim em vez de bloquear M2.6 até M2/M
 formalmente — igual à decisão que já tinha inserido M0.5/M1.5/M2.5 fora da ordem original do
 roadmap.
 
+### M2.7 — Biblioteca de princípios de arquitetura (inserido após M2.6 — decisão do autor, 2026-10-03)
+
+Ampliação da base de conhecimento do M2.6, que ficou rasa perto do que as obras-fonte cobrem (o
+autor apontou SOLID como exemplo de ausência — nenhuma ocorrência no catálogo hoje). Mesma regra
+do M2.6 (FR-006): conteúdo **pesquisado previamente e revisado pelo autor**, nunca gerado pela LLM
+na hora. Três frentes, por obra:
+
+- **Princípios de *Clean Architecture*** (Robert C. Martin), incluindo SOLID — princípios de nível
+  de código/módulo, que a plataforma (que simula topologia de infraestrutura) não calcula; entram
+  como biblioteca de leitura, com o vínculo à topologia explicado quando existir (mesmo critério
+  do M2.6 para padrões de camada de dado: referência, nunca mecânica nova no engine).
+- **Características de arquitetura** (*Fundamentals of Software Architecture*, Richards & Ford)
+  além das 7 que já são dimensões de score.
+- **Padrões de *Patterns of Enterprise Application Architecture*** (Martin Fowler) — só como
+  leitura recomendada, sem virar componente do canvas nem cálculo do engine (decisão do M2.6
+  mantida).
+
+Fora de escopo: alterar o prompt do narrador (continua v3 — mexer nele invalida o cache e a
+verificação do M2); mecânica nova no engine; progresso por conceito e a ligação completa
+problema ↔ conceito, que são a "wiki de conceitos" do M4 (M2.7 entrega a biblioteca, M4 a conecta
+ao progresso).
+
+**Critério de saída de M2.7:** pra qualquer princípio da lista aprovada pelo autor, uma pessoa
+consegue abrir a biblioteca, encontrá-lo e ver definição + fonte bibliográfica exata — nenhum
+conteúdo sem citação rastreável.
+
+### M2.8 — Gamificação e progresso na conta (inserido após M2.7 — decisão do autor, 2026-10-03)
+
+Hoje a conta do usuário não guarda nada de útil: progresso de desafios e designs ficam só no
+`localStorage` do navegador. M2.8 dá à conta um motivo de existir — um sistema de gamificação que
+incentive o estudo (pontos de experiência, níveis, ofensiva de dias seguidos, conquistas),
+persistido no servidor, ligado à conta. XP só vem de ações verificáveis no servidor — uma
+submissão só pontua depois de o servidor reexecutar `simulate()` (a regra de "nunca confiar no
+frontend" deixa de ser adiável aqui: é a primeira vez que um marco pontua uma submissão como
+oficial). XP e nível medem **atividade de estudo**, nunca viram uma nota agregada de qualidade do
+design (Constitution V).
+
+Escopo exato (o que dá XP, ranking entre usuários, e a fronteira com o M4 — "salvar designs com
+histórico" e "progresso por conceito" já estão no M4) fica pro `/speckit-clarify` de M2.8.
+
+> Nota de quem escreveu isto: numeração (M2.7, M2.8), posição (após M2.6, antes de M3) e o corte
+> entre os dois marcos são uma proposta — mesmo tipo de decisão que M2.5/M2.6 registraram como
+> "decisão do autor" quando foram inseridos. O autor pediu os dois itens em 2026-10-03; a ordem
+> fora de sequência em relação a M2.5 segue o mesmo precedente de M2.6.
+
 ### M3 — Primeiro diferencial: Modo Incidente
 Arquitetura pronta + alerta + métricas simuladas; o usuário diagnostica a causa raiz
 plantada e propõe o fix. Reaproveita 100% do engine. Chaos: derrubar nó, derrubar AZ,
