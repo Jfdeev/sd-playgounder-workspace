@@ -247,11 +247,10 @@ problemas** (não 6) — decisão de `/speckit-clarify`, 2026-09-23: os 3 proble
 incremento futuro separado.
 
 **Critério de saída de M2:** o narrador nunca contradiz o engine em 20 submissões de teste
-consecutivas. **Ainda não verificado** — exige uma chave real de API do Gemini (`GEMINI_API_KEY`,
-o agente nunca teve uma) e login manual no browser (mesmo gap de auth de todos os marcos
-anteriores); os 20 testes consecutivos são uma observação empírica do comportamento real do
-provedor, não algo que um teste automatizado com mock possa satisfazer. Marco fica em "código
-completo, exit criterion pendente de verificação humana" até o autor confirmar.
+consecutivas. **Concluído com ressalva (decisão do autor, 2026-10-03)**: 17 de 20 submissões reais (prompt v3, `gemini-2.5-flash`) com 0 contradições; as 3 restantes ficaram sem resposta por 503/429 (cota do free tier, 20 req/dia), não por contradição — o
+autor aceitou 17/20 como suficiente. Detalhes em `specs/avaliacao-biblioteca-m2/tasks.md` (T041).
+**Em aberto**: RNF-5/SC-003 (95% em até 15s) não passou na mesma rodada (5 de 17 acima de 15s,
+sob 503 por alta demanda) e a cota de 20 req/dia limita o narrador em produção.
 
 ### M2.5 — Arquiteturas de referência (inserido após M2 — decisão do autor)
 Presets de arquiteturas reais de empresas conhecidas, **pesquisadas previamente** (não

@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-11
 
-**Status**: Ready
+**Status**: Done (com ressalva — ver `tasks.md` T041, decisão do autor 2026-10-03)
 
 **Input**: User description: "M2 — Avaliação e biblioteca. Marco definido em docs/product-context.md §10. Escopo P0: rubrica por problema, narrador LLM explicando o resultado do engine (nunca gerando número), score por dimensão, solução de referência com raciocínio, calculadora de capacidade back-of-envelope, 6 problemas. Critério de saída: o narrador nunca contradiz o engine em 20 submissões de teste consecutivas."
 
