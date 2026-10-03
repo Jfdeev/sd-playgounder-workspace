@@ -17,21 +17,21 @@ categoria sob `packages/knowledge/src/library/` (um por gate de aprovação), ag
 
 Nenhuma dependência nova, nenhuma migração, nenhuma API.
 
-- [ ] T001 Confirmar a base: `pnpm -r test` e `pnpm -r exec tsc --noEmit` verdes na branch (baseline
+- [x] T001 Confirmar a base: `pnpm -r test` e `pnpm -r exec tsc --noEmit` verdes na branch (baseline
       para provar FR-009 — engine, narrador e `NARRATOR_PROMPT_VERSION` intocados)
 
 ## Phase 2: Foundational (bloqueia todas as user stories)
 
-- [ ] T002 Criar `packages/knowledge/src/library.ts` — tipos `LibraryCategory`, `TopologyRelation`,
+- [x] T002 Criar `packages/knowledge/src/library.ts` — tipos `LibraryCategory`, `TopologyRelation`,
       `LibraryEntry` (data-model.md), `LIBRARY_CATEGORY_LABELS: Record<LibraryCategory, string>`,
       `LIBRARY_ENTRIES` (agrega os três arquivos de categoria; vazio por ora) e
       `getLibraryEntry(id)`; reexportar em `packages/knowledge/src/index.ts`
-- [ ] T003 Em `packages/knowledge/src/library.ts`, adicionar
+- [x] T003 Em `packages/knowledge/src/library.ts`, adicionar
       `validateLibraryEntries(entries): string[]` (pura; devolve as violações dos invariantes de
       data-model.md: id único; `source` é uma das 3 constantes por identidade; Clean Architecture ⇒
       `topology` com `note` não vazia; as outras categorias ⇒ `platformNote`; nenhum id coincide com
       uma `Dimension`; `definition` não vazia)
-- [ ] T004 [P] Escrever `packages/knowledge/test/library.spec.ts` — (a) **fixtures inline inválidas**,
+- [x] T004 [P] Escrever `packages/knowledge/test/library.spec.ts` — (a) **fixtures inline inválidas**,
       uma por invariante, provando que `validateLibraryEntries` acusa cada violação (senão o teste passa
       no vácuo); (b) `LIBRARY_ENTRIES` validada devolve `[]`; (c) o conjunto de ids é **exatamente** o
       inventário aprovado de `research.md` §1 (lista literal no teste: 9 `clean-architecture`, 19
@@ -39,11 +39,11 @@ Nenhuma dependência nova, nenhuma migração, nenhuma API.
       cinco SOLID (`srp`, `ocp`, `lsp`, `isp`, `dip`) existem (FR-003); (e) `getLibraryEntry` devolve a
       entrada certa e `undefined` para id inexistente. **(c) e (d) só ficam verdes depois de T007/T013/
       T015** — até lá, marcar o teste do inventário por categoria já aprovada
-- [ ] T005 [P] Criar `apps/web/src/lib/library-search.ts` — `filterLibraryEntries(entries, query)`
+- [x] T005 [P] Criar `apps/web/src/lib/library-search.ts` — `filterLibraryEntries(entries, query)`
       pura: casa por nome e por id, sem acento, sem diferenciar maiúsculas; `query` vazia devolve tudo;
       sem resultado devolve `[]`; e escrever `apps/web/test/library-search.spec.ts` (acento, caixa, id,
       vazio, sem resultado)
-- [ ] T006 [P] Em `packages/problems/src/types.ts`: `Hint.libraryEntryId?: string` (opcional,
+- [x] T006 [P] Em `packages/problems/src/types.ts`: `Hint.libraryEntryId?: string` (opcional,
       retrocompatível, ao lado do `source?` do M2.6)
 
 ## Phase 3: US1 — Abrir um princípio de Clean Architecture / SOLID (P1) 🎯 MVP
@@ -51,23 +51,23 @@ Nenhuma dependência nova, nenhuma migração, nenhuma API.
 **Goal**: abrir a biblioteca sem desafio ativo e ler um princípio com definição, fonte e relação com a
 topologia. **Independent Test**: quickstart.md §US1.
 
-- [ ] T007 [US1] ⚠️ **Só após a aprovação do autor desta categoria.** Criar
+- [x] T007 [US1] ⚠️ **Só após a aprovação do autor desta categoria.** Criar
       `packages/knowledge/src/library/clean-architecture.ts` com as 9 entradas **literais** de
       `content-draft.md` §1 (SRP, OCP, LSP, ISP, DIP, Regra de Dependência, Fronteiras, banco é um
       detalhe, frameworks são detalhes), cada uma com `topology` (`analogia` | `nenhuma` + nota) e
       `source: CLEAN_ARCHITECTURE`; registrar em `LIBRARY_ENTRIES`
-- [ ] T008 [US1] Criar `apps/web/src/app/app/biblioteca/page.tsx` — Server Component, filho de
+- [x] T008 [US1] Criar `apps/web/src/app/app/biblioteca/page.tsx` — Server Component, filho de
       `app/app/layout.tsx` (**herda** o guard de autenticação — não adicionar `auth()` próprio);
       lê `searchParams.entry` e passa `LIBRARY_ENTRIES` e o id inicial ao navegador da biblioteca
-- [ ] T009 [P] [US1] Criar `apps/web/src/components/library/library-browser.tsx` (client) — campo de
+- [x] T009 [P] [US1] Criar `apps/web/src/components/library/library-browser.tsx` (client) — campo de
       busca (usa `filterLibraryEntries`), categorias → grupos colapsáveis, uma entrada aberta por vez,
       abre a de `?entry=` ao montar, estado vazio claro quando a busca não acha nada (edge case do
       spec); **sem nenhum estado de usuário, progresso ou ranking** (FR-010)
-- [ ] T010 [P] [US1] Criar `apps/web/src/components/library/library-entry-card.tsx` — nome,
+- [x] T010 [P] [US1] Criar `apps/web/src/components/library/library-entry-card.tsx` — nome,
       definição, fonte (obra + autor — nunca capítulo/página, FR-007), e: para `clean-architecture`, a
       relação com a topologia (`analogia` + nota, ou `nenhuma` explícita); para as demais, a
       `platformNote`
-- [ ] T011 [US1] Em `apps/web/src/components/canvas/challenge-topbar.tsx`: link "Biblioteca"
+- [x] T011 [US1] Em `apps/web/src/components/canvas/challenge-topbar.tsx`: link "Biblioteca"
       (`next/link`, ícone `BookOpen`) ao lado de Desafios/Templates/Calculadora, para `/app/biblioteca`
       — o autosave por design já preserva o canvas ao navegar (research.md §2.3)
 - [ ] T012 [US1] Verificação manual — quickstart.md §US1 (SRP com analogia; LSP e ISP com "nenhuma"; os
@@ -78,7 +78,7 @@ topologia. **Independent Test**: quickstart.md §US1.
 **Goal**: ver as características de Richards & Ford que **não** são dimensão de score.
 **Independent Test**: quickstart.md §US2.
 
-- [ ] T013 [US2] ⚠️ **Só após a aprovação do autor desta categoria** (a lista veio de resumos de
+- [x] T013 [US2] ⚠️ **Só após a aprovação do autor desta categoria** (a lista veio de resumos de
       terceiros — o autor confere contra o cap. 4). Criar
       `packages/knowledge/src/library/characteristics.ts` com as 19 entradas literais de
       `content-draft.md` §2 (4 operacionais, 9 estruturais, 6 transversais), cada uma com a
@@ -92,7 +92,7 @@ topologia. **Independent Test**: quickstart.md §US1.
 **Goal**: ver os padrões de Fowler como leitura recomendada, sem mecânica nova.
 **Independent Test**: quickstart.md §US3.
 
-- [ ] T015 [US3] ⚠️ **Só após a aprovação do autor desta categoria.** Criar
+- [x] T015 [US3] ⚠️ **Só após a aprovação do autor desta categoria.** Criar
       `packages/knowledge/src/library/poeaa.ts` com as 11 entradas literais de `content-draft.md` §3
       (definição = descrição oficial de uma linha do catálogo do Fowler, em pt-br), cada uma com
       `platformNote` "leitura recomendada — não é componente do canvas nem algo que o engine calcula" e
@@ -108,14 +108,14 @@ topologia. **Independent Test**: quickstart.md §US1.
 **Independent Test**: quickstart.md §US4. **Depende de T007** (as entradas `srp` e `dip` precisam
 existir para o vínculo resolver).
 
-- [ ] T017 [US4] Em `packages/problems/src/catalog/{url-shortener,social-feed,ecommerce-checkout}.ts`:
+- [x] T017 [US4] Em `packages/problems/src/catalog/{url-shortener,social-feed,ecommerce-checkout}.ts`:
       `libraryEntryId` nas 3 dicas `responsibility-coupling` do M2.6 — `url-shortener` → `srp`,
       `social-feed` → `srp`, `ecommerce-checkout` → `dip` (a dica fala de isolar dependência volátil)
-- [ ] T018 [P] [US4] Escrever `packages/problems/test/hints-library-link.spec.ts` — todo
+- [x] T018 [P] [US4] Escrever `packages/problems/test/hints-library-link.spec.ts` — todo
       `libraryEntryId` de toda dica de todo problema resolve via `getLibraryEntry` (nunca link morto —
       US4 cenário 2); as 3 dicas do T017 têm o vínculo; uma dica sem princípio (`why-high-latency`) não
       tem `libraryEntryId`
-- [ ] T019 [US4] Em `apps/web/src/components/canvas/challenge-card.tsx`: quando a dica aberta tem
+- [x] T019 [US4] Em `apps/web/src/components/canvas/challenge-card.tsx`: quando a dica aberta tem
       `libraryEntryId`, mostrar o link "Ler na biblioteca" (`next/link` →
       `/app/biblioteca?entry=<id>`) abaixo do corpo; sem `libraryEntryId`, nada é renderizado
 - [ ] T020 [US4] Verificação manual — quickstart.md §US4 (a dica do Encurtador abre o SRP; a dica de
