@@ -55,16 +55,16 @@ atualizados junto.
 M2 — Avaliação e biblioteca ([specs/avaliacao-biblioteca-m2/plan.md](specs/avaliacao-biblioteca-m2/plan.md)):
 **código completo** (US1-US4: score por dimensão, narrador via Google Gemini `gemini-2.5-flash`,
 solução de referência, calculadora de capacidade) — `tsc`/381 testes/build limpos nos 4 pacotes.
-Catálogo de problemas fica em 3 (não 6) neste marco — decisão de `/speckit-clarify`. **Status da
-spec continua `Ready`, não `Done`**: o critério de saída oficial ("narrador nunca contradiz o
-engine em 20 submissões consecutivas") ainda exige a observação formal das 20 submissões, agora
-contra o prompt versão 3 e o timeout de 15s (achado 4 acima) — antes de promover `spec.md` pra
-`Done`. **v3 (2026-10-02)**: correção de 3 bugs do engine (throughput/gargalo comparava capacidade
+Catálogo de problemas fica em 3 (não 6) neste marco — decisão de `/speckit-clarify`. **Spec `Done`
+com ressalva (decisão do autor, 2026-10-03)**: critério de saída ("narrador nunca contradiz o engine
+em 20 submissões consecutivas") aceito com 17/20 submissões reais contra o prompt v3, 0 contradições
+— as 3 restantes bateram na cota do free tier do Gemini (20 req/dia). Pendências abertas: SC-003
+(5/17 acima de 15s) e a própria cota limitando o narrador em produção. **v3 (2026-10-02)**: correção de 3 bugs do engine (throughput/gargalo comparava capacidade
 com o λ total em vez de usar ρ; ramo async pesado escondia o ramo síncrono da latência; cache
 ponderava percentis por (1−h) em vez do limiar de cauda) — números mudam pro mesmo design, então
 o cache do narrador foi invalidado e submissões observadas antes disso não contam.
 
-Marcos concluídos: M1.5 (Catálogo expandido de componentes,
+Marcos concluídos: M2 (Avaliação e biblioteca, com ressalva — acima), M1.5 (Catálogo expandido de componentes,
 [specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md)), M1 (Canvas e
 submissão, [specs/canvas-submissao-m1/plan.md](specs/canvas-submissao-m1/plan.md)), M0.5 (Landing
 Page e Conta, [specs/landing-page-conta-m0-5/plan.md](specs/landing-page-conta-m0-5/plan.md)) — mais
