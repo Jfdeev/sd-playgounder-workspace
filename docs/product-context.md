@@ -266,6 +266,16 @@ mais GitHub (P0) (decisão do autor, 2026-08-13).
 explicação de cada componente pela LLM, e entender por que aquela empresa fez aquela escolha
 de arquitetura.
 
+**Decisão do autor (2026-10-03, `/speckit-clarify` de `specs/arquiteturas-referencia/`)**: "explicação
+pela LLM" passa a significar **LLM como ferramenta de rascunho em tempo de autoria, com revisão do
+autor** — as explicações por componente são geradas uma vez por preset a partir do material
+pesquisado, aprovadas e commitadas como dado versionado, sem chamada a LLM em tempo de execução
+(a cota gratuita do Gemini é de 20 requisições/dia, o SC-003 do M2 já falha em 15s, e o modelo em
+runtime acrescentaria fatos próprios sobre a empresa). O narrador de M2 e o prompt v3 não mudam.
+Também decidido: o preset do MVP é o **GitHub**; uma conexão de preset é *afirmada* pela fonte ou
+*inferida* (e marcada); o Netflix fica na leva, mas fino (só o que as fontes primárias alcançáveis
+afirmam).
+
 ### M2.6 — Fundamentos de arquitetura (inserido após M2.5 — decisão do autor, 2026-09-24)
 
 Base de conhecimento **pesquisada previamente** (mesma regra de M2.5: fidelidade real, nunca

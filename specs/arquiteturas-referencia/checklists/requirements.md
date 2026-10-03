@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,5 +31,8 @@
 
 ## Notes
 
-- 2 marcadores [NEEDS CLARIFICATION] abertos: FR-007 (como as explicações por componente são
-  produzidas) e FR-011 (Netflix sem fonte primária verificável). Checklist 15/16.
+- Os 2 marcadores (FR-007, FR-011) foram resolvidos em `/speckit-clarify`, Session 2026-10-03 —
+  ver `## Clarifications` em spec.md. Checklist 15/16 → 16/16.
+- O clarify também ajustou o FR-003/SC-001 (conexão afirmada vs. inferida) e a US2 cenário 4
+  (explicações sem dependência de serviço externo), por consequência das duas respostas e da
+  pesquisa de fontes.

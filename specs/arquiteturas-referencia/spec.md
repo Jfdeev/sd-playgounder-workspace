@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-03
 
-**Status**: Draft
+**Status**: Ready
 
 **Input**: User description: "M2.5 — Presets de arquiteturas reais de empresas conhecidas (GitHub, Discord, iFood, Nubank, Netflix), pesquisadas previamente com fidelidade real, carregáveis no canvas como ponto de partida, com cada componente explicado (por que existe ali, que problema resolve)."
 
@@ -31,6 +31,14 @@ Três restrições do projeto moldam este marco e já estão decididas:
 A simulação não é a empresa: o engine modela capacidade, fila, latência e custo de um grafo
 simplificado. Um preset é **uma leitura simplificada, com fonte, da arquitetura da empresa** — não a
 sua réplica. Honestidade sobre essa distância é parte do produto (FR-004, FR-005).
+
+## Clarifications
+
+### Session 2026-10-03
+
+- Q: Como produzimos a explicação de cada componente de um preset? → A: **Geradas uma vez por preset a partir do material pesquisado, revisadas e aprovadas pelo autor, e commitadas como dado versionado** — nenhuma chamada ao Gemini em tempo de execução. Motivos: cota gratuita de 20 requisições/dia, SC-003 do M2 já falhando em 15s, e o modelo em runtime acrescentaria fatos próprios sobre a empresa. A rota `/api/narrator` e o prompt v3 continuam intocados.
+- Q: O que fazemos com o Netflix, sem fonte primária alcançável? → A: **Manter o Netflix; o agente procura outra fonte primária.** Resultado da busca (2026-10-03): o Tech Blog e o Medium respondem 403, mas o site do Open Connect e os READMEs oficiais de Zuul, EVCache, Eureka e Priam abrem e foram lidos. O preset do Netflix será **mais fino** que os demais — só entra o que essas fontes afirmam (ver `research.md`).
+- Ajuste que a pesquisa exigiu no FR-003 (registrado aqui por ser mudança de requisito): as fontes primárias afirmam **componentes e papéis**, quase nunca o **grafo de chamadas**. Exigir fonte para toda aresta esvaziaria os presets; então uma conexão é *afirmada* (a fonte a diz) ou *inferida* (consequência natural dos papéis) — e a inferida é marcada como tal e listada nas limitações.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -78,8 +86,9 @@ uma cita a fonte e não traz nenhum fato ausente do material pesquisado.
    **Then** cada componente tem a sua — nenhum fica sem explicação.
 3. **Given** uma explicação, **When** ela é lida, **Then** não contém número nem afirmação sobre a
    empresa que não esteja no material pesquisado ou no resultado do engine.
-4. **Given** que a explicação depende de um serviço externo indisponível, **When** isso acontece,
-   **Then** o preset carregado e o resultado da simulação continuam funcionando normalmente.
+4. **Given** qualquer momento de uso (inclusive com serviços externos fora do ar), **When** o
+   usuário abre a explicação de um componente, **Then** ela aparece — as explicações não dependem de
+   nenhum serviço externo em tempo de execução.
 
 ---
 
@@ -149,9 +158,11 @@ cumpre o critério de saída com um só.
 - **FR-002**: Todo preset MUST ser construído só com os componentes do catálogo existente, e toda
   conexão MUST ser aceita pelas regras de conexão do canvas e pela validação estrutural do engine —
   um preset que o próprio canvas se recusaria a deixar o usuário desenhar não pode existir.
-- **FR-003**: Todo componente e toda conexão de um preset MUST ser rastreável a uma fonte pública
-  que foi de fato aberta e lida na pesquisa; resumo de buscador não é fonte. Uma afirmação sem fonte
-  MUST ficar de fora do preset.
+- **FR-003**: Todo componente de um preset MUST ser rastreável a uma fonte pública que foi de fato
+  aberta e lida na pesquisa; resumo de buscador não é fonte. Toda conexão MUST ser *afirmada* por uma
+  fonte lida ou *marcada como inferida* (consequência natural dos papéis dos componentes) e listada
+  nas limitações do preset. Uma afirmação sem fonte e que não seja uma inferência declarada MUST
+  ficar de fora.
 - **FR-004**: Todo preset MUST exibir: a empresa, um resumo do contexto, as fontes (título,
   publicador, link) e a lista do que a simulação **não** modela ou simplificou.
 - **FR-005**: Réplicas, carga e qualquer parâmetro quantitativo que não venha de uma fonte MUST ser
@@ -159,10 +170,9 @@ cumpre o critério de saída com um só.
 - **FR-006**: Todo componente de um preset MUST ter uma explicação — por que existe ali e que
   problema resolve — que MUST ficar restrita ao material pesquisado: nenhum fato sobre a empresa e
   nenhum número que não esteja nele ou no resultado do engine (Constitution I).
-- **FR-007**: A explicação por componente MUST ser produzida por um mecanismo que preserve a regra de
-  FR-006. [NEEDS CLARIFICATION: as explicações são geradas uma vez por preset, revisadas pelo autor e
-  guardadas como dado — ou geradas por chamada ao LLM em tempo de execução, com cache? A segunda
-  consome a cota de 20 requisições/dia do Gemini e permite o modelo acrescentar fatos próprios.]
+- **FR-007**: As explicações por componente MUST ser geradas uma vez por preset a partir do material
+  pesquisado, revisadas e aprovadas pelo autor, e guardadas como dado versionado; nenhuma chamada a
+  LLM acontece em tempo de execução para produzi-las (Clarifications, 2026-10-03).
 - **FR-008**: O conteúdo (designs, resumos, limitações, explicações) MUST ser dado versionado, nunca
   gerado em tempo de execução sem revisão. O rascunho pode ser assistido por LLM, mas MUST ser
   aprovado pelo autor antes da implementação — mesmo gate do M2.6/M2.7.
@@ -171,10 +181,10 @@ cumpre o critério de saída com um só.
 - **FR-010**: Este marco MUST NOT alterar o engine, a rota do narrador existente, o prompt do
   narrador (v3) nem a exibição das 7 dimensões — as explicações nunca agregam as dimensões numa
   nota única (Constitution V).
-- **FR-011**: A primeira leva é GitHub (P0), Discord, iFood, Nubank e Netflix; cada preset MUST entrar
-  só se cumprir FR-003. [NEEDS CLARIFICATION: a pesquisa não achou fonte primária verificável para o
-  Netflix (o Tech Blog respondeu bloqueado) — adiar o Netflix, ou o autor indica uma fonte
-  alcançável?]
+- **FR-011**: A primeira leva é GitHub (P0, o preset do MVP), Discord, iFood, Nubank e Netflix; cada
+  preset MUST entrar só se cumprir FR-003, e é um incremento independente (cada um passa pelo gate de
+  revisão do FR-008). O preset do Netflix, por só ter fontes primárias finas, MAY ter menos
+  componentes que os demais.
 
 ### Key Entities
 
@@ -190,8 +200,9 @@ cumpre o critério de saída com um só.
 
 ### Measurable Outcomes
 
-- **SC-001**: 100% dos componentes e conexões de cada preset entregue têm uma fonte aberta e lida
-  listada (conferível numa lista de rastreabilidade revisada pelo autor).
+- **SC-001**: 100% dos componentes de cada preset entregue têm uma fonte aberta e lida listada, e
+  100% das conexões são afirmadas por uma fonte ou marcadas como inferidas (conferível numa lista de
+  rastreabilidade revisada pelo autor).
 - **SC-002**: Pelo menos 1 preset pode ser carregado e **todos** os seus componentes têm explicação
   — o critério de saída do marco.
 - **SC-003**: 100% dos presets passam nas regras de conexão do canvas e na validação estrutural do
@@ -210,5 +221,6 @@ cumpre o critério de saída com um só.
 - O M2.7 (biblioteca) e o M2.8 (gamificação) são independentes deste marco.
 - A fonte web é um tipo novo (a citação do M2.6 é só livro + autor); a modelagem fica pro
   `/speckit-plan`.
-- O mecanismo de explicação (FR-007) e a primeira leva (FR-011) dependem das duas respostas pendentes;
-  o resto da spec não.
+- A explicação "pelo LLM" do roadmap passa a significar **LLM como ferramenta de rascunho em tempo
+  de autoria, com revisão do autor** — não o narrador em tempo de execução. É decisão do autor
+  (Clarifications) e atualiza a leitura do critério de saída do roadmap.
