@@ -34,23 +34,29 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Plano ativo**: M2.6 — Fundamentos de arquitetura
-([specs/fundamentos-arquitetura/plan.md](specs/fundamentos-arquitetura/plan.md)), branch
-`feature/001-architecture-fundamentals-knowledge-base` (contém também todos os commits de M2, que
-não foi PR'd/merged antes desta branch ser criada). **Código completo de US1-US4** (pacote novo
-`packages/knowledge` — 7 fichas de característica + 4 de estilo, dicas de responsabilidade/
-acoplamento nos 3 problemas, UI de ficha em `ScorePanel`/`ChallengeTopBar`, narrador citando uma
-ficha real via `citation_id` com fonte atribuída na UI) — `tsc`/433 testes/build limpos nos 5
-pacotes. **US4 foi desbloqueada e implementada antes do critério de saída de M2 ser verificado** —
-decisão do autor, 2026-09-26 (ver `docs/product-context.md`, "Ordem fora de sequência"):
-consequência é que a verificação de 20 submissões de M2 precisa ser refeita contra o prompt atual
-(`NARRATOR_PROMPT_VERSION`, versiona o hash de cache pra não colidir com o prompt antigo).
-**Verificação manual concluída em 2026-09-27** (US1-US4 confirmados no browser, dados reais) — achou
-e corrigiu 2 bugs reais no processo (`specs/fundamentos-arquitetura/tasks.md`, achados 3 e 4): commit
-`9956fcf` (narrador 500-ava em design saturado) e o timeout do narrador (`NARRATOR_TIMEOUT_MS`),
-curto demais na prática pra `gemini-2.5-flash` com `responseSchema` (~5.8s medido), subido de 5s
-pra 15s (decisão do autor) — RNF-5/SC-003 de M2 e a tabela de NFRs de `docs/product-context.md`
-atualizados junto.
+**Plano ativo**: M2.7 — Biblioteca de princípios de arquitetura
+([specs/biblioteca-principios-arquitetura/plan.md](specs/biblioteca-principios-arquitetura/plan.md)), branch
+`feature/001-architecture-principles-library`. **Código completo (T001–T011, T013, T015, T017–T019)**:
+`packages/knowledge` ganhou a biblioteca (39 entradas aprovadas pelo autor em 2026-10-03 — 9 de Clean
+Architecture incluindo os 5 SOLID, 19 características de Richards & Ford fora das 7 dimensões, 11
+padrões do Fowler só como leitura), `validateLibraryEntries`, rota `/app/biblioteca` (herda o guard
+do layout), busca sem acento e o link "Ler na biblioteca" nas 3 dicas do M2.6 (`Hint.libraryEntryId`)
+— `tsc`/481 testes/build limpos. Engine, narrador, banco e `NARRATOR_PROMPT_VERSION` intocados.
+**Pendente**: verificação manual no browser (T012/T014/T016/T020), depois promover `spec.md` a `Done`.
+
+Em fila, na ordem: **M2.5** Arquiteturas de referência
+([specs/arquiteturas-referencia/tasks.md](specs/arquiteturas-referencia/tasks.md) — spec `Ready`, plan e
+tasks prontos; aguarda o autor aprovar o `content-draft.md` do preset do GitHub) e **M2.8** Gamificação
+([specs/gamificacao-progresso-conta/spec.md](specs/gamificacao-progresso-conta/spec.md) — `Draft`, 3
+perguntas abertas). Ordem fora de sequência registrada no roadmap como decisão do autor.
+
+M2.6 — Fundamentos de arquitetura ([specs/fundamentos-arquitetura/plan.md](specs/fundamentos-arquitetura/plan.md)):
+**código completo e verificado no browser (2026-09-27)** — `packages/knowledge` (7 fichas de característica + 4
+de estilo), dicas de responsabilidade/acoplamento, UI de ficha, narrador citando uma ficha real via
+`citation_id`. Achou e corrigiu 2 bugs reais (narrador 500-ava em design saturado; timeout do narrador
+subido de 5s pra 15s por decisão do autor — RNF-5/SC-003 de M2 atualizados). US4 foi implementada antes
+do critério de saída do M2 (decisão do autor, 2026-09-26). O `spec.md` ainda está `Ready` (não promovido
+a `Done`).
 
 M2 — Avaliação e biblioteca ([specs/avaliacao-biblioteca-m2/plan.md](specs/avaliacao-biblioteca-m2/plan.md)):
 **código completo** (US1-US4: score por dimensão, narrador via Google Gemini `gemini-2.5-flash`,

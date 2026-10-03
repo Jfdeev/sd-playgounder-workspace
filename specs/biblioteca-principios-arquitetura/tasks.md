@@ -123,10 +123,10 @@ existir para o vínculo resolver).
 
 ## Phase 7: Polish
 
-- [ ] T021 `pnpm -r test`, `pnpm -r exec tsc --noEmit` e `pnpm --filter web build` limpos; confirmar
+- [x] T021 `pnpm -r test`, `pnpm -r exec tsc --noEmit` e `pnpm --filter web build` limpos; confirmar
       que `packages/engine`, `packages/narrator`, `apps/web/src/app/api/narrator`, `apps/web/src/db` e
       `NARRATOR_PROMPT_VERSION` **não aparecem no diff** (FR-009, SC-004/005)
-- [ ] T022 Atualizar `docs/product-context.md` §10 (status real do M2.7 — quais categorias entraram) e
+- [x] T022 Atualizar `docs/product-context.md` §10 (status real do M2.7 — quais categorias entraram) e
       `CLAUDE.md` "Plano ativo"
 - [ ] T023 Promover `**Status**` de `spec.md` para `Done` **só** depois da verificação manual de
       T012/T014/T016/T020 e da aprovação de todo o conteúdo (SC-001: 100% da lista aprovada acessível)
