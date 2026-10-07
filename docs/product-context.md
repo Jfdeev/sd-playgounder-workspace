@@ -276,6 +276,13 @@ Também decidido: o preset do MVP é o **GitHub**; uma conexão de preset é *af
 *inferida* (e marcada); o Netflix fica na leva, mas fino (só o que as fontes primárias alcançáveis
 afirmam).
 
+**Status (2026-10-07)**: critério de saída atingido com o preset do **GitHub** (aprovado pelo autor em
+2026-10-07): menu "Arquiteturas" no canvas livre, resumo/fontes/limitações/conexões inferidas antes de
+carregar, "Por que está aqui" em cada um dos 6 componentes, aviso de valores ilustrativos no resultado.
+`tsc`/499 testes/build limpos; engine, narrador, banco e `NARRATOR_PROMPT_VERSION` intocados.
+Verificado no browser (US1–US3). **Pendente**: US4 — Discord, iFood, Nubank e Netflix, cada um com o
+seu gate de conteúdo.
+
 ### M2.6 — Fundamentos de arquitetura (inserido após M2.5 — decisão do autor, 2026-09-24)
 
 Base de conhecimento **pesquisada previamente** (mesma regra de M2.5: fidelidade real, nunca

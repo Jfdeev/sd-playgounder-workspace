@@ -34,7 +34,15 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Plano ativo**: nenhum — M2.7 concluído; próximo da fila abaixo.
+**Plano ativo**: M2.5 — Arquiteturas de referência
+([specs/arquiteturas-referencia/tasks.md](specs/arquiteturas-referencia/tasks.md)), branch
+`feature/001-reference-architectures-presets`. **US1–US3 completas e verificadas no browser
+(2026-10-07)** com o preset do GitHub (aprovado pelo autor em 2026-10-07): `packages/knowledge` ganhou
+`reference-architectures` (tipos, 7 invariantes, `toDesign`) + `presets/github.ts`; `apps/web` ganhou o
+menu "Arquiteturas" (só no canvas livre), `loadedPresetId` no store, "Por que está aqui" no nó e o aviso
+de valores ilustrativos — `tsc`/499 testes/build limpos. Engine, narrador, banco e
+`NARRATOR_PROMPT_VERSION` intocados. **Pendente**: US4 (Discord, iFood, Nubank, Netflix — cada um com
+gate de conteúdo) e promover `spec.md` a `Done`.
 
 M2.7 — Biblioteca de princípios de arquitetura
 ([specs/biblioteca-principios-arquitetura/plan.md](specs/biblioteca-principios-arquitetura/plan.md)):
@@ -46,9 +54,7 @@ leitura), `validateLibraryEntries`, rota `/app/biblioteca` (herda o guard do lay
 `tsc`/482 testes/build limpos. Engine, narrador, banco e `NARRATOR_PROMPT_VERSION` intocados. A
 verificação achou e corrigiu 1 bug (busca por "solid" vazia).
 
-Em fila, na ordem: **M2.5** Arquiteturas de referência
-([specs/arquiteturas-referencia/tasks.md](specs/arquiteturas-referencia/tasks.md) — spec `Ready`, plan e
-tasks prontos; aguarda o autor aprovar o `content-draft.md` do preset do GitHub) e **M2.8** Gamificação
+Em fila: **M2.8** Gamificação
 ([specs/gamificacao-progresso-conta/spec.md](specs/gamificacao-progresso-conta/spec.md) — `Draft`, 3
 perguntas abertas). Ordem fora de sequência registrada no roadmap como decisão do autor.
 

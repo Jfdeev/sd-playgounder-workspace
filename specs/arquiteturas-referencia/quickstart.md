@@ -3,6 +3,9 @@
 Verificação por user story, no padrão dos marcos anteriores: `apps/web` não testa componente React
 (convenção de M0.5) — a UI é conferida no browser; dados e a integridade dos presets têm teste.
 
+**US1–US3 verificados no browser em 2026-10-07** com o preset do GitHub (conta de teste throwaway
+criada e apagada na mesma sessão). US4 (demais empresas) ainda não começou.
+
 ## Pré-requisito
 
 ```bash
