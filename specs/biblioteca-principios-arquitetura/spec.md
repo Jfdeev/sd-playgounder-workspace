@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-03
 
-**Status**: Draft
+**Status**: Done
 
 **Input**: User description: "M2.7 — ampliar a base de conhecimento do M2.6, que ficou fraca: faltam coisas que o autor viu nos livros (SOLID é um exemplo). Cobrir as três obras-fonte — Clean Architecture (Robert C. Martin), Fundamentals of Software Architecture (Mark Richards & Neal Ford) e Patterns of Enterprise Application Architecture (Martin Fowler) — numa biblioteca navegável."
 
@@ -27,6 +27,12 @@ Fronteira com o M4: o roadmap já prevê uma "wiki de conceitos linkada aos prob
 "progresso por conceito" no M4. M2.7 entrega **a biblioteca** (o conteúdo e a navegação); o M4
 depois a conecta ao progresso do usuário e ao mapeamento completo problema ↔ conceito. M2.7 não
 duplica isso.
+
+## Clarifications
+
+### Session 2026-10-03
+
+- Q: Como definimos a lista de princípios, características e padrões da primeira leva? → A: Proposta rascunhada pelo agente a partir de fontes públicas (sumário do *Clean Architecture*, catálogo oficial de padrões do próprio Fowler, resumos de terceiros do cap. 4 de Richards & Ford) e **aprovada pelo autor como está**. Primeira leva: 9 entradas de *Clean Architecture* (SRP, OCP, LSP, ISP, DIP, Regra de Dependência, Fronteiras, "o banco de dados é um detalhe", "frameworks são detalhes"), as características do cap. 4 de Richards & Ford que **não** são uma das 7 dimensões de score (19), e 11 padrões de Fowler com relevância de infraestrutura (leitura recomendada). Inventário nominal em `research.md`. Segunda leva (princípios de componentes REP/CCP/CRP/ADP/SDP/SAP, estilos de arquitetura além dos 4 templates, demais padrões do Fowler) fica fora deste marco.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -147,9 +153,10 @@ confirmar que há um caminho direto até a entrada.
 - **FR-002**: Toda entrada MUST ter definição e fonte bibliográfica exata (obra + autor); nenhuma
   entrada pode existir sem fonte rastreável.
 - **FR-003**: A categoria de princípios de *Clean Architecture* MUST incluir os cinco princípios
-  SOLID — pedido explícito do autor. A lista dos demais princípios, características e padrões da
-  primeira leva é [NEEDS CLARIFICATION: o autor ainda não passou a lista concreta do que quer
-  cobrir de cada livro — sem ela, o escopo do marco não está fechado].
+  SOLID — pedido explícito do autor. A primeira leva, aprovada pelo autor em 2026-10-03
+  (Clarifications), tem 39 entradas: 9 de *Clean Architecture*, 19 características de Richards &
+  Ford fora das 7 dimensões de score, e 11 padrões de Fowler; o inventário nominal está em
+  `research.md`. Itens fora dessa lista não entram neste marco.
 - **FR-004**: Toda entrada de princípio de nível de código MUST indicar explicitamente se tem
   correspondência com a topologia que a plataforma simula; quando não tiver, a ficha diz isso, em
   vez de forçar uma analogia.
@@ -208,5 +215,6 @@ confirmar que há um caminho direto até a entrada.
   completo problema ↔ conceito. Se o autor quiser puxar parte disso pra cá, é uma decisão dele,
   não deste rascunho.
 - O narrador não consome a biblioteca neste marco (ver FR-009); reabrir isso é um marco futuro.
-- O autor é quem fornece a lista de princípios/características/padrões da primeira leva — este
-  rascunho não a inventa (FR-003).
+- A lista da primeira leva foi aprovada pelo autor (Clarifications); as **definições** de cada
+  entrada continuam sendo rascunho assistido por LLM, sujeito ao gate de revisão do FR-006 antes da
+  implementação.

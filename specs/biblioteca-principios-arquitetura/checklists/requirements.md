@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,8 +31,8 @@
 
 ## Notes
 
-- 1 marcador [NEEDS CLARIFICATION] aberto (FR-003): a lista concreta de princípios, características
-  e padrões da primeira leva. É deliberado — o rascunho não inventa o inventário (FR-006: quem
-  rascunha não tem acesso aos livros). Resolver em `/speckit-clarify`. Checklist 15/16.
-- A fronteira com o M4 (wiki de conceitos, progresso por conceito) está declarada no Contexto e nas
-  Assumptions; mover parte disso pra cá é decisão do autor.
+- O único marcador [NEEDS CLARIFICATION] (FR-003, lista da primeira leva) foi resolvido em
+  `/speckit-clarify`, Session 2026-10-03 — ver `## Clarifications` em spec.md. Checklist 15/16 →
+  16/16.
+- A fronteira com o M4 (wiki de conceitos, progresso por conceito) continua declarada no Contexto
+  e nas Assumptions.

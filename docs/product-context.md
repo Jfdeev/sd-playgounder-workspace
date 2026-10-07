@@ -367,6 +367,13 @@ ao progresso).
 consegue abrir a biblioteca, encontrá-lo e ver definição + fonte bibliográfica exata — nenhum
 conteúdo sem citação rastreável.
 
+**Status (2026-10-07)**: **concluído** — código completo — `packages/knowledge` ganhou a biblioteca (39 entradas
+aprovadas pelo autor: 9 de Clean Architecture incluindo os 5 SOLID, 19 características de Richards &
+Ford fora das 7 dimensões, 11 padrões do Fowler só como leitura), rota `/app/biblioteca`, busca e o
+link "Ler na biblioteca" nas 3 dicas do M2.6. `tsc`/482 testes/build limpos; engine, narrador, banco e
+`NARRATOR_PROMPT_VERSION` intocados. Verificado no browser em 2026-10-07 (US1–US4); a verificação
+achou e corrigiu a busca por "solid", que voltava vazia. `spec.md` em `Done`.
+
 ### M2.8 — Gamificação e progresso na conta (inserido após M2.7 — decisão do autor, 2026-10-03)
 
 Hoje a conta do usuário não guarda nada de útil: progresso de desafios e designs ficam só no
