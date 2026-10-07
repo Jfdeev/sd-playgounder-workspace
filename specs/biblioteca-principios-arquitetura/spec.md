@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-03
 
-**Status**: Ready
+**Status**: Done
 
 **Input**: User description: "M2.7 — ampliar a base de conhecimento do M2.6, que ficou fraca: faltam coisas que o autor viu nos livros (SOLID é um exemplo). Cobrir as três obras-fonte — Clean Architecture (Robert C. Martin), Fundamentals of Software Architecture (Mark Richards & Neal Ford) e Patterns of Enterprise Application Architecture (Martin Fowler) — numa biblioteca navegável."
 

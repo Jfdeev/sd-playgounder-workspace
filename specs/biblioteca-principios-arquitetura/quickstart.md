@@ -3,6 +3,10 @@
 Verificação por user story — mesmo padrão dos marcos anteriores: `apps/web` não testa componente React
 (convenção de M0.5), então a parte de UI é conferida no browser; dados e lógica pura têm teste.
 
+**Verificado de ponta a ponta em 2026-10-07** (login via conta de teste throwaway criada e apagada na
+mesma sessão) — US1/US2/US3/US4, busca e não-regressão confirmados. Achou e corrigiu 1 bug (busca por
+"solid" vazia — tasks.md, achado da verificação manual).
+
 ## Pré-requisito
 
 ```bash

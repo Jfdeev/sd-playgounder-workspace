@@ -34,15 +34,17 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Plano ativo**: M2.7 — Biblioteca de princípios de arquitetura
-([specs/biblioteca-principios-arquitetura/plan.md](specs/biblioteca-principios-arquitetura/plan.md)), branch
-`feature/001-architecture-principles-library`. **Código completo (T001–T011, T013, T015, T017–T019)**:
-`packages/knowledge` ganhou a biblioteca (39 entradas aprovadas pelo autor em 2026-10-03 — 9 de Clean
-Architecture incluindo os 5 SOLID, 19 características de Richards & Ford fora das 7 dimensões, 11
-padrões do Fowler só como leitura), `validateLibraryEntries`, rota `/app/biblioteca` (herda o guard
-do layout), busca sem acento e o link "Ler na biblioteca" nas 3 dicas do M2.6 (`Hint.libraryEntryId`)
-— `tsc`/481 testes/build limpos. Engine, narrador, banco e `NARRATOR_PROMPT_VERSION` intocados.
-**Pendente**: verificação manual no browser (T012/T014/T016/T020), depois promover `spec.md` a `Done`.
+**Plano ativo**: nenhum — M2.7 concluído; próximo da fila abaixo.
+
+M2.7 — Biblioteca de princípios de arquitetura
+([specs/biblioteca-principios-arquitetura/plan.md](specs/biblioteca-principios-arquitetura/plan.md)):
+**concluído e verificado no browser (2026-10-07)**, `spec.md` em `Done`. `packages/knowledge` ganhou a
+biblioteca (39 entradas aprovadas pelo autor em 2026-10-03 — 9 de Clean Architecture incluindo os 5
+SOLID, 19 características de Richards & Ford fora das 7 dimensões, 11 padrões do Fowler só como
+leitura), `validateLibraryEntries`, rota `/app/biblioteca` (herda o guard do layout), busca sem acento
+(por nome, id ou grupo) e o link "Ler na biblioteca" nas 3 dicas do M2.6 (`Hint.libraryEntryId`) —
+`tsc`/482 testes/build limpos. Engine, narrador, banco e `NARRATOR_PROMPT_VERSION` intocados. A
+verificação achou e corrigiu 1 bug (busca por "solid" vazia).
 
 Em fila, na ordem: **M2.5** Arquiteturas de referência
 ([specs/arquiteturas-referencia/tasks.md](specs/arquiteturas-referencia/tasks.md) — spec `Ready`, plan e
@@ -70,7 +72,7 @@ com o λ total em vez de usar ρ; ramo async pesado escondia o ramo síncrono da
 ponderava percentis por (1−h) em vez do limiar de cauda) — números mudam pro mesmo design, então
 o cache do narrador foi invalidado e submissões observadas antes disso não contam.
 
-Marcos concluídos: M2 (Avaliação e biblioteca, com ressalva — acima), M1.5 (Catálogo expandido de componentes,
+Marcos concluídos: M2.7 (Biblioteca de princípios, acima), M2 (Avaliação e biblioteca, com ressalva — acima), M1.5 (Catálogo expandido de componentes,
 [specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md)), M1 (Canvas e
 submissão, [specs/canvas-submissao-m1/plan.md](specs/canvas-submissao-m1/plan.md)), M0.5 (Landing
 Page e Conta, [specs/landing-page-conta-m0-5/plan.md](specs/landing-page-conta-m0-5/plan.md)) — mais

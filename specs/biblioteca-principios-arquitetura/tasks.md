@@ -70,8 +70,11 @@ topologia. **Independent Test**: quickstart.md §US1.
 - [x] T011 [US1] Em `apps/web/src/components/canvas/challenge-topbar.tsx`: link "Biblioteca"
       (`next/link`, ícone `BookOpen`) ao lado de Desafios/Templates/Calculadora, para `/app/biblioteca`
       — o autosave por design já preserva o canvas ao navegar (research.md §2.3)
-- [ ] T012 [US1] Verificação manual — quickstart.md §US1 (SRP com analogia; LSP e ISP com "nenhuma"; os
-      5 SOLID presentes; busca; alcançável em ≤ 3 interações — SC-003)
+- [x] T012 [US1] Verificação manual — quickstart.md §US1 (SRP com analogia; LSP e ISP com "nenhuma"; os
+      5 SOLID presentes; busca; alcançável em ≤ 3 interações — SC-003). **Confirmado no browser
+      (2026-10-07)**: SRP com "Analogia com a topologia", LSP/ISP com "Sem correspondência na topologia",
+      fonte só obra + autor; app → "Biblioteca" → entrada = 2 interações. A busca por "solid" dava estado
+      vazio — achado abaixo, corrigido
 
 ## Phase 4: US2 — Características além das 7 dimensões (P2)
 
@@ -84,8 +87,10 @@ topologia. **Independent Test**: quickstart.md §US1.
       `content-draft.md` §2 (4 operacionais, 9 estruturais, 6 transversais), cada uma com a
       `platformNote` "a plataforma não calcula esta característica" e
       `source: FUNDAMENTALS_OF_SOFTWARE_ARCHITECTURE`; registrar em `LIBRARY_ENTRIES`
-- [ ] T014 [US2] Verificação manual — quickstart.md §US2 (nenhuma das 7 dimensões na lista;
-      autenticação e autorização dizem que são cobertas pela dimensão Segurança)
+- [x] T014 [US2] Verificação manual — quickstart.md §US2 (nenhuma das 7 dimensões na lista;
+      autenticação e autorização dizem que são cobertas pela dimensão Segurança). **Confirmado no
+      browser (2026-10-07)**: 19 características, nenhuma dimensão de score; Recuperabilidade com a nota
+      "não calcula"; Autenticação/Autorização com "coberta pela dimensão Segurança"
 
 ## Phase 5: US3 — Padrões do Fowler como leitura (P3)
 
@@ -98,9 +103,11 @@ topologia. **Independent Test**: quickstart.md §US1.
       `platformNote` "leitura recomendada — não é componente do canvas nem algo que o engine calcula" e
       `source: PATTERNS_OF_ENTERPRISE_APPLICATION_ARCHITECTURE`; `group` = categoria do catálogo do
       Fowler; registrar em `LIBRARY_ENTRIES`
-- [ ] T016 [US3] Verificação manual — quickstart.md §US3 (definição + fonte + "leitura recomendada";
+- [x] T016 [US3] Verificação manual — quickstart.md §US3 (definição + fonte + "leitura recomendada";
       o menu de componentes do canvas **não** ganhou item — SC-005; o teste de catálogo do engine, já
-      existente, continua verde em `pnpm -r test`)
+      existente, continua verde em `pnpm -r test`). **Confirmado no browser (2026-10-07)**: Repository com
+      definição, "Leitura recomendada" e fonte (Fowler); a paleta do canvas não tem nenhum item PoEAA;
+      `git diff main...HEAD` não toca engine/narrador/banco
 
 ## Phase 6: US4 — Da dica à biblioteca (P4)
 
@@ -118,8 +125,9 @@ existir para o vínculo resolver).
 - [x] T019 [US4] Em `apps/web/src/components/canvas/challenge-card.tsx`: quando a dica aberta tem
       `libraryEntryId`, mostrar o link "Ler na biblioteca" (`next/link` →
       `/app/biblioteca?entry=<id>`) abaixo do corpo; sem `libraryEntryId`, nada é renderizado
-- [ ] T020 [US4] Verificação manual — quickstart.md §US4 (a dica do Encurtador abre o SRP; a dica de
-      p99 não mostra link)
+- [x] T020 [US4] Verificação manual — quickstart.md §US4 (a dica do Encurtador abre o SRP; a dica de
+      p99 não mostra link). **Confirmado no browser (2026-10-07)**: "Ler na biblioteca" na dica de
+      Cache/Store leva a `/app/biblioteca?entry=srp` com o SRP aberto; a dica de p99 não tem link
 
 ## Phase 7: Polish
 
@@ -128,8 +136,15 @@ existir para o vínculo resolver).
       `NARRATOR_PROMPT_VERSION` **não aparecem no diff** (FR-009, SC-004/005)
 - [x] T022 Atualizar `docs/product-context.md` §10 (status real do M2.7 — quais categorias entraram) e
       `CLAUDE.md` "Plano ativo"
-- [ ] T023 Promover `**Status**` de `spec.md` para `Done` **só** depois da verificação manual de
+- [x] T023 Promover `**Status**` de `spec.md` para `Done` **só** depois da verificação manual de
       T012/T014/T016/T020 e da aprovação de todo o conteúdo (SC-001: 100% da lista aprovada acessível)
+
+**Achado da verificação manual no browser (2026-10-07), corrigido**: buscar "solid" mostrava o
+estado vazio — o filtro (`apps/web/src/lib/library-search.ts`) só casava nome e id, e "SOLID" só
+aparece no `group` ("Princípios de design (SOLID)"), apesar de o próprio placeholder do campo sugerir
+"ex.: SOLID". O filtro passou a casar também o grupo; teste novo em
+`apps/web/test/library-search.spec.ts` ("solid" → exatamente os 5 SOLID). Login via conta de teste
+throwaway (`m27-verificacao-qa@example.com`), apagada do banco ao final.
 
 ## Dependências
 
