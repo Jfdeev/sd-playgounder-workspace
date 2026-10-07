@@ -65,6 +65,29 @@ O que **não** é afirmado pelas fontes lidas (**fica fora**): pipeline Kafka→
 reprodução, o grafo de chamadas entre microsserviços, a separação plano de controle (AWS) × plano de
 dados (Open Connect). Esses pontos aparecem só em resumos de terceiros.
 
+### Leitura de 2026-10-07 (US4 — T018/T020/T022/T024)
+
+Mesmo critério (página respondeu 200 e o texto foi lido, buscado cru). Rascunhos resultantes:
+`content-draft-discord.md`, `-ifood-search.md`, `-nubank-defense.md`, `-netflix.md`, gerados do dado em
+`content-drafts-us4.data.ts`, que já passou no validador, na matriz de conexões e em `simulate()`.
+
+| Empresa | Fonte (publicador) | Status | Uso |
+|---|---|---|---|
+| Discord | [How Discord Stores Trillions of Messages](https://discord.com/blog/how-discord-stores-trillions-of-messages) (Discord, 2023) | Lido (relido) | monolito de API → data services (Rust) → ScyllaDB; **72 nós** ScyllaDB (antes 177 Cassandra) — confirma o número que antes só aparecia em resumo de terceiros |
+| Discord | [How Discord Scaled Elixir to 5,000,000 Concurrent Users](https://discord.com/blog/how-discord-scaled-elixir-to-5-000-000-concurrent-users) (Discord, 2017) | Lido | sessões WebSocket em Elixir → processos de guild (fan-out, pub/sub) |
+| Discord | [How Discord Indexes Billions of Messages](https://discord.com/blog/how-discord-indexes-billions-of-messages) (Discord, 2017) | Lido — **fora** | busca (fila + workers + Elasticsearch, mapeamento em Cassandra/Redis); era anterior ao ScyllaDB, fica fora para não misturar mais um momento |
+| iFood | [Como Funciona a Busca do iFood?](https://tech.ifood.com.br/engenharia/como-funciona-a-busca-do-ifood/) (iFood, 2026) | Lido | Discovery Search Service, Elasticsearch (léxica/semântica/híbrida, HNSW, H3), Merchant/Item Enrichment API, reranking; p99 ~1,2 s |
+| iFood | [Compressão de tópicos Kafka](https://tech.ifood.com.br/engenharia/otimizacao-de-custos-em-escala-o-impacto-da-compressao-de-topicos-kafka-no-ifood/) (iFood) | Lido — **fora** | confirma Kafka (Confluent Cloud) e Kubernetes, sem componentes e conexões da busca |
+| iFood | [Foodscale](https://tech.ifood.com.br/engenharia/30-clusters-zero-planilhas-nossa-jornada-para-scaling-inteligente-com-o-foodscale/) (iFood) | Lido — **fora** | ferramenta interna de escala (30+ clusters Kubernetes), não arquitetura de produto |
+| iFood | AWS Brasil: middleware financeiro (DBY) | Lido — **fora** | publicador AWS e outro sistema (plataforma financeira interna) |
+| iFood | AWS Brasil: recomendações; Confluent: iFood | Abertas — **fora** | publicador secundário (AWS/vendor); a regra do spec deixa de fora quando há fonte primária |
+| Nubank | [Scaling fraud defense](https://building.nubank.com/scaling-fraud-defense-how-nubank-evolved-its-risk-analysis-platform/) (Nubank) | Lido | Defense Platform: Flow Orchestrator, features (bancos internos e provedores), ações síncronas/assíncronas, ETL, Clojure + Datomic sobre DynamoDB + Kafka, 20 shards no Brasil. **A parte da AWS no mesmo post (Rekognition, Textract, SageMaker, Neptune, CleanRooms) é demonstração da AWS — fora** |
+| Nubank | [Why We Killed Our End-to-End Test Suite](https://building.nubank.com/why-we-killed-our-end-to-end-test-suite/) (Nubank) | Lido | regra geral: mutações assíncronas via Kafka, HTTP quase só para leitura |
+| Nubank | [10 years of engineering](https://building.nubank.com/engineering-lessons-from-scaling-million-customers/), [Inside Nubank's engineering](https://building.nubank.com/engineering-behind-the-scenes-innovation-nubank/), [Platformization](https://building.nubank.com/meetup-platform-architecture-career-growth/) (Nubank) | Lido — **fora** | só pilha técnica e evolução; sem componentes e conexões |
+| Netflix | [How Netflix Works With ISPs](https://about.netflix.com/en/news/how-netflix-works-with-isps-around-the-globe-to-deliver-a-great-viewing-experience) (Netflix, 2016) | Lido | antes do play na AWS, depois do play no Open Connect; ~1.000 locais; repositório de transcodificação nos EUA e pré-posicionamento fora do pico — **é a fonte primária que faltava** para a separação nuvem × Open Connect |
+| Netflix | [Eureka at a glance](https://github.com/Netflix/eureka/wiki/Eureka-at-a-glance), [EVCache wiki](https://github.com/netflix/evcache/wiki), Open Connect (home e appliances), READMEs Zuul/EVCache/Priam (Netflix) | Lido | descoberta no meio da camada, cache memcached com hash consistente e réplica entre zonas, appliances que reportam saúde |
+| Netflix | Tech Blog (Zuul 2, EVCache em SSD) | **Inacessível (403)** | continua fora |
+
 ## 2. Viabilidade: o catálogo e a matriz de conexões aguentam os presets?
 
 Verificado contra `apps/web/src/lib/connection-rules.ts` (lido inteiro). Exemplo do GitHub — todas as

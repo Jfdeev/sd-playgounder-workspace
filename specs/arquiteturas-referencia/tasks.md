@@ -103,20 +103,20 @@ antes de confirmar. **Independent Test**: quickstart.md §US1.
 
 Cada preset é um incremento **independente**, com o seu gate. Ordem sugerida pela solidez das fontes.
 
-- [ ] T018 [P] [US4] **Discord** — a fonte já foi lida (`research.md` §1). Conferir os números do
+- [x] T018 [P] [US4] **Discord** — a fonte já foi lida (`research.md` §1). Conferir os números do
       cluster do ScyllaDB (só apareciam em resumo de terceiros), redigir `content-draft` do preset
       (monolito de API → data services → ScyllaDB; request coalescing e hash consistente em
-      limitações) e **submeter ao autor**
+      limitações) e **submeter ao autor** **Redigido e submetido (2026-10-07)**: `content-draft-discord.md`.
 - [ ] T019 [US4] Após aprovação: criar `packages/knowledge/src/presets/discord.ts` e registrar
-- [ ] T020 [P] [US4] **iFood** — **ler** as 4 fontes "abertas, não lidas"; se sustentarem os
+- [x] T020 [P] [US4] **iFood** — **ler** as 4 fontes "abertas, não lidas"; se sustentarem os
       componentes, redigir e submeter ao autor; senão, registrar em `research.md` que o preset fica de
-      fora
+      fora **Redigido e submetido (2026-10-07)**: `content-draft-ifood-search.md`.
 - [ ] T021 [US4] Após aprovação: criar `packages/knowledge/src/presets/ifood.ts` e registrar
-- [ ] T022 [P] [US4] **Nubank** — **ler** `building.nubank.com/engineering-lessons-...`; mesmo critério
-      (Medium e Datomic estão inacessíveis — não contam)
+- [x] T022 [P] [US4] **Nubank** — **ler** `building.nubank.com/engineering-lessons-...`; mesmo critério
+      (Medium e Datomic estão inacessíveis — não contam) **Redigido e submetido (2026-10-07)**: `content-draft-nubank-defense.md`.
 - [ ] T023 [US4] Após aprovação: criar `packages/knowledge/src/presets/nubank.ts` e registrar
-- [ ] T024 [P] [US4] **Netflix (fino)** — só o que Open Connect, Zuul, EVCache, Eureka e Priam
-      afirmam (`research.md` §1); redigir e submeter ao autor
+- [x] T024 [P] [US4] **Netflix (fino)** — só o que Open Connect, Zuul, EVCache, Eureka e Priam
+      afirmam (`research.md` §1); redigir e submeter ao autor **Redigido e submetido (2026-10-07)**: `content-draft-netflix.md`.
 - [ ] T025 [US4] Após aprovação: criar `packages/knowledge/src/presets/netflix.ts` e registrar
 - [ ] T026 [US4] Para cada preset registrado: `pnpm -r test` (T004/T005 rodam sobre ele
       automaticamente) e verificação manual do quickstart.md §US1–US3
