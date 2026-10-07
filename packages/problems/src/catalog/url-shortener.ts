@@ -81,6 +81,7 @@ const HINTS: Problem['hints'] = [
       'acumulando uma responsabilidade que não é dele — daí a topologia em camadas em vez de um ' +
       'nó só fazendo tudo.',
     source: CLEAN_ARCHITECTURE,
+    libraryEntryId: 'srp',
   },
 ];
 

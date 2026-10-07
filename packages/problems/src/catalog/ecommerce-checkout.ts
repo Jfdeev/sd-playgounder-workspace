@@ -81,6 +81,7 @@ const HINTS: Problem['hints'] = [
       'tráfego fica isolada da decisão de processar o pedido — inverter a ordem misturaria as ' +
       'duas responsabilidades.',
     source: CLEAN_ARCHITECTURE,
+    libraryEntryId: 'dip',
   },
 ];
 

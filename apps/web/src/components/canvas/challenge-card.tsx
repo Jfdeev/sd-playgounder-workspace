@@ -25,6 +25,7 @@
  */
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { BookOpen, ChevronDown, ChevronUp, Circle, LogOut, X } from 'lucide-react';
 import type { Problem } from '@sdp/problems';
 import { useCanvasStore } from '@/stores/canvas-store';
@@ -141,7 +142,20 @@ export function ChallengeCard({ problem, onLeave }: { problem: Problem; onLeave:
                   >
                     {hint.prompt}
                   </button>
-                  {openHintId === hint.id && <p className="mt-1 text-xs text-zinc-400">{hint.body}</p>}
+                  {openHintId === hint.id && (
+                    <div className="mt-1 space-y-1">
+                      <p className="text-xs text-zinc-400">{hint.body}</p>
+                      {hint.libraryEntryId && (
+                        <Link
+                          href={`/app/biblioteca?entry=${encodeURIComponent(hint.libraryEntryId)}`}
+                          className="inline-flex items-center gap-1 text-xs text-violet-300 underline hover:text-violet-200"
+                        >
+                          <BookOpen className="size-3" aria-hidden />
+                          Ler na biblioteca
+                        </Link>
+                      )}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

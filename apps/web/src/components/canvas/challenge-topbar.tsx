@@ -11,7 +11,8 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { Blocks, Calculator, ChevronDown, HelpCircle, Lock, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { Blocks, BookOpen, Calculator, ChevronDown, HelpCircle, Lock, Sparkles } from 'lucide-react';
 import { ALL_PROBLEM_IDS, getProblem } from '@sdp/problems';
 import type { TemplateId } from '@sdp/knowledge';
 import { ARCHITECTURE_TEMPLATES, type ArchitectureTemplate } from '@/lib/canvas-templates';
@@ -165,6 +166,15 @@ export function ChallengeTopBar({
           </div>
         )}
       </div>
+
+      {/* M2.7: biblioteca de princípios — página própria (o autosave por design já preserva o canvas ao navegar). */}
+      <Link
+        href="/app/biblioteca"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-3 py-1.5 text-sm text-zinc-200 transition hover:border-violet-500"
+      >
+        <BookOpen className="size-4 text-violet-400" aria-hidden />
+        Biblioteca
+      </Link>
     </div>
   );
 }

@@ -84,6 +84,7 @@ const HINTS: Problem['hints'] = [
       'Concentrar as duas coisas — fonte da verdade e acesso rápido — num componente só seria o ' +
       'tipo de acoplamento que a topologia em nós distintos evita.',
     source: CLEAN_ARCHITECTURE,
+    libraryEntryId: 'srp',
   },
 ];
 

@@ -58,6 +58,8 @@ export type Hint = {
   body: string;
   /** Presente só quando a dica cita um princípio da literatura clássica (M2.6, FR-003/FR-004). */
   source?: Source;
+  /** Id de uma `LibraryEntry` de `@sdp/knowledge` (M2.7) — a dica oferece "Ler na biblioteca" quando presente. */
+  libraryEntryId?: string;
 };
 
 export type Problem = {
