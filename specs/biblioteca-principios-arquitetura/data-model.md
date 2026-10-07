@@ -71,7 +71,7 @@ resolve via `getLibraryEntry` (nunca link morto — US4 cenário 2).
 export function filterLibraryEntries(entries: readonly LibraryEntry[], query: string): LibraryEntry[];
 ```
 
-Casa por nome **e** id, sem acento, case-insensitive; `query` vazia devolve tudo; sem resultado
+Casa por nome, id **e** grupo ("SOLID" só aparece no grupo — achado da verificação manual), sem acento, case-insensitive; `query` vazia devolve tudo; sem resultado
 devolve `[]` (a UI mostra o estado vazio — edge case do spec).
 
 ## Fora do modelo
