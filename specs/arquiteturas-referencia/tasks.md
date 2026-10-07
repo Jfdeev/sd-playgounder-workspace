@@ -133,8 +133,7 @@ Cada preset é um incremento **independente**, com o seu gate. Ordem sugerida pe
 
 **Achados da verificação manual (2026-10-07)**:
 - *Refazer* depois de desfazer o carregamento de um design não restaura o design — o mesmo acontece
-  com Templates (código anterior a este marco), então não é regressão do M2.5; fica registrado fora
-  do marco. *Desfazer* funciona e volta ao par (design, `loadedPresetId`) anterior.
+  com Templates (testado na mesma branch, não na `main`); fica registrado como tarefa à parte. *Desfazer* funciona e volta ao par (design, `loadedPresetId`) anterior.
 - Conteúdo: a limitação "As arestas e3, e4 e e6 são inferidas (ver tabela)" do rascunho virou "(ver as
   conexões inferidas)", porque o menu lista essas conexões (origem → destino + nota) logo abaixo; e os
   nós ganharam um rótulo curto (ex. "Monolito Rails") para o painel — único texto que não estava no

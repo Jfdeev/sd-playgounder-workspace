@@ -1,4 +1,4 @@
-# Rascunho de conteúdo — M2.5, preset do GitHub (MVP) — aguardando aprovação do autor
+# Rascunho de conteúdo — M2.5, preset do GitHub (MVP) — aprovado pelo autor em 2026-10-07
 
 > **Gate (FR-008)**: rascunho assistido por LLM. Cada afirmação abaixo foi tirada de uma página que
 > **abriu e foi lida** (registro em `research.md` §1); a frase de apoio de cada item é paráfrase da
@@ -8,6 +8,10 @@
 >
 > Siglas das fontes: **[P]** *Partitioning GitHub's relational databases to handle scale* ·
 > **[S]** *Stretching Spokes* · **[K]** *How we improved push processing on GitHub*.
+
+> **Ajustes na implementação (2026-10-07), pendentes de OK do autor**: a coluna *Rótulo* (nome curto
+> exibido no painel do nó) e a redação da limitação 3 ("ver as conexões inferidas" em vez de "ver
+> tabela"). O resto é literal ao que foi aprovado.
 
 ## Identidade
 
@@ -21,14 +25,14 @@
 
 `entryNodeIds: ['rails-monolith']` — o cliente é o nó visual do canvas, fora do `Design`.
 
-| id | Tipo no catálogo | Réplicas | Fonte | Explicação (o que aparece em "Por que está aqui") |
-|---|---|---|---|---|
-| `rails-monolith` | `app_server` | 6 *(ilustrativo)* | [P], [K] | "O GitHub começou (segundo o post de 2021, há mais de 10 anos) como uma aplicação Ruby on Rails e o monolito continua no centro: é ele que é notificado de cada push e dispara o processamento. Só no push, mais de 60 pedaços de lógica, pertencentes a 20 serviços, rodam em resposta direta a ele." |
-| `mysql-primary` | `sql_primary` | 2 *(ilustrativo)* | [P] | "Os dados dos recursos centrais (perfis, repositórios, issues e pull requests) ficavam num cluster principal, o `mysql1`. Com o crescimento, foi preciso escalar sempre para máquinas maiores, e um incidente nesse cluster afetava todas as funcionalidades que guardavam dados nele — o que levou ao plano, de 2019, de particionar os bancos relacionais." |
-| `mysql-read-replicas` | `sql_replica` | 4 *(ilustrativo)* | [P] | "Foram adicionadas réplicas de leitura para espalhar a carga de leitura por várias máquinas, aliviando o primário." |
-| `git-fileservers` | `object_storage` *(aproximação)* | 3 *(ilustrativo)* | [S] | "O Spokes guarda várias réplicas de cada repositório Git em fileservers e as mantém sincronizadas; todo push passa por um proxy que replica para vários deles, e a replicação exige ao menos um quórum de réplicas. Espalhar as réplicas aumenta a chance de algumas sobreviverem a um desastre que afete uma grande região." |
-| `push-events` | `kafka` | 3 *(ilustrativo)* | [K] | "Antes, o monolito enfileirava um job enorme (`RepositoryPushJob`) com toda a lógica de push, numa sequência longa e frágil. Agora ele publica um evento por push num tópico Kafka." |
-| `push-workers` | `worker` | 4 *(ilustrativo)* | [K] | "As tarefas de push, agrupadas por serviço dono, passaram a rodar em processos paralelos e isolados. Assim cada time evolui a sua parte sem afetar os outros, nenhuma tarefa espera as demais, e o push é processado com menor latência." |
+| id | Rótulo | Tipo no catálogo | Réplicas | Fonte | Explicação (o que aparece em "Por que está aqui") |
+|---|---|---|---|---|---|
+| `rails-monolith` | Monolito Rails | `app_server` | 6 *(ilustrativo)* | [P], [K] | "O GitHub começou (segundo o post de 2021, há mais de 10 anos) como uma aplicação Ruby on Rails e o monolito continua no centro: é ele que é notificado de cada push e dispara o processamento. Só no push, mais de 60 pedaços de lógica, pertencentes a 20 serviços, rodam em resposta direta a ele." |
+| `mysql-primary` | MySQL principal (mysql1) | `sql_primary` | 2 *(ilustrativo)* | [P] | "Os dados dos recursos centrais (perfis, repositórios, issues e pull requests) ficavam num cluster principal, o `mysql1`. Com o crescimento, foi preciso escalar sempre para máquinas maiores, e um incidente nesse cluster afetava todas as funcionalidades que guardavam dados nele — o que levou ao plano, de 2019, de particionar os bancos relacionais." |
+| `mysql-read-replicas` | Réplicas de leitura do MySQL | `sql_replica` | 4 *(ilustrativo)* | [P] | "Foram adicionadas réplicas de leitura para espalhar a carga de leitura por várias máquinas, aliviando o primário." |
+| `git-fileservers` | Fileservers Git (Spokes) | `object_storage` *(aproximação)* | 3 *(ilustrativo)* | [S] | "O Spokes guarda várias réplicas de cada repositório Git em fileservers e as mantém sincronizadas; todo push passa por um proxy que replica para vários deles, e a replicação exige ao menos um quórum de réplicas. Espalhar as réplicas aumenta a chance de algumas sobreviverem a um desastre que afete uma grande região." |
+| `push-events` | Eventos de push (Kafka) | `kafka` | 3 *(ilustrativo)* | [K] | "Antes, o monolito enfileirava um job enorme (`RepositoryPushJob`) com toda a lógica de push, numa sequência longa e frágil. Agora ele publica um evento por push num tópico Kafka." |
+| `push-workers` | Tarefas de push | `worker` | 4 *(ilustrativo)* | [K] | "As tarefas de push, agrupadas por serviço dono, passaram a rodar em processos paralelos e isolados. Assim cada time evolui a sua parte sem afetar os outros, nenhuma tarefa espera as demais, e o push é processado com menor latência." |
 
 ## Conexões
 
@@ -49,7 +53,8 @@ Todas as arestas são aceitas pela matriz de conexões do canvas (`research.md` 
    catálogo — o banco aparece como um primário e réplicas de leitura, sem o particionamento.
 2. O **proxy do Spokes**, o **three-phase commit** e o **quórum** de réplicas não são representados; os
    fileservers do Git são **aproximados** por `object_storage`, que não é a mesma coisa.
-3. As arestas `e3`, `e4` e `e6` são **inferidas** (ver tabela).
+3. As arestas `e3`, `e4` e `e6` são **inferidas** (ver as conexões inferidas) — no app, o menu lista
+   essas conexões (origem → destino + justificativa) logo abaixo das limitações.
 4. Não há balanceador, borda nem cache no preset porque **as fontes lidas não os afirmam** — não que o
    GitHub não os tenha.
 5. O que as tarefas de push **gravam** depois de consumir os eventos não é afirmado pelas fontes e não
