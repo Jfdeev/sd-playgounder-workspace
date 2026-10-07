@@ -26,6 +26,10 @@ describe('filterLibraryEntries', () => {
     expect(ids('optimistic-offline-lock')).toEqual(['optimistic-offline-lock']);
   });
 
+  it('casa por grupo — "solid" devolve exatamente os 5 princípios SOLID', () => {
+    expect(ids('solid').sort()).toEqual(['dip', 'isp', 'lsp', 'ocp', 'srp']);
+  });
+
   it('uma busca ampla devolve várias entradas', () => {
     expect(ids('lock')).toEqual(expect.arrayContaining(['optimistic-offline-lock', 'pessimistic-offline-lock']));
   });
