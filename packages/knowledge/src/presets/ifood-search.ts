@@ -32,7 +32,7 @@ export const IFOOD_SEARCH_PRESET: ReferenceArchitecture = {
       },
     },
     {
-      id: 'merchant-enrichment', type: 'third_party_api', replicas: 2, label: 'Merchant Enrichment API', sourceIds: ['busca'],
+      id: 'merchant-enrichment', type: 'third_party_api', replicas: 6, label: 'Merchant Enrichment API', sourceIds: ['busca'],
       approximation: 'É uma API interna de outro time do iFood, aproximada por 3rd Party API (o catálogo não liga um App Server a outro).',
       replicasIllustrative: true,
       explanation: {
@@ -41,7 +41,7 @@ export const IFOOD_SEARCH_PRESET: ReferenceArchitecture = {
       },
     },
     {
-      id: 'item-enrichment', type: 'third_party_api', replicas: 2, label: 'Item Enrichment API', sourceIds: ['busca'],
+      id: 'item-enrichment', type: 'third_party_api', replicas: 6, label: 'Item Enrichment API', sourceIds: ['busca'],
       approximation: 'É uma API interna de outro time do iFood, aproximada por 3rd Party API (o catálogo não liga um App Server a outro).',
       replicasIllustrative: true,
       explanation: {

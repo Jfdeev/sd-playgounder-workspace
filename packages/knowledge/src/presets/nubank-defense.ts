@@ -33,7 +33,7 @@ export const NUBANK_DEFENSE_PRESET: ReferenceArchitecture = {
       },
     },
     {
-      id: 'external-providers', type: 'third_party_api', replicas: 2, label: 'Provedores externos', sourceIds: ['defense'], replicasIllustrative: true,
+      id: 'external-providers', type: 'third_party_api', replicas: 6, label: 'Provedores externos', sourceIds: ['defense'], replicasIllustrative: true,
       explanation: {
         text: 'As features também consultam provedores terceiros para completar o contexto do evento (origem, destino, valor e o que mais cada defesa precisar).',
         sourceIds: ['defense'],
@@ -54,7 +54,7 @@ export const NUBANK_DEFENSE_PRESET: ReferenceArchitecture = {
       },
     },
     {
-      id: 'etl', type: 'data_warehouse', replicas: 2, label: 'ETL distribuído', sourceIds: ['defense'],
+      id: 'etl', type: 'data_warehouse', replicas: 3, label: 'ETL distribuído', sourceIds: ['defense'],
       approximation: 'O sistema de ETL distribuído é aproximado por Data Warehouse.',
       replicasIllustrative: true,
       explanation: {

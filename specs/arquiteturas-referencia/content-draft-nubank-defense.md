@@ -23,10 +23,10 @@
 |---|---|---|---|---|---|
 | `flow-orchestrator` | Flow Orchestrator | `app_server` | 6 *(ilustrativo)* | [1] | "O Flow Orchestrator sabe por onde cada tipo de evento precisa passar: num PIX, mais de 40 processos (regras de negócio e modelos de machine learning) podem rodar em paralelo. Ele foi refeito como um grafo acíclico de dependências, com a biblioteca Nodely, e o tempo dos fluxos complexos caiu de 550 ms para cerca de 350 ms. Se uma regra já marca a transação como de alto risco, o modelo, mais lento, nem roda." |
 | `datomic` | Datomic (sobre DynamoDB) | `nosql_kv` *(aproximação)* | 3 *(ilustrativo)* | [1] | "As regras e os modelos puxam dados das features, um sistema que acessa bancos internos, provedores externos e outros serviços. A plataforma é escrita em Clojure, sobre o Datomic rodando em cima do DynamoDB. <br>*Aproximação:* O Datomic é um banco imutável que roda sobre o DynamoDB; o catálogo o representa como NoSQL (KV)." |
-| `external-providers` | Provedores externos | `third_party_api` | 2 *(ilustrativo)* | [1] | "As features também consultam provedores terceiros para completar o contexto do evento (origem, destino, valor e o que mais cada defesa precisar)." |
+| `external-providers` | Provedores externos | `third_party_api` | 6 *(ilustrativo)* | [1] | "As features também consultam provedores terceiros para completar o contexto do evento (origem, destino, valor e o que mais cada defesa precisar)." |
 | `kafka` | Kafka | `kafka` | 3 *(ilustrativo)* | [1], [2] | "O Kafka faz parte da base técnica da plataforma, junto com Clojure e Datomic. No Nubank, a maior parte das interações críticas entre microsserviços acontece por mensagens Kafka: mutações vão por fluxos assíncronos, e chamadas HTTP ficam quase só para leitura." |
 | `async-actions` | Ações assíncronas | `worker` | 4 *(ilustrativo)* | [1] | "Uma decisão pode disparar ações em tempo real (bloquear a transação, mostrar um aviso no app) ou assíncronas, como abrir um caso interno de investigação." |
-| `etl` | ETL distribuído | `data_warehouse` *(aproximação)* | 2 *(ilustrativo)* | [1] | "Todo evento é registrado e empurrado pelo sistema de ETL distribuído do Nubank, que agrega mais de 100 TB de logs por dia, para análise e melhoria contínua das defesas. <br>*Aproximação:* O sistema de ETL distribuído é aproximado por Data Warehouse." |
+| `etl` | ETL distribuído | `data_warehouse` *(aproximação)* | 3 *(ilustrativo)* | [1] | "Todo evento é registrado e empurrado pelo sistema de ETL distribuído do Nubank, que agrega mais de 100 TB de logs por dia, para análise e melhoria contínua das defesas. <br>*Aproximação:* O sistema de ETL distribuído é aproximado por Data Warehouse." |
 
 ## Conexões
 
@@ -47,6 +47,9 @@ Todas as arestas (e as do Cliente até cada entrada) são aceitas pela matriz de
 3. As arestas e3, e4 e e5 são inferidas (ver as conexões inferidas).
 4. As ações em tempo real (bloquear, avisar no app) são a resposta do orquestrador, não um componente.
 5. A parte do mesmo post apresentada pela AWS (Rekognition, Textract, SageMaker, Neptune, CleanRooms) é uma demonstração da AWS, não a arquitetura do Nubank, e fica fora.
+
+> **Ajuste na verificação (2026-10-08)**: réplicas ilustrativas de 3rd Party API / Data Warehouse subiram
+> para o preset não nascer saturado na carga padrão do canvas livre (1.000 rps) — ver tasks.md.
 
 ## Decisões para o autor
 

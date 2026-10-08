@@ -22,8 +22,8 @@
 |---|---|---|---|---|---|
 | `discovery-search` | Discovery Search Service | `app_server` | 6 *(ilustrativo)* | [1] | "O Discovery Search Service coordena a busca. Modelos de machine learning estimam a intenção do termo (um item, um restaurante, um tipo de loja; restaurante, farmácia, mercado...) e escolhem quais índices consultar; um parser, classificadores e um corretor com sinônimos montam os filtros, e o termo é vetorizado. Depois da recuperação, uma etapa de reranking reordena os resultados com sinais como cliques, pedidos, distância, frete e preço. No período citado no post, o p99 do serviço ficou em torno de 1,2 s." |
 | `elasticsearch` | Elasticsearch | `vector_db` *(aproximação)* | 3 *(ilustrativo)* | [1] | "O Elasticsearch guarda os índices da busca: o autocomplete (os termos mais frequentes por prefixo, geolocalização, dia da semana e período do dia) e os documentos recuperados por busca léxica, semântica (vetores com HNSW) ou híbrida, combinadas por Reciprocal Rank Fusion. A área de entrega é resolvida com hexágonos H3, o que transforma a geolocalização numa correspondência de texto. <br>*Aproximação:* O Elasticsearch é aproximado por Vector DB: cobre o índice vetorial (HNSW), não a busca léxica nem o autocomplete." |
-| `merchant-enrichment` | Merchant Enrichment API | `third_party_api` *(aproximação)* | 2 *(ilustrativo)* | [1] | "Os documentos recuperados têm dados que outras equipes gerenciam e que precisam ser consultados na hora da busca, como nome, descrição e geolocalização dos estabelecimentos, para aplicar regras de negócio antes do reranking. <br>*Aproximação:* É uma API interna de outro time do iFood, aproximada por 3rd Party API (o catálogo não liga um App Server a outro)." |
-| `item-enrichment` | Item Enrichment API | `third_party_api` *(aproximação)* | 2 *(ilustrativo)* | [1] | "Mesmo papel da Merchant Enrichment API, para os itens: os dados dos itens recuperados são consultados na hora da busca para enriquecer a requisição antes do reranking. <br>*Aproximação:* É uma API interna de outro time do iFood, aproximada por 3rd Party API (o catálogo não liga um App Server a outro)." |
+| `merchant-enrichment` | Merchant Enrichment API | `third_party_api` *(aproximação)* | 6 *(ilustrativo)* | [1] | "Os documentos recuperados têm dados que outras equipes gerenciam e que precisam ser consultados na hora da busca, como nome, descrição e geolocalização dos estabelecimentos, para aplicar regras de negócio antes do reranking. <br>*Aproximação:* É uma API interna de outro time do iFood, aproximada por 3rd Party API (o catálogo não liga um App Server a outro)." |
+| `item-enrichment` | Item Enrichment API | `third_party_api` *(aproximação)* | 6 *(ilustrativo)* | [1] | "Mesmo papel da Merchant Enrichment API, para os itens: os dados dos itens recuperados são consultados na hora da busca para enriquecer a requisição antes do reranking. <br>*Aproximação:* É uma API interna de outro time do iFood, aproximada por 3rd Party API (o catálogo não liga um App Server a outro)." |
 
 ## Conexões
 
@@ -41,6 +41,9 @@ Todas as arestas (e as do Cliente até cada entrada) são aceitas pela matriz de
 2. O Elasticsearch é aproximado por Vector DB, e as APIs de enriquecimento de outros times, por 3rd Party API.
 3. O preset cobre só a busca, não o resto do iFood (pedidos, logística, pagamentos), e não tem balanceador nem gateway porque a fonte não os descreve.
 4. O engine divide a carga entre as três consultas; na busca real, uma requisição consulta o Elasticsearch e as APIs de enriquecimento em sequência.
+
+> **Ajuste na verificação (2026-10-08)**: réplicas ilustrativas de 3rd Party API / Data Warehouse subiram
+> para o preset não nascer saturado na carga padrão do canvas livre (1.000 rps) — ver tasks.md.
 
 ## Decisões para o autor
 

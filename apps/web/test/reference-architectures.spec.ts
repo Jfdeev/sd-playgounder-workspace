@@ -43,6 +43,17 @@ describe('arquiteturas de referência no canvas', () => {
     },
   );
 
+  // Réplicas são ilustrativas: um preset que já nasce saturado na carga padrão do canvas livre
+  // (1.000 rps) sugeriria um gargalo da empresa que nenhuma fonte afirma.
+  it.each(REFERENCE_ARCHITECTURES.map((p) => [p.company, p] as const))(
+    '%s: nenhum nó saturado na carga padrão do canvas livre',
+    (_company, preset) => {
+      const result = simulate(toDesign(preset), { ...ILLUSTRATIVE_WORKLOAD, rps: 1000 });
+      const saturated = Object.entries(result.nodes).filter(([, node]) => node.status === 'saturated').map(([id]) => id);
+      expect(saturated).toEqual([]);
+    },
+  );
+
   it.each(REFERENCE_ARCHITECTURES.map((p) => [p.company, p] as const))(
     '%s: designToCanvas preserva o id de cada nó (é o que liga a explicação ao nó)',
     (_company, preset) => {
