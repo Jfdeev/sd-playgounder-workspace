@@ -1,5 +1,9 @@
 import type { ComponentType, Design, EdgeKind } from '@sdp/engine';
+import { DISCORD_PRESET } from './presets/discord.js';
 import { GITHUB_PRESET } from './presets/github.js';
+import { IFOOD_SEARCH_PRESET } from './presets/ifood-search.js';
+import { NETFLIX_PRESET } from './presets/netflix.js';
+import { NUBANK_DEFENSE_PRESET } from './presets/nubank-defense.js';
 
 /**
  * Arquiteturas de referência (M2.5) — presets de empresas reais, pesquisados previamente e
@@ -61,7 +65,13 @@ export type ReferenceArchitecture = {
   limitations: readonly string[];
 };
 
-export const REFERENCE_ARCHITECTURES: readonly ReferenceArchitecture[] = [GITHUB_PRESET];
+export const REFERENCE_ARCHITECTURES: readonly ReferenceArchitecture[] = [
+  GITHUB_PRESET,
+  DISCORD_PRESET,
+  IFOOD_SEARCH_PRESET,
+  NUBANK_DEFENSE_PRESET,
+  NETFLIX_PRESET,
+];
 
 export function getReferenceArchitecture(id: string): ReferenceArchitecture | undefined {
   return REFERENCE_ARCHITECTURES.find((preset) => preset.id === id);

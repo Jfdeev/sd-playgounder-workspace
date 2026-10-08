@@ -85,6 +85,15 @@ describe('REFERENCE_ARCHITECTURES', () => {
     expect(getReferenceArchitecture('nao-existe')).toBeUndefined();
   });
 
+  it('o catálogo tem exatamente os 5 presets aprovados pelo autor', () => {
+    expect(REFERENCE_ARCHITECTURES.map((p) => p.id)).toEqual(['github', 'discord', 'ifood-search', 'nubank-defense', 'netflix']);
+  });
+
+  it('o único número de réplicas com fonte é o do ScyllaDB do Discord (72 nós)', () => {
+    const sourced = REFERENCE_ARCHITECTURES.flatMap((p) => p.nodes.filter((n) => !n.replicasIllustrative).map((n) => `${p.id}/${n.id}=${n.replicas}`));
+    expect(sourced).toEqual(['discord/scylladb=72']);
+  });
+
   it('o MVP (GitHub) está no catálogo com os 6 componentes e as 6 conexões aprovados', () => {
     const github = getReferenceArchitecture('github')!;
     expect(github.nodes.map((n) => n.id)).toEqual([

@@ -1,7 +1,8 @@
 import type { ReferenceArchitecture } from '../reference-architectures.js';
 
 /**
- * Preset do GitHub — conteúdo aprovado pelo autor em 2026-10-07
+ * Preset do GitHub — conteúdo aprovado pelo autor em 2026-10-07 (rótulos e redação da limitação 3
+ * aprovados em 2026-10-08)
  * (specs/arquiteturas-referencia/content-draft.md). Toda afirmação saiu de uma das três fontes
  * abaixo, lidas em 2026-10-03 (research.md §1). Réplicas são ilustrativas: nenhuma fonte publica
  * esses números para os componentes modelados.
