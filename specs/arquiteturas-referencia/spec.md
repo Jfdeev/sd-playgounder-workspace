@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-03
 
-**Status**: Ready
+**Status**: Done
 
 **Input**: User description: "M2.5 — Presets de arquiteturas reais de empresas conhecidas (GitHub, Discord, iFood, Nubank, Netflix), pesquisadas previamente com fidelidade real, carregáveis no canvas como ponto de partida, com cada componente explicado (por que existe ali, que problema resolve)."
 

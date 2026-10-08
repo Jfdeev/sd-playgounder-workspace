@@ -4,7 +4,8 @@ Verificação por user story, no padrão dos marcos anteriores: `apps/web` não 
 (convenção de M0.5) — a UI é conferida no browser; dados e a integridade dos presets têm teste.
 
 **US1–US3 verificados no browser em 2026-10-07** com o preset do GitHub (conta de teste throwaway
-criada e apagada na mesma sessão). US4 (demais empresas) ainda não começou.
+criada e apagada na mesma sessão). **US4 verificada em 2026-10-08**: Discord, iFood (busca), Nubank
+(Defense Platform) e Netflix carregam, com todos os nós explicados e Simular sem violação.
 
 ## Pré-requisito
 

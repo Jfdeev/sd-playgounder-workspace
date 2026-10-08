@@ -276,12 +276,14 @@ Também decidido: o preset do MVP é o **GitHub**; uma conexão de preset é *af
 *inferida* (e marcada); o Netflix fica na leva, mas fino (só o que as fontes primárias alcançáveis
 afirmam).
 
-**Status (2026-10-07)**: critério de saída atingido com o preset do **GitHub** (aprovado pelo autor em
-2026-10-07): menu "Arquiteturas" no canvas livre, resumo/fontes/limitações/conexões inferidas antes de
-carregar, "Por que está aqui" em cada um dos 6 componentes, aviso de valores ilustrativos no resultado.
-`tsc`/499 testes/build limpos; engine, narrador, banco e `NARRATOR_PROMPT_VERSION` intocados.
-Verificado no browser (US1–US3). **Pendente**: US4 — Discord, iFood, Nubank e Netflix, cada um com o
-seu gate de conteúdo.
+**Status (2026-10-08)**: **concluído** — 5 presets aprovados pelo autor e verificados no browser:
+**GitHub** (monolito Rails, MySQL particionado, Spokes, push por eventos), **Discord** (mensagens em
+ScyllaDB — 72 nós, o único número de réplicas com fonte — e gateway Elixir), **iFood — busca**,
+**Nubank — Defense Platform** (antifraude) e **Netflix** (nuvem AWS + Open Connect). iFood e Nubank
+são recortes: são os únicos sistemas dessas empresas com componentes e conexões descritos em fonte
+primária lida. Menu "Arquiteturas" no canvas livre, "Por que está aqui" em cada componente, aviso de
+valores ilustrativos. `tsc`/testes/build limpos; engine, narrador, banco e `NARRATOR_PROMPT_VERSION`
+intocados.
 
 ### M2.6 — Fundamentos de arquitetura (inserido após M2.5 — decisão do autor, 2026-09-24)
 

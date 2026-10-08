@@ -68,8 +68,8 @@ dados (Open Connect). Esses pontos aparecem só em resumos de terceiros.
 ### Leitura de 2026-10-07 (US4 — T018/T020/T022/T024)
 
 Mesmo critério (página respondeu 200 e o texto foi lido, buscado cru). Rascunhos resultantes:
-`content-draft-discord.md`, `-ifood-search.md`, `-nubank-defense.md`, `-netflix.md`, gerados do dado em
-`content-drafts-us4.data.ts`, que já passou no validador, na matriz de conexões e em `simulate()`.
+`content-draft-discord.md`, `-ifood-search.md`, `-nubank-defense.md`, `-netflix.md`, gerados do mesmo dado
+que virou `packages/knowledge/src/presets/*.ts` (já validado, na matriz de conexões e em `simulate()`).
 
 | Empresa | Fonte (publicador) | Status | Uso |
 |---|---|---|---|

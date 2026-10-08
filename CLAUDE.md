@@ -34,15 +34,16 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Plano ativo**: M2.5 — Arquiteturas de referência
-([specs/arquiteturas-referencia/tasks.md](specs/arquiteturas-referencia/tasks.md)), branch
-`feature/001-reference-architectures-presets`. **US1–US3 completas e verificadas no browser
-(2026-10-07)** com o preset do GitHub (aprovado pelo autor em 2026-10-07): `packages/knowledge` ganhou
-`reference-architectures` (tipos, 7 invariantes, `toDesign`) + `presets/github.ts`; `apps/web` ganhou o
-menu "Arquiteturas" (só no canvas livre), `loadedPresetId` no store, "Por que está aqui" no nó e o aviso
-de valores ilustrativos — `tsc`/499 testes/build limpos. Engine, narrador, banco e
-`NARRATOR_PROMPT_VERSION` intocados. **Pendente**: US4 (Discord, iFood, Nubank, Netflix — cada um com
-gate de conteúdo) e promover `spec.md` a `Done`.
+**Plano ativo**: nenhum — M2.5 concluído; próximo da fila abaixo.
+
+M2.5 — Arquiteturas de referência ([specs/arquiteturas-referencia/plan.md](specs/arquiteturas-referencia/plan.md)):
+**concluído e verificado no browser (2026-10-08)**, `spec.md` em `Done`. `packages/knowledge` ganhou
+`reference-architectures` (tipos, 7 invariantes, `toDesign`) e 5 presets aprovados pelo autor em
+`presets/`: GitHub, Discord (mensagens + gateway), iFood (busca), Nubank (Defense Platform) e Netflix
+(nuvem + Open Connect). `apps/web`: menu "Arquiteturas" (só no canvas livre), `loadedPresetId` no
+store, "Por que está aqui" no nó e o aviso de valores ilustrativos. Testes garantem, por preset:
+invariantes, arestas na matriz do canvas, `simulate()` sem violação e nenhum nó saturado em 1.000 rps.
+Engine, narrador, banco e `NARRATOR_PROMPT_VERSION` intocados.
 
 M2.7 — Biblioteca de princípios de arquitetura
 ([specs/biblioteca-principios-arquitetura/plan.md](specs/biblioteca-principios-arquitetura/plan.md)):
@@ -78,7 +79,7 @@ com o λ total em vez de usar ρ; ramo async pesado escondia o ramo síncrono da
 ponderava percentis por (1−h) em vez do limiar de cauda) — números mudam pro mesmo design, então
 o cache do narrador foi invalidado e submissões observadas antes disso não contam.
 
-Marcos concluídos: M2.7 (Biblioteca de princípios, acima), M2 (Avaliação e biblioteca, com ressalva — acima), M1.5 (Catálogo expandido de componentes,
+Marcos concluídos: M2.5 (Arquiteturas de referência, acima), M2.7 (Biblioteca de princípios, acima), M2 (Avaliação e biblioteca, com ressalva — acima), M1.5 (Catálogo expandido de componentes,
 [specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md)), M1 (Canvas e
 submissão, [specs/canvas-submissao-m1/plan.md](specs/canvas-submissao-m1/plan.md)), M0.5 (Landing
 Page e Conta, [specs/landing-page-conta-m0-5/plan.md](specs/landing-page-conta-m0-5/plan.md)) — mais

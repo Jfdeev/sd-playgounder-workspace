@@ -107,28 +107,29 @@ Cada preset é um incremento **independente**, com o seu gate. Ordem sugerida pe
       cluster do ScyllaDB (só apareciam em resumo de terceiros), redigir `content-draft` do preset
       (monolito de API → data services → ScyllaDB; request coalescing e hash consistente em
       limitações) e **submeter ao autor** **Redigido e submetido (2026-10-07)**: `content-draft-discord.md`.
-- [ ] T019 [US4] Após aprovação: criar `packages/knowledge/src/presets/discord.ts` e registrar
+- [x] T019 [US4] Após aprovação: criar `packages/knowledge/src/presets/discord.ts` e registrar
 - [x] T020 [P] [US4] **iFood** — **ler** as 4 fontes "abertas, não lidas"; se sustentarem os
       componentes, redigir e submeter ao autor; senão, registrar em `research.md` que o preset fica de
       fora **Redigido e submetido (2026-10-07)**: `content-draft-ifood-search.md`.
-- [ ] T021 [US4] Após aprovação: criar `packages/knowledge/src/presets/ifood.ts` e registrar
+- [x] T021 [US4] Após aprovação: criar `packages/knowledge/src/presets/ifood.ts` e registrar
 - [x] T022 [P] [US4] **Nubank** — **ler** `building.nubank.com/engineering-lessons-...`; mesmo critério
       (Medium e Datomic estão inacessíveis — não contam) **Redigido e submetido (2026-10-07)**: `content-draft-nubank-defense.md`.
-- [ ] T023 [US4] Após aprovação: criar `packages/knowledge/src/presets/nubank.ts` e registrar
+- [x] T023 [US4] Após aprovação: criar `packages/knowledge/src/presets/nubank.ts` e registrar
 - [x] T024 [P] [US4] **Netflix (fino)** — só o que Open Connect, Zuul, EVCache, Eureka e Priam
       afirmam (`research.md` §1); redigir e submeter ao autor **Redigido e submetido (2026-10-07)**: `content-draft-netflix.md`.
-- [ ] T025 [US4] Após aprovação: criar `packages/knowledge/src/presets/netflix.ts` e registrar
-- [ ] T026 [US4] Para cada preset registrado: `pnpm -r test` (T004/T005 rodam sobre ele
-      automaticamente) e verificação manual do quickstart.md §US1–US3
+- [x] T025 [US4] Após aprovação: criar `packages/knowledge/src/presets/netflix.ts` e registrar
+- [x] T026 [US4] Para cada preset registrado: `pnpm -r test` (T004/T005 rodam sobre ele
+      automaticamente) e verificação manual do quickstart.md §US1–US3. **Confirmado no browser (2026-10-08)**: os 5 presets carregam pelo menu, todos os nós têm "Por
+      que está aqui", Simular sem violação e sem nó saturado em 1.000 rps
 
 ## Phase 7: Polish
 
 - [x] T027 `pnpm -r test`, `pnpm -r exec tsc --noEmit` e `pnpm --filter web build` limpos; confirmar
       que `packages/engine`, `packages/narrator`, `apps/web/src/app/api/narrator` e
       `NARRATOR_PROMPT_VERSION` não aparecem no diff (FR-010, SC-005)
-- [ ] T028 Atualizar `docs/product-context.md` §10 (status real do M2.5: quais presets entraram) e
+- [x] T028 Atualizar `docs/product-context.md` §10 (status real do M2.5: quais presets entraram) e
       `CLAUDE.md` "Plano ativo"
-- [ ] T029 Promover `**Status**` de `spec.md` para `Done` **só** depois da verificação manual do
+- [x] T029 Promover `**Status**` de `spec.md` para `Done` **só** depois da verificação manual do
       critério de saída (≥ 1 preset carregável com todos os componentes explicados)
 
 **Achados da verificação manual (2026-10-07)**:
@@ -139,6 +140,16 @@ Cada preset é um incremento **independente**, com o seu gate. Ordem sugerida pe
   nós ganharam um rótulo curto (ex. "Monolito Rails") para o painel — único texto que não estava no
   rascunho.
 - Login via conta de teste throwaway (`m25-verificacao-qa@example.com`), apagada do banco ao final.
+
+**Achados da verificação dos 4 presets adicionais (2026-10-08)**:
+- iFood e Nubank nasciam **saturados** na carga padrão do canvas livre (1.000 rps): o 3rd Party API do
+  catálogo aguenta 100 rps por réplica, e as 2 réplicas ilustrativas davam ρ=1,67 (latência infinita) —
+  o preset sugeria um gargalo da empresa que nenhuma fonte afirma. Réplicas ilustrativas ajustadas
+  (enriquecimento do iFood e provedores do Nubank 2→6, ETL do Nubank 2→3) e teste novo em
+  `apps/web/test/reference-architectures.spec.ts`: nenhum preset com nó saturado em 1.000 rps.
+- Carregar um design com o painel de Simular já aberto não roda a simulação até mexer no slider (o
+  efeito só reage a abrir o painel ou mudar o rps) — também acontece com Templates; fora do M2.5.
+- Login via conta de teste throwaway (`m25b-verificacao-qa@example.com`), apagada do banco ao final.
 
 ## Dependências
 
