@@ -11,7 +11,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Activity, Play, Redo2, Trash2, Undo2 } from 'lucide-react';
-import { simulate, type ComponentType, type Design, type Workload } from '@sdp/engine';
+import { simulate, type ComponentType, type Workload } from '@sdp/engine';
 import { isProblemSolved, type Problem } from '@sdp/problems';
 import { toDesign, toManualWorkload, toWorkload } from '@/lib/canvas-to-design';
 import { toFlowEdge, toFlowNode, type ClientVariant } from '@/lib/canvas-types';
@@ -74,6 +74,19 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
   // — só "Submeter" conta oficialmente pra rubrica/progressão, sempre na escala fixa do problema.
   const [simulatePanelOpen, setSimulatePanelOpen] = useState(false);
   const [simulateRps, setSimulateRps] = useState(1000);
+
+  // O `Design` que o engine enxerga — `toDesign` ignora posição, seleção e o `result` que a própria
+  // simulação grava de volta nos nós, então a assinatura só muda quando o design muda de fato
+  // (carregar template/arquitetura, apagar, réplicas, arestas), nunca a cada pixel de drag.
+  const design = useMemo(
+    () =>
+      toDesign(
+        nodes.map((n) => toFlowNode(n.id, n.position, n.data)),
+        edges.map((e) => toFlowEdge(e.id, e.source, e.target, e.data ?? { kind: 'read' })),
+      ),
+    [nodes, edges],
+  );
+  const designSignature = useMemo(() => JSON.stringify(design), [design]);
 
   // Reabrir com o rps do desafio ativo como ponto de partida (explorar "a partir de onde o
   // problema já está"); volta a um padrão neutro no sandbox ou ao trocar de desafio.
@@ -164,9 +177,6 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
       }
       setActionError(null);
 
-      const flowNodes = nodes.map((n) => toFlowNode(n.id, n.position, n.data));
-      const flowEdges = edges.map((e) => toFlowEdge(e.id, e.source, e.target, e.data ?? { kind: 'read' }));
-      const design: Design = toDesign(flowNodes, flowEdges);
       const result = simulate(design, workload, {
         latencyBudgetMs: problem?.latencyBudgetMs ?? null,
         referenceCostUsd,
@@ -186,7 +196,7 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
         markChallengeCompleted(problem.id);
       }
     },
-    [nodes, edges, problem, referenceCostUsd, applySimulationResult, updateNodeConfig, markChallengeCompleted],
+    [nodes, design, problem, referenceCostUsd, applySimulationResult, updateNodeConfig, markChallengeCompleted],
   );
 
   // Sem desafio ativo, o botão de Submeter já vem desabilitado (ver JSX) — handleSubmit nunca
@@ -211,7 +221,9 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
   const handleSimulateRef = useRef(handleSimulate);
   handleSimulateRef.current = handleSimulate;
 
-  // Roda a simulação exploratória ao abrir o painel e a cada mudança de rps (slider ou input),
+  // Roda a simulação exploratória ao abrir o painel, a cada mudança de rps (slider ou input) e
+  // quando o design muda com o painel aberto (antes, carregar um template ou uma arquitetura de
+  // referência com o painel aberto deixava o resultado vazio até mexer no slider),
   // com um pequeno debounce pra não recalcular a cada pixel arrastado no slider — mesma técnica
   // já usada no debounce do zundo em canvas-store.tsx, aqui como efeito local por ser um detalhe
   // só desta tela, não do estado persistido do canvas.
@@ -219,7 +231,7 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
     if (!simulatePanelOpen) return;
     const timeoutId = setTimeout(() => handleSimulateRef.current(simulateRps), 250);
     return () => clearTimeout(timeoutId);
-  }, [simulatePanelOpen, simulateRps]);
+  }, [simulatePanelOpen, simulateRps, designSignature]);
 
   // Lixeira do canvas (pedido direto do autor) — destrutivo, então pede confirmação antes; a
   // ação em si ainda é desfazível por Ctrl/Cmd+Z (clearCanvas entra no histórico do zundo).
