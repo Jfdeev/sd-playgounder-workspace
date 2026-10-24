@@ -120,7 +120,15 @@ describe('evaluateFix', () => {
       edges: design.edges.filter((e) => e.from !== 'app' && e.to !== 'app'),
       entryNodeIds: ['lb'],
     };
-    expect(evaluateFix(withoutApp, design, fault, criterion, workload).failing).toContain('target-unreachable');
+    expect(evaluateFix(withoutApp, design, fault, criterion, workload).failing).toEqual(
+      expect.arrayContaining(['component-removed', 'target-unreachable']),
+    );
+  });
+
+  it('zona caída: perder um componente inteiro não conta como resolvido, mesmo com o p99 ok', () => {
+    const zone: Fault = { type: 'zone-down', target: 'app', zone: 0 };
+    const singleDb: Design = { ...design, nodes: design.nodes.map((n) => (n.id === 'db' ? { ...n, replicas: 1 } : n)) };
+    expect(evaluateFix(singleDb, singleDb, zone, { maxP99Ms: 10_000, minThroughputRps: 0 }, workload).failing).toContain('component-down');
   });
 
   it('cortar o caminho até um componente cria órfão novo', () => {
