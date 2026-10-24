@@ -47,6 +47,13 @@ export function validateStructure(design: Design): Violation[] {
         message: `Nó '${node.id}' tem contagem de réplicas inválida: ${node.replicas} (deve ser inteiro ≥ 1)`,
       });
     }
+    if (node.capacityFactor !== undefined && !isValidCapacityFactor(node.capacityFactor)) {
+      violations.push({
+        type: 'invalid-capacity-factor',
+        nodeIds: [node.id],
+        message: `Nó '${node.id}' tem fator de capacidade inválido: ${node.capacityFactor} (deve estar entre 0 e 1, exclusive 0)`,
+      });
+    }
   }
 
   return violations;
@@ -62,4 +69,9 @@ function findDuplicateNodeIds(design: Design): string[] {
     seen.add(node.id);
   }
   return [...duplicates];
+}
+
+/** M3: fator de capacidade válido é um número em (0, 1] — uma falha só tira capacidade, nunca dá. */
+export function isValidCapacityFactor(value: number): boolean {
+  return Number.isFinite(value) && value > 0 && value <= 1;
 }

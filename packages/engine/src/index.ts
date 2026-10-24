@@ -13,7 +13,7 @@ import { findCriticalPath } from './graph/critical-path.js';
 import { propagateLoad } from './graph/propagate.js';
 import { computeReachableNodeIds } from './graph/reachability.js';
 import { detectCycle, detectOrphanNodes, detectSpof } from './graph/static-analysis.js';
-import { validateStructure } from './graph/validate.js';
+import { isValidCapacityFactor, validateStructure } from './graph/validate.js';
 import { calculatePathLatency } from './metrics/latency.js';
 import { calculateQueueWaitMs } from './metrics/queue.js';
 import { calculateThroughput } from './metrics/throughput.js';
@@ -57,8 +57,12 @@ export function simulate(
   for (const node of design.nodes) {
     const spec = getComponentSpec(node.type);
     const offeredLoad = offeredLoadByNode[node.id] ?? 0;
-    const capacity = node.replicas * spec.maxThroughputRps;
-    const utilization = calculateUtilization(offeredLoad, node.replicas, spec.maxThroughputRps);
+    // M3: `capacityFactor` (pool esgotado) reduz a vazão por réplica; ausente ou inválido = 1 (o
+    // inválido já virou violação em validateStructure — FR-019, nunca lança).
+    const factor = node.capacityFactor !== undefined && isValidCapacityFactor(node.capacityFactor) ? node.capacityFactor : 1;
+    const throughputPerReplica = spec.maxThroughputRps * factor;
+    const capacity = node.replicas * throughputPerReplica;
+    const utilization = calculateUtilization(offeredLoad, node.replicas, throughputPerReplica);
     const queueLatencyMs = calculateQueueWaitMs(offeredLoad, capacity);
 
     nodes[node.id] = {
