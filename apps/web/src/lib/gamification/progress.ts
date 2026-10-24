@@ -13,11 +13,14 @@ export type ScoringEventRow = { type: string; problemId: string | null; eventKey
 export type Progress = LevelProgress & {
   xp: number;
   solved: { problemId: string; solvedAt: Date }[];
+  /** M3: incidentes resolvidos (evento `incident:<id>`); diagnósticos (`incident-diagnosis`) não contam aqui. */
+  incidentsResolved: { incidentId: string; resolvedAt: Date }[];
   achievements: { id: AchievementId; unlockedAt: Date }[];
   streak: Streak;
 };
 
 const ACHIEVEMENT_PREFIX = 'achievement:';
+const INCIDENT_PREFIX = 'incident:';
 
 export function buildProgress(events: readonly ScoringEventRow[], activityDays: readonly string[], today: string): Progress {
   const xp = events.reduce((total, event) => total + event.xp, 0);
@@ -28,11 +31,15 @@ export function buildProgress(events: readonly ScoringEventRow[], activityDays: 
     const id = event.eventKey.slice(ACHIEVEMENT_PREFIX.length);
     return event.type === 'achievement' && isAchievementId(id) ? [{ id, unlockedAt: event.createdAt }] : [];
   });
-  return { xp, ...levelForXp(xp), solved, achievements, streak: computeStreak(activityDays, today) };
+  const incidentsResolved = events
+    .filter((event) => event.type === 'incident')
+    .map((event) => ({ incidentId: event.eventKey.slice(INCIDENT_PREFIX.length), resolvedAt: event.createdAt }));
+  return { xp, ...levelForXp(xp), solved, incidentsResolved, achievements, streak: computeStreak(activityDays, today) };
 }
 
 /** `Progress` como chega ao cliente pela API (datas viram strings ISO no JSON). */
-export type ProgressJson = Omit<Progress, 'solved' | 'achievements'> & {
+export type ProgressJson = Omit<Progress, 'solved' | 'achievements' | 'incidentsResolved'> & {
   solved: { problemId: string; solvedAt: string }[];
+  incidentsResolved: { incidentId: string; resolvedAt: string }[];
   achievements: { id: AchievementId; unlockedAt: string }[];
 };

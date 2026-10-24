@@ -166,6 +166,10 @@ export const userProfiles = pgTable('userProfiles', {
   updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
 });
 
+/** Tipos de evento de pontuação (M2.8 + M3). Mudar esta lista não pede migração: a coluna é `text`. */
+export const SCORING_EVENT_TYPES = ['challenge', 'achievement', 'incident-diagnosis', 'incident'] as const;
+export type ScoringEventType = (typeof SCORING_EVENT_TYPES)[number];
+
 /**
  * M2.8 — eventos de pontuação, imutáveis, fonte da verdade do XP (data-model.md). A restrição única
  * `(userId, eventKey)` é o que garante "cada desafio credita uma vez, cada conquista desbloqueia uma
@@ -182,7 +186,8 @@ export const scoringEvents = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     eventKey: text('eventKey').notNull(),
-    type: text('type', { enum: ['challenge', 'achievement'] }).notNull(),
+    // M3 acrescentou 'incident-diagnosis' e 'incident' — só no TypeScript: a coluna é `text`, sem migração.
+    type: text('type', { enum: SCORING_EVENT_TYPES }).notNull(),
     problemId: text('problemId'),
     xp: integer('xp').notNull(),
     createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
