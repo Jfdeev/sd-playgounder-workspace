@@ -16,3 +16,13 @@ export {
   type LibraryEntry,
   type TopologyRelation,
 } from './library.js';
+export {
+  REFERENCE_ARCHITECTURES,
+  getReferenceArchitecture,
+  toDesign,
+  validateReferenceArchitecture,
+  type PresetEdge,
+  type PresetNode,
+  type ReferenceArchitecture,
+  type WebSource,
+} from './reference-architectures.js';

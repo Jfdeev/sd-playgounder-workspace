@@ -4,9 +4,11 @@ import { useState, type ChangeEvent } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import { Trash2 } from 'lucide-react';
 import type { EdgeKind } from '@sdp/engine';
+import { getReferenceArchitecture, type PresetNode, type ReferenceArchitecture } from '@sdp/knowledge';
 import { useCanvasStore, type CanvasEdge } from '@/stores/canvas-store';
 import { COMPONENT_UI, CLIENT_UI, EDGE_KIND_UI } from '@/lib/canvas-ui-catalog';
 import { getAllowedTargets } from '@/lib/connection-rules';
+import { SourceLink } from './reference-architectures-menu';
 
 const ALL_EDGE_KINDS = Object.keys(EDGE_KIND_UI) as EdgeKind[];
 
@@ -24,6 +26,7 @@ export function ConfigPanel() {
   const node = useCanvasStore((s) => s.nodes.find((n) => n.id === s.selectedNodeId));
   const edge = useCanvasStore((s) => s.edges.find((e) => e.id === s.selectedEdgeId));
   const updateNodeConfig = useCanvasStore((s) => s.updateNodeConfig);
+  const loadedPresetId = useCanvasStore((s) => s.loadedPresetId);
 
   const [replicasInput, setReplicasInput] = useState<string | null>(null);
 
@@ -72,14 +75,21 @@ export function ConfigPanel() {
   }
 
   const componentUi = COMPONENT_UI[node.data.componentType];
+  // M2.5: só nós que vieram do preset carregado têm explicação — nó adicionado pelo usuário (id fora
+  // do preset) não mostra nada, nunca uma explicação inventada.
+  const preset = loadedPresetId ? getReferenceArchitecture(loadedPresetId) : undefined;
+  const presetNode = preset?.nodes.find((n) => n.id === selectedNodeId);
 
   return (
-    <aside className="w-64 shrink-0 border-l border-zinc-800 bg-zinc-950 p-4">
+    <aside className="w-64 shrink-0 overflow-y-auto border-l border-zinc-800 bg-zinc-950 p-4">
       <h2 className="mb-1 text-sm font-semibold text-zinc-200">{componentUi.label}</h2>
       <p className="mb-3 text-xs text-zinc-500">{componentUi.description}</p>
 
+      {preset && presetNode && <PresetNodeExplanation preset={preset} node={presetNode} />}
+
       <label className="mb-1 block text-xs font-medium text-zinc-400" htmlFor="replicas-input">
         Réplicas
+        {presetNode?.replicasIllustrative && <span className="ml-1 font-normal text-amber-300/80">(ilustrativas)</span>}
       </label>
       <input
         id="replicas-input"
@@ -120,6 +130,41 @@ export function ConfigPanel() {
       <ConnectivityHint kind={node.data.componentType} />
       <DeleteNodeButton nodeId={selectedNodeId} />
     </aside>
+  );
+}
+
+/**
+ * M2.5 (US2/US3): por que este componente está na arquitetura de referência carregada — texto e
+ * fontes do próprio preset (dado versionado, sem LLM). Também diz quando o tipo do catálogo é só uma
+ * aproximação do componente real e de onde vem o número de réplicas quando não é ilustrativo.
+ */
+function PresetNodeExplanation({ preset, node }: { preset: ReferenceArchitecture; node: PresetNode }) {
+  const sourceById = new Map(preset.sources.map((source) => [source.id, source]));
+  const replicasSource = node.replicasSourceId ? sourceById.get(node.replicasSourceId) : undefined;
+
+  return (
+    <div className="mb-4 rounded-lg border border-violet-500/30 bg-violet-500/5 p-3 text-xs text-zinc-300">
+      <p className="mb-1 font-semibold text-violet-300">
+        Por que está aqui · {preset.company} — {node.label}
+      </p>
+      <p>{node.explanation.text}</p>
+      {node.approximation && <p className="mt-2 text-amber-300/80">{node.approximation}</p>}
+      <ul className="mt-2 space-y-1">
+        {node.explanation.sourceIds.map((id) => {
+          const source = sourceById.get(id);
+          return source ? (
+            <li key={id}>
+              <SourceLink title={source.title} publisher={source.publisher} url={source.url} />
+            </li>
+          ) : null;
+        })}
+      </ul>
+      {replicasSource && (
+        <p className="mt-2 text-zinc-500">
+          Réplicas segundo: <SourceLink title={replicasSource.title} publisher={replicasSource.publisher} url={replicasSource.url} />
+        </p>
+      )}
+    </div>
   );
 }
 

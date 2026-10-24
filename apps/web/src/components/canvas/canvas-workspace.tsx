@@ -16,8 +16,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { ALL_PROBLEM_IDS, getProblem } from '@sdp/problems';
+import { getReferenceArchitecture, toDesign } from '@sdp/knowledge';
 import { canvasStorageKey, CanvasStoreProvider, useCanvasStore } from '@/stores/canvas-store';
 import { instantiateTemplate, type ArchitectureTemplate } from '@/lib/canvas-templates';
+import { designToCanvas } from '@/lib/design-to-canvas';
 import { isChallengeUnlocked } from '@/lib/challenge-progression';
 import { useProgressionStore } from '@/stores/progression-store';
 import { Canvas } from './canvas';
@@ -49,12 +51,27 @@ function CanvasWorkspaceInner({
     loadDesign(instantiateTemplate(template));
   }
 
+  // M2.5: carregar uma arquitetura de referência — mesma confirmação destrutiva do template. Os ids
+  // dos nós do preset são preservados por `designToCanvas`, o que liga cada nó à sua explicação.
+  function handleLoadPreset(presetId: string) {
+    const preset = getReferenceArchitecture(presetId);
+    if (!preset) return;
+    if (nodes.length > 0 || edges.length > 0) {
+      const confirmed = window.confirm(
+        `Carregar a arquitetura de referência do ${preset.company}? Isso substitui todo o design atual do canvas (dá pra desfazer com Ctrl/Cmd+Z).`,
+      );
+      if (!confirmed) return;
+    }
+    loadDesign(designToCanvas(toDesign(preset)), { presetId });
+  }
+
   return (
     <>
       <ChallengeTopBar
         activeChallengeId={activeChallengeId}
         onSelectChallenge={onSelectChallenge}
         onApplyTemplate={handleApplyTemplate}
+        onLoadPreset={handleLoadPreset}
       />
       <div className="flex min-h-0 flex-1">
         <Canvas problem={activeProblem} onLeaveChallenge={onLeaveChallenge} />

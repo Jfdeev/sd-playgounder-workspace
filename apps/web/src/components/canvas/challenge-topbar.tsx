@@ -19,6 +19,7 @@ import { ARCHITECTURE_TEMPLATES, type ArchitectureTemplate } from '@/lib/canvas-
 import { isChallengeUnlocked } from '@/lib/challenge-progression';
 import { useProgressionStore } from '@/stores/progression-store';
 import { CapacityCalculatorPanel } from './capacity-calculator-panel';
+import { ReferenceArchitecturesMenu } from './reference-architectures-menu';
 import { StyleSheet } from './style-sheet';
 
 // Nomes do site de inspiração que ainda não têm um Problem completo autorado — aparecem na lista
@@ -40,12 +41,14 @@ export function ChallengeTopBar({
   activeChallengeId,
   onSelectChallenge,
   onApplyTemplate,
+  onLoadPreset,
 }: {
   activeChallengeId: string | null;
   onSelectChallenge: (problemId: string) => void;
   onApplyTemplate: (template: ArchitectureTemplate) => void;
+  onLoadPreset: (presetId: string) => void;
 }) {
-  const [openMenu, setOpenMenu] = useState<'challenges' | 'templates' | 'calculator' | null>(null);
+  const [openMenu, setOpenMenu] = useState<'challenges' | 'templates' | 'architectures' | 'calculator' | null>(null);
   const [openStyleId, setOpenStyleId] = useState<TemplateId | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   useClickOutside(containerRef, () => setOpenMenu(null));
@@ -149,6 +152,17 @@ export function ChallengeTopBar({
           </div>
         )}
       </div>
+
+      {/* M2.5: arquiteturas de referência — só no canvas livre (FR-009). */}
+      <ReferenceArchitecturesMenu
+        open={openMenu === 'architectures'}
+        disabled={activeChallengeId !== null}
+        onToggle={() => setOpenMenu((m) => (m === 'architectures' ? null : 'architectures'))}
+        onSelect={(presetId) => {
+          onLoadPreset(presetId);
+          setOpenMenu(null);
+        }}
+      />
 
       <div className="relative">
         <button
