@@ -49,8 +49,9 @@ verificação achou e corrigiu 1 bug (busca por "solid" vazia).
 Em fila, na ordem: **M2.5** Arquiteturas de referência
 ([specs/arquiteturas-referencia/tasks.md](specs/arquiteturas-referencia/tasks.md) — spec `Ready`, plan e
 tasks prontos; aguarda o autor aprovar o `content-draft.md` do preset do GitHub) e **M2.8** Gamificação
-([specs/gamificacao-progresso-conta/spec.md](specs/gamificacao-progresso-conta/spec.md) — `Draft`, 3
-perguntas abertas). Ordem fora de sequência registrada no roadmap como decisão do autor.
+([specs/gamificacao-progresso-conta/spec.md](specs/gamificacao-progresso-conta/spec.md) — `Ready`
+após o clarify de 2026-10-23: começa do zero, ranking + perfil público por apelido (opt-out, só
+logados), designs na conta ficam no M4; próximo passo é o `/speckit-plan`). Ordem fora de sequência registrada no roadmap como decisão do autor.
 
 M2.6 — Fundamentos de arquitetura ([specs/fundamentos-arquitetura/plan.md](specs/fundamentos-arquitetura/plan.md)):
 **código completo e verificado no browser (2026-09-27)** — `packages/knowledge` (7 fichas de característica + 4

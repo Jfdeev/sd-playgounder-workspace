@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-03
 
-**Status**: Draft
+**Status**: Ready
 
 **Input**: User description: "Incluir um sistema de gamificação no app: temos a conta do usuário mas não fazemos muita coisa com ela, porque as arquiteturas dele ficam num banco local (navegador). Fazer um sistema gamificado para incentivar o estudo."
 
@@ -25,11 +25,23 @@ Isso importa pra este marco por dois motivos:
    cliente decide quanto XP ganhou, qualquer pessoa forja o próprio nível.
 
 Fronteira com o M4: o roadmap já prevê "salvar designs com histórico de versões" e "progresso por
-conceito" no M4. Este marco **não** entrega isso por padrão — ver FR-011 (pendente do autor).
+conceito" no M4. Este marco **não** entrega isso — ver FR-011 (decidido em 2026-10-23).
 
 Independente do M2.7: não depende da biblioteca de princípios; os dois podem ser mesclados em
 qualquer ordem. A entrada de M2.8 no roadmap (`docs/product-context.md` §10) chega pela branch do
 M2.7 — o PR do M2.7 deve ser mesclado primeiro (ou esta branch rebaseada depois).
+
+## Clarifications
+
+### Session 2026-10-23
+
+- Q: O que fazer com o progresso que já existe no `localStorage` (editável à mão)? → A: **Todos começam do zero.** Nada do navegador vira XP nem conta como desafio resolvido no servidor; quem já tinha resolvido refaz pra pontuar.
+- Q: Gamificação social — um usuário vê os outros? → A: **Sim: ranking e perfil público.**
+- Q: Que nome aparece no ranking e no perfil? → A: **Um apelido escolhido pelo usuário**, único, que também é o endereço do perfil (`/app/u/<apelido>`). O e-mail nunca aparece. Quem não escolheu apelido não aparece no ranking nem tem perfil.
+- Q: Aparecer no ranking/perfil é ligado por padrão? → A: **Ligado (opt-out)**: ao escolher um apelido, a pessoa passa a aparecer; pode se esconder a qualquer momento.
+- Q: O que o perfil público mostra? → A: **Nível e XP, conquistas, desafios resolvidos e ofensiva** (atual e recorde). Nunca o design nem o e-mail.
+- Q: Quem pode ver ranking e perfis? → A: **Só usuários logados** — ficam dentro de `/app`, como o resto; nada aparece pra visitantes nem em buscadores.
+- Q: Salvar os designs na conta entra neste marco? → A: **Não, fica no M4** ("salvar designs com histórico de versões"). Este marco só move o progresso pro servidor.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -126,6 +138,36 @@ com a data, uma única vez, mesmo se a condição for cumprida de novo.
 
 ---
 
+### User Story 5 - Ranking e perfil público (Priority: P5)
+
+O usuário escolhe um apelido e passa a aparecer num ranking por XP e a ter um perfil público
+(`/app/u/<apelido>`) com nível, XP, conquistas, desafios resolvidos e ofensiva — visíveis só para
+quem está logado. Ele pode se esconder do ranking e do perfil a qualquer momento.
+
+**Why this priority**: camada social de motivação; depende de XP, painel, ofensiva e conquistas
+existirem (US1–US4) e é a que mais expõe dados, então vem por último.
+
+**Independent Test**: com dois usuários logados com apelido, conferir que ambos aparecem no
+ranking na ordem do XP, que o perfil de um abre pelo apelido para o outro, que nenhum e-mail
+aparece, e que, ao se esconder, um some do ranking e o perfil dele deixa de abrir.
+
+**Acceptance Scenarios**:
+
+1. **Given** um usuário sem apelido, **When** abre o ranking, **Then** vê o ranking e o convite
+   para escolher um apelido — e ele próprio não aparece nele.
+2. **Given** um usuário que escolhe um apelido livre, **When** salva, **Then** passa a aparecer no
+   ranking e o perfil `/app/u/<apelido>` abre para qualquer usuário logado.
+3. **Given** um apelido já usado por outra conta, **When** alguém tenta escolhê-lo, **Then** é
+   recusado com uma mensagem clara (apelido é único, sem diferenciar maiúsculas).
+4. **Given** o ranking ou um perfil, **When** qualquer usuário os vê, **Then** nunca aparece e-mail
+   nem design — só apelido, nível, XP, conquistas, desafios resolvidos e ofensiva.
+5. **Given** um usuário que escolhe se esconder, **When** salva, **Then** some do ranking e o perfil
+   dele deixa de abrir para os outros (ele continua vendo o próprio progresso no painel).
+6. **Given** um visitante sem sessão, **When** tenta abrir o ranking ou um perfil, **Then** é levado
+   a entrar (mesmo guard do resto de `/app`).
+
+---
+
 ### Edge Cases
 
 - **Reenviar o mesmo design** ou **resolver de novo um desafio já resolvido** → não credita XP de
@@ -138,8 +180,14 @@ com a data, uma única vez, mesmo se a condição for cumprida de novo.
   (nunca bloqueia, mesma regra do narrador); nenhum XP "fantasma" é exibido sem estar gravado.
 - **Sessão expirada no meio da submissão** → a submissão não credita XP e o usuário é levado a
   entrar de novo, sem perder o design em edição (que continua no navegador).
-- **Progresso que já existe no `localStorage`** de quem usava o app antes deste marco → não pode
-  ser creditado cegamente (é editável); o tratamento é decisão pendente do autor (FR-009).
+- **Progresso que já existe no `localStorage`** de quem usava o app antes deste marco → não é
+  creditado: todos começam do zero no servidor (FR-009).
+- **Trocar de apelido** → o perfil passa a abrir só pelo apelido novo; o antigo fica livre (sem
+  redirecionamento — o perfil só é visível pra quem está logado, então não há link externo a
+  preservar).
+- **Apelido com caracteres estranhos ou ofensivo** → o formato é restrito (FR-016); moderação de
+  conteúdo fica fora deste marco.
+- **Empate de XP no ranking** → a ordem é determinística (o critério de desempate fica pro plan).
 - **Rubrica ou catálogo muda depois** (desafio novo, critério alterado) → XP já creditado nunca é
   revogado; desafios novos viram novas oportunidades de XP.
 - **Exclusão da conta** → o progresso some junto com ela (nada de órfão).
@@ -175,27 +223,34 @@ com a data, uma única vez, mesmo se a condição for cumprida de novo.
 - **FR-008**: As conquistas MUST ser desbloqueadas apenas por eventos verificados, cada uma uma
   única vez, com a data registrada; a lista MUST mostrar as desbloqueadas e as bloqueadas.
 - **FR-009**: O progresso que já existe no `localStorage` (antes deste marco) MUST NOT ser
-  creditado sem verificação. [NEEDS CLARIFICATION: o que fazer com o progresso antigo — começar
-  todo mundo do zero, ou conceder crédito retroativo (mesmo sendo auto-declarado, já que
-  `completedIds` é editável no navegador)?]
-- **FR-010**: [NEEDS CLARIFICATION: gamificação social — o usuário deve poder ver outros usuários
-  (ranking/leaderboard, perfil público)? Isso expõe dados de usuários uns aos outros (nome, e-mail?)
-  e é uma decisão de produto e de privacidade; sem resposta, este marco entrega só o progresso
-  individual, visível apenas pro próprio usuário.]
-- **FR-011**: [NEEDS CLARIFICATION: salvar os designs do usuário na conta (a queixa original: "as
-  arquiteturas ficam num banco local") entra neste marco ou continua no M4 ("salvar designs com
-  histórico de versões")? Sem resposta, este marco **não** move designs pro servidor — só o
-  progresso.]
+  creditado: todos começam do zero no servidor (Clarifications 2026-10-23).
+- **FR-010**: O sistema MUST oferecer um **ranking por XP** e um **perfil público** por usuário,
+  visíveis **somente para usuários logados** (dentro de `/app`, mesmo guard; nunca indexáveis nem
+  abertos a visitantes).
+- **FR-011**: Este marco MUST NOT mover designs pro servidor — salvar designs na conta continua no
+  M4 (Clarifications 2026-10-23).
 - **FR-012**: A gamificação MUST valer só pra usuários autenticados; nenhuma ação sem sessão válida
   credita XP.
 - **FR-013**: Se o registro do progresso falhar, o sistema MUST continuar exibindo o resultado do
   engine normalmente e MUST NOT exibir XP que não tenha sido gravado.
 - **FR-014**: O servidor MUST limitar a frequência de submissões que disparam recálculo, pra
   conter custo e tentativa de farming.
+- **FR-015**: Só aparece no ranking e tem perfil quem escolheu um **apelido**; o apelido é único
+  (sem diferenciar maiúsculas) e é o endereço do perfil (`/app/u/<apelido>`).
+- **FR-016**: O apelido MUST ter formato restrito (tamanho e caracteres limitados — os valores
+  exatos ficam pro plan) e pode ser trocado; ao trocar, o antigo fica livre.
+- **FR-017**: A visibilidade social é **ligada por padrão (opt-out)** a partir do momento em que o
+  usuário tem apelido; ele MUST poder se esconder a qualquer momento, e escondido não aparece no
+  ranking nem tem perfil aberto pros outros.
+- **FR-018**: Ranking e perfil MUST mostrar só apelido, nível, XP, conquistas, desafios resolvidos
+  e ofensiva (atual e recorde). MUST NOT expor e-mail, nome da conta Google nem nenhum design.
+- **FR-019**: O ranking MUST ser ordenado por XP com desempate determinístico; XP no ranking é o
+  mesmo XP verificado de FR-002 (nunca uma nota de qualidade de design — Constitution V).
 
 ### Key Entities
 
-- **Perfil de progresso**: um por usuário — XP total, nível (derivado), ofensiva atual e recorde.
+- **Perfil de progresso**: um por usuário — XP total, nível (derivado), ofensiva atual e recorde,
+  apelido (opcional, único) e visibilidade social (ligada por padrão quando há apelido).
 - **Evento de pontuação**: registro imutável de cada crédito verificado — tipo, desafio
   relacionado, XP concedido, data. É o que garante idempotência (FR-003) e auditoria do XP.
 - **Desafio resolvido**: o fato de um usuário ter resolvido um desafio, com a data da primeira
@@ -219,6 +274,10 @@ com a data, uma única vez, mesmo se a condição for cumprida de novo.
   marco, e nenhuma nota única agregada passa a existir (Constitution V).
 - **SC-006**: A ofensiva está correta em 100% dos casos de teste de virada de dia (mesmo dia,
   dia seguinte, dia pulado).
+- **SC-007**: 0 ocorrências de e-mail, nome da conta Google ou design em respostas do ranking e do
+  perfil público — confirmável inspecionando as respostas do servidor, não só a tela.
+- **SC-008**: Um usuário escondido não aparece no ranking e o perfil dele não abre pra outro usuário
+  em 100% dos casos; nenhum ranking ou perfil abre sem sessão.
 
 ## Assumptions
 
