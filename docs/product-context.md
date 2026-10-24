@@ -338,6 +338,9 @@ M2 precisa ser refeita contra o prompt atual (`NARRATOR_PROMPT_VERSION`), não c
 original. `hashDesign` inclui `promptVersion` no hash de cache exatamente pra isso não colidir
 silenciosamente com explicações cacheadas do prompt antigo.
 
+**Status (2026-10-24)**: **concluído** — verificado no browser em 2026-09-27 (US1–US4) e com o
+critério de saída do M2 já aceito (2026-10-03); `spec.md` promovido a `Done` (decisão do autor).
+
 **Verificação manual concluída em 2026-09-27** (migração `0003` aplicada ao Neon live; login via
 conta de teste throwaway criada e apagada na mesma sessão) — US1/US2/US3/US4 confirmados
 funcionando de ponta a ponta com dados reais (banco live, narrador via Gemini real). Achou e
