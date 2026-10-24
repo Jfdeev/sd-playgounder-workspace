@@ -1,5 +1,5 @@
 import { Flame, Lock, Trophy } from 'lucide-react';
-import { getProblem } from '@sdp/problems';
+import { getIncident, getProblem } from '@sdp/problems';
 import { ACHIEVEMENTS } from '@/lib/gamification/achievements';
 
 /**
@@ -14,6 +14,8 @@ export type ProgressOverviewData = {
   /** Só no painel do próprio usuário — o perfil público mostra nível e XP, sem a barra. */
   levelProgress?: { xpIntoLevel: number; xpForNextLevel: number };
   solved: { problemId: string; solvedAt: Date | string }[];
+  /** M3 — só no painel do próprio usuário (o perfil público segue a lista branca do M2.8). */
+  incidentsResolved?: { incidentId: string; resolvedAt: Date | string }[];
   achievements: { id: string; unlockedAt: Date | string }[];
   streak: { current: number; best: number };
   /** Painel próprio mostra também as conquistas bloqueadas, com a condição (US4 cenário 3). */
@@ -74,6 +76,24 @@ export function ProgressOverview({ data }: { data: ProgressOverviewData }) {
           </ul>
         )}
       </section>
+
+      {data.incidentsResolved && (
+        <section>
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">Incidentes resolvidos</h2>
+          {data.incidentsResolved.length === 0 ? (
+            <p className="text-sm text-zinc-500">Nenhum incidente resolvido ainda.</p>
+          ) : (
+            <ul className="space-y-1.5">
+              {data.incidentsResolved.map((r) => (
+                <li key={r.incidentId} className="flex justify-between rounded-md border border-zinc-800 px-3 py-2 text-sm text-zinc-200">
+                  <span>{getIncident(r.incidentId)?.title ?? r.incidentId}</span>
+                  <span className="text-xs text-zinc-500">{formatDate(r.resolvedAt)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       <section>
         <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">Conquistas</h2>

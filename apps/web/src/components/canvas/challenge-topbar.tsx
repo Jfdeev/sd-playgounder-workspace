@@ -12,8 +12,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Blocks, BookOpen, Calculator, ChevronDown, HelpCircle, Lock, Sparkles, Trophy } from 'lucide-react';
-import { ALL_PROBLEM_IDS, getProblem } from '@sdp/problems';
+import { Blocks, BookOpen, Calculator, ChevronDown, HelpCircle, Lock, Siren, Sparkles, Trophy } from 'lucide-react';
+import { ALL_PROBLEM_IDS, INCIDENTS, getProblem } from '@sdp/problems';
 import type { TemplateId } from '@sdp/knowledge';
 import { ARCHITECTURE_TEMPLATES, type ArchitectureTemplate } from '@/lib/canvas-templates';
 import { isChallengeUnlocked } from '@/lib/challenge-progression';
@@ -39,16 +39,20 @@ function useClickOutside(ref: React.RefObject<HTMLElement | null>, onOutside: ()
 
 export function ChallengeTopBar({
   activeChallengeId,
+  activeIncidentId,
   onSelectChallenge,
+  onSelectIncident,
   onApplyTemplate,
   onLoadPreset,
 }: {
   activeChallengeId: string | null;
+  activeIncidentId: string | null;
   onSelectChallenge: (problemId: string) => void;
+  onSelectIncident: (incidentId: string) => void;
   onApplyTemplate: (template: ArchitectureTemplate) => void;
   onLoadPreset: (presetId: string) => void;
 }) {
-  const [openMenu, setOpenMenu] = useState<'challenges' | 'templates' | 'architectures' | 'calculator' | null>(null);
+  const [openMenu, setOpenMenu] = useState<'challenges' | 'incidents' | 'templates' | 'architectures' | 'calculator' | null>(null);
   const [openStyleId, setOpenStyleId] = useState<TemplateId | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   useClickOutside(containerRef, () => setOpenMenu(null));
@@ -58,6 +62,7 @@ export function ChallengeTopBar({
   // `useSyncExternalStore`, que compara snapshots com `Object.is`) — criar um objeto novo a cada
   // render gera loop de re-render. Ver o comentário em challenge-progression.ts.
   const completedIds = useProgressionStore((s) => s.completedIds);
+  const progress = useProgressionStore((s) => s.progress);
 
   return (
     <div ref={containerRef} className="flex items-center gap-2 border-b border-zinc-800 bg-zinc-950 px-4 py-2">
@@ -110,6 +115,44 @@ export function ChallengeTopBar({
         )}
       </div>
 
+      {/* M3: incidentes — livres, sem trava de ordem; cada um com seu próprio canvas. */}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpenMenu((m) => (m === 'incidents' ? null : 'incidents'))}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-3 py-1.5 text-sm text-zinc-200 transition hover:border-violet-500"
+        >
+          <Siren className="size-4 text-violet-400" aria-hidden />
+          Incidentes
+          <ChevronDown className="size-3.5 text-zinc-500" aria-hidden />
+        </button>
+        {openMenu === 'incidents' && (
+          <div className="absolute left-0 top-full z-20 mt-1 w-72 rounded-lg border border-zinc-800 bg-zinc-900 p-1.5 shadow-xl">
+            {INCIDENTS.map((incident) => {
+              const resolved = progress?.incidentsResolved.some((r) => r.incidentId === incident.id) ?? false;
+              return (
+                <button
+                  key={incident.id}
+                  type="button"
+                  onClick={() => {
+                    onSelectIncident(incident.id);
+                    setOpenMenu(null);
+                  }}
+                  className={`flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-sm transition ${
+                    activeIncidentId === incident.id ? 'bg-violet-600/20 text-violet-300' : 'text-zinc-200 hover:bg-zinc-800'
+                  }`}
+                >
+                  <span>
+                    {incident.title}
+                    {resolved ? ' ✓' : ''}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       <div className="relative">
         <button
           type="button"
@@ -156,7 +199,7 @@ export function ChallengeTopBar({
       {/* M2.5: arquiteturas de referência — só no canvas livre (FR-009). */}
       <ReferenceArchitecturesMenu
         open={openMenu === 'architectures'}
-        disabled={activeChallengeId !== null}
+        disabled={activeChallengeId !== null || activeIncidentId !== null}
         onToggle={() => setOpenMenu((m) => (m === 'architectures' ? null : 'architectures'))}
         onSelect={(presetId) => {
           onLoadPreset(presetId);

@@ -336,6 +336,11 @@ export function canvasStorageKey(problemId: string | null): string {
   return problemId ? `sdp-canvas-${problemId}` : 'sdp-canvas-sandbox';
 }
 
+/** M3: cada incidente tem seu próprio canvas — nunca sobrescreve um desafio nem o canvas livre. */
+export function incidentStorageKey(incidentId: string): string {
+  return `sdp-canvas-incident-${incidentId}`;
+}
+
 export function useMemoizedCanvasStorageKey(problemId: string | null): string {
   return useMemo(() => canvasStorageKey(problemId), [problemId]);
 }
