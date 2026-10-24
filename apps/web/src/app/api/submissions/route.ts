@@ -45,7 +45,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const now = new Date();
   try {
-    if (!(await consumeSubmissionQuota(userId, now))) {
+    if (!(await consumeSubmissionQuota(userId))) {
       return NextResponse.json({ error: 'RATE_LIMITED' }, { status: 429 });
     }
 

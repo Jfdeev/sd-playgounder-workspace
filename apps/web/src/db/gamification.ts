@@ -13,17 +13,24 @@ import { activityDays, scoringEvents, submissionRateLimits, userProfiles } from 
  * regra de `src/db/client.ts`): é wiring de banco, não regra testável sem ele.
  */
 
-/** Conta uma submissão na janela do usuário; `false` = passou do limite (FR-014). Um upsert só, sem corrida. */
-export async function consumeSubmissionQuota(userId: string, now: Date): Promise<boolean> {
-  const windowCutoff = new Date(now.getTime() - SUBMISSION_RATE_LIMIT.windowMs);
+/**
+ * Conta uma submissão na janela do usuário; `false` = passou do limite (FR-014). Um upsert só, sem
+ * corrida. A janela usa só o relógio do banco, em UTC explícito: um `Date` do JS passado cru num
+ * `sql` vira hora local com offset, que o Postgres descarta ao comparar com `timestamp` sem fuso — a
+ * janela ficava 3 h deslocada e nunca vencia (achado na verificação manual).
+ */
+const DB_NOW_UTC = sql`(now() at time zone 'utc')`;
+
+export async function consumeSubmissionQuota(userId: string): Promise<boolean> {
+  const windowExpired = sql`${submissionRateLimits.windowStart} <= ${DB_NOW_UTC} - ${SUBMISSION_RATE_LIMIT.windowMs / 1000} * interval '1 second'`;
   const [row] = await db
     .insert(submissionRateLimits)
-    .values({ userId, windowStart: now, count: 1 })
+    .values({ userId, windowStart: DB_NOW_UTC, count: 1 })
     .onConflictDoUpdate({
       target: submissionRateLimits.userId,
       set: {
-        windowStart: sql`case when ${submissionRateLimits.windowStart} <= ${windowCutoff} then ${now} else ${submissionRateLimits.windowStart} end`,
-        count: sql`case when ${submissionRateLimits.windowStart} <= ${windowCutoff} then 1 else ${submissionRateLimits.count} + 1 end`,
+        windowStart: sql`case when ${windowExpired} then ${DB_NOW_UTC} else ${submissionRateLimits.windowStart} end`,
+        count: sql`case when ${windowExpired} then 1 else ${submissionRateLimits.count} + 1 end`,
       },
     })
     .returning({ count: submissionRateLimits.count });
@@ -112,17 +119,14 @@ export async function loadRankingEntries(): Promise<RankingEntry[]> {
     .select({
       nickname: userProfiles.nickname,
       xp: sql<number>`coalesce(sum(${scoringEvents.xp}), 0)::int`,
-      lastXpAt: sql<Date | null>`max(${scoringEvents.createdAt}) filter (where ${scoringEvents.xp} > 0)`,
+      // mapWith: lê como a coluna (UTC), não como string crua do driver (que a trataria como hora local).
+      lastXpAt: sql<Date | null>`max(${scoringEvents.createdAt}) filter (where ${scoringEvents.xp} > 0)`.mapWith(scoringEvents.createdAt),
     })
     .from(userProfiles)
     .leftJoin(scoringEvents, eq(scoringEvents.userId, userProfiles.userId))
     .where(isListed)
     .groupBy(userProfiles.nickname);
-  return rows.map((row) => ({
-    nickname: row.nickname!,
-    xp: Number(row.xp),
-    lastXpAt: row.lastXpAt ? new Date(row.lastXpAt) : null,
-  }));
+  return rows.map((row) => ({ nickname: row.nickname!, xp: Number(row.xp), lastXpAt: row.lastXpAt ?? null }));
 }
 
 /** Progresso de um perfil público pelo apelido; escondido ou inexistente → `null` (mesma resposta). */
