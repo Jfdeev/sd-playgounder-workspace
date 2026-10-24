@@ -12,8 +12,13 @@ import {
 import '@xyflow/react/dist/style.css';
 import { Activity, Play, Redo2, Trash2, Undo2 } from 'lucide-react';
 import { simulate, type ComponentType, type Workload } from '@sdp/engine';
-import { isProblemSolved, type Problem } from '@sdp/problems';
+import type { Problem } from '@sdp/problems';
 import { toDesign, toManualWorkload, toWorkload } from '@/lib/canvas-to-design';
+import {
+  describeSubmissionOutcome,
+  type SubmissionFeedback,
+  type SubmissionResponseBody,
+} from '@/lib/gamification/submission-feedback';
 import { toFlowEdge, toFlowNode, type ClientVariant } from '@/lib/canvas-types';
 import { connectableKindOf, isValidCanvasConnection } from '@/lib/connection-rules';
 import { RPS_SLIDER_RESOLUTION, clampRps, rpsToSliderPosition, sliderPositionToRps } from '@/lib/rps-slider';
@@ -38,14 +43,15 @@ const edgeTypes = { typed: TypedEdge };
  * Workload diferente:
  *
  * - **Submeter**: só disponível dentro de um desafio, sempre na escala fixa do `Problem`
- *   (`toWorkload`) — a única que conta pra rubrica/progressão (`isProblemSolved` +
- *   `markChallengeCompleted`). Inventar uma escala aqui seria inventar escopo de produto; por
- *   isso continua desabilitado no sandbox.
+ *   (`toWorkload`) — a única que conta pra rubrica/progressão. O resultado aparece na hora
+ *   (calculado aqui), mas o progresso só avança depois que o servidor reexecuta tudo
+ *   (`POST /api/submissions`, M2.8) — o navegador nunca marca um desafio como resolvido sozinho.
+ *   Inventar uma escala aqui seria inventar escopo de produto; por isso continua desabilitado no
+ *   sandbox.
  * - **Simular**: disponível em qualquer contexto, roda com o rps que o usuário escolher no
  *   slider/input (`toManualWorkload`) — pedido direto do autor, reabre deliberadamente a régua de
  *   carga ao vivo que tinha sido adiada (`specs/canvas-sandbox-desafios-templates/decisions.md`,
- *   decisão 3), mas só como ferramenta exploratória: nunca chama `isProblemSolved`/
- *   `markChallengeCompleted`, então não reabre o risco original da FR-007 de M1 (o usuário baixar
+ *   decisão 3), mas só como ferramenta exploratória: nunca registra progresso, então não reabre o risco original da FR-007 de M1 (o usuário baixar
  *   a carga só pra "passar" num desafio) — resolver um desafio continua exigindo Submeter na
  *   escala real dele.
  */
@@ -63,15 +69,15 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
   const applySimulationResult = useCanvasStore((s) => s.applySimulationResult);
   const lastResult = useCanvasStore((s) => s.lastResult);
   const storeApi = useCanvasStoreApi();
-  const markChallengeCompleted = useProgressionStore((s) => s.markCompleted);
+  const applyProgress = useProgressionStore((s) => s.applyProgress);
 
   const { screenToFlowPosition } = useReactFlow();
   const [actionError, setActionError] = useState<string | null>(null);
+  const [submissionFeedback, setSubmissionFeedback] = useState<SubmissionFeedback>(null);
 
   // Botão "Simular" — pedido direto do autor: rodar a arquitetura com uma quantidade de
   // requisições ajustável, pra ver qual componente satura, sem depender de um desafio. Puramente
-  // exploratório (confirmado com o autor): nunca chama `isProblemSolved`/`markChallengeCompleted`
-  // — só "Submeter" conta oficialmente pra rubrica/progressão, sempre na escala fixa do problema.
+  // exploratório (confirmado com o autor): nunca registra progresso — só "Submeter" conta oficialmente pra rubrica/progressão, sempre na escala fixa do problema.
   const [simulatePanelOpen, setSimulatePanelOpen] = useState(false);
   const [simulateRps, setSimulateRps] = useState(1000);
 
@@ -164,16 +170,14 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
 
   // FR-008/FR-009/FR-029: roda o design atual contra o engine e propaga status/gargalo de volta
   // pros nós (destaque em ComponentNode). Canvas vazio (edge case do spec) mostra uma mensagem
-  // clara em vez de chamar o engine sem feedback. Compartilhada entre "Submeter" (única ação que
-  // conta oficialmente — `countsForProgression: true`) e "Simular" (sempre exploratório, roda em
-  // qualquer rps escolhido, nunca em `countsForProgression: true`) — as duas só diferem no
-  // Workload usado e em se avaliam a rubrica no final.
+  // clara em vez de chamar o engine sem feedback. Compartilhada entre "Submeter" e "Simular" — as
+  // duas só diferem no Workload usado. Devolve se de fato simulou (canvas vazio não simula).
   const runSimulation = useCallback(
-    (workload: Workload, { actionLabel, countsForProgression }: { actionLabel: string; countsForProgression: boolean }) => {
+    (workload: Workload, actionLabel: string): boolean => {
       if (nodes.length === 0) {
         setActionError(`Adicione componentes antes de ${actionLabel}.`);
         applySimulationResult(null, null, null);
-        return;
+        return false;
       }
       setActionError(null);
 
@@ -188,29 +192,41 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
           result: { status: nodeResult.status, isBottleneck: nodeId === result.path.bottleneckId },
         });
       }
-
-      // Rubrica à mostra (Clarifications desta sessão) — progressão travada avança quando TODOS
-      // os critérios passam. `isProblemSolved` só compara o que o engine já calculou contra o
-      // limiar autorado em cada critério — nunca recalcula uma métrica (Constitution I/VII).
-      if (countsForProgression && problem && isProblemSolved(problem, result, design)) {
-        markChallengeCompleted(problem.id);
-      }
+      return true;
     },
-    [nodes, design, problem, referenceCostUsd, applySimulationResult, updateNodeConfig, markChallengeCompleted],
+    [nodes, design, problem, referenceCostUsd, applySimulationResult, updateNodeConfig],
   );
 
   // Sem desafio ativo, o botão de Submeter já vem desabilitado (ver JSX) — handleSubmit nunca
-  // roda sem `problem`; a escala vem sempre do problema, nunca do slider de Simular. É a única
-  // chamada com `countsForProgression: true` — a única ação que conta oficialmente.
-  function handleSubmit() {
+  // roda sem `problem`; a escala vem sempre do problema, nunca do slider de Simular. O resultado
+  // aparece na hora; em paralelo o servidor reexecuta tudo e é ele quem credita XP e destrava o
+  // próximo desafio (M2.8, FR-002). Falha do servidor nunca esconde o resultado (FR-013).
+  async function handleSubmit() {
     if (!problem) return;
-    runSimulation(toWorkload(problem), { actionLabel: 'submeter', countsForProgression: true });
+    setSubmissionFeedback(null);
+    if (!runSimulation(toWorkload(problem), 'submeter')) return;
+
+    let status = 0;
+    let body: SubmissionResponseBody | null = null;
+    try {
+      const response = await fetch('/api/submissions', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ problemId: problem.id, design }),
+      });
+      status = response.status;
+      body = response.ok ? ((await response.json()) as SubmissionResponseBody) : null;
+    } catch {
+      // rede fora — cai no aviso genérico de "progresso não registrado"
+    }
+    if (body) applyProgress(body.progress);
+    setSubmissionFeedback(describeSubmissionOutcome(status, body));
   }
 
   // Botão "Simular" — mesmo runSimulation, workload manual (só o rps do slider/input), nunca
   // conta pra progressão. Disponível em qualquer contexto (sandbox ou dentro de um desafio).
   function handleSimulate(rps: number) {
-    runSimulation(toManualWorkload(rps), { actionLabel: 'simular', countsForProgression: false });
+    runSimulation(toManualWorkload(rps), 'simular');
   }
 
   // Ref sempre com a versão mais recente de handleSimulate (fecha sobre nodes/edges/problem
@@ -357,6 +373,16 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
             </button>
           </div>
         </div>
+        {submissionFeedback && (
+          <p
+            role="status"
+            className={`border-t border-zinc-800 bg-zinc-950 px-4 py-2 text-xs ${
+              submissionFeedback.tone === 'warning' ? 'text-amber-300' : submissionFeedback.tone === 'success' ? 'text-emerald-300' : 'text-zinc-400'
+            }`}
+          >
+            {submissionFeedback.text}
+          </p>
+        )}
         <ResultPanel result={lastResult} actionError={actionError} />
         <ScorePanel result={lastResult} />
         <NarratorPanel />

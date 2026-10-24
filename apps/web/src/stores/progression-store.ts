@@ -1,55 +1,56 @@
 'use client';
 
 /**
- * Progresso de desafios completados — apps/web/src/stores/progression-store.ts
+ * Progresso do usuário — apps/web/src/stores/progression-store.ts
  *
- * Ao contrário de `canvas-store.tsx` (uma instância por design ativo), este é um singleton: "quais
- * desafios eu já completei" é um fato sobre a sessão do usuário como um todo, não sobre um design
- * específico. Persistido em `localStorage` sob sua própria chave — nunca compartilha storage com
- * nenhum design individual.
+ * M2.8: a fonte da verdade passou a ser o servidor (`GET /api/progress`, XP e desafios resolvidos
+ * verificados por ele). Este store só espelha o que o servidor devolve — nunca marca um desafio como
+ * resolvido sozinho. `completedIds` continua com o mesmo nome e formato de antes pra trava de
+ * desafios (`challenge-progression.ts`) não mudar; a chave antiga `sdp-challenge-progression` do
+ * `localStorage` é apagada (todos começam do zero — Clarifications de 2026-10-23).
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import type { ProgressJson } from '@/lib/gamification/progress';
+
+const LEGACY_STORAGE_KEY = 'sdp-challenge-progression';
 
 type ProgressionState = {
+  /** Ids dos desafios resolvidos segundo o servidor — array (não `Set`) pela mesma razão de antes: referência estável no seletor. */
   completedIds: string[];
-  markCompleted: (problemId: string) => void;
+  progress: ProgressJson | null;
+  status: 'idle' | 'loading' | 'ready' | 'error';
+  refresh: () => Promise<void>;
+  applyProgress: (progress: ProgressJson) => void;
 };
 
-export const useProgressionStore = create<ProgressionState>()(
-  persist(
-    (set) => ({
-      completedIds: [],
-      markCompleted: (problemId) =>
-        set((state) => (state.completedIds.includes(problemId) ? state : { completedIds: [...state.completedIds, problemId] })),
-    }),
-    {
-      name: 'sdp-challenge-progression',
-      storage: {
-        getItem: (key) => {
-          try {
-            const value = localStorage.getItem(key);
-            return value ? JSON.parse(value) : null;
-          } catch {
-            return null;
-          }
-        },
-        setItem: (key, value) => {
-          try {
-            localStorage.setItem(key, JSON.stringify(value));
-          } catch {
-            // autosave é best-effort — mesmo tratamento de canvas-store.tsx
-          }
-        },
-        removeItem: (key) => {
-          try {
-            localStorage.removeItem(key);
-          } catch {
-            // idem
-          }
-        },
-      },
-    },
-  ),
-);
+function forgetLegacyProgress() {
+  try {
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+  } catch {
+    // localStorage indisponível — nada a apagar
+  }
+}
+
+export const useProgressionStore = create<ProgressionState>()((set, get) => ({
+  completedIds: [],
+  progress: null,
+  status: 'idle',
+
+  applyProgress: (progress) =>
+    set({ progress, completedIds: progress.solved.map((s) => s.problemId), status: 'ready' }),
+
+  refresh: async () => {
+    forgetLegacyProgress();
+    if (get().status === 'idle') set({ status: 'loading' });
+    try {
+      const response = await fetch('/api/progress', { cache: 'no-store' });
+      if (!response.ok) throw new Error(`progress ${response.status}`);
+      const { progress } = (await response.json()) as { progress: ProgressJson };
+      get().applyProgress(progress);
+    } catch {
+      // Sem progresso do servidor a trava fica no estado mais conservador (só o 1º desafio).
+      set({ status: 'error' });
+    }
+  },
+}));

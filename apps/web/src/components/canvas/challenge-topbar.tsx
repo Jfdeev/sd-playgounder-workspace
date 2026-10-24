@@ -12,7 +12,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Blocks, BookOpen, Calculator, ChevronDown, HelpCircle, Lock, Sparkles } from 'lucide-react';
+import { Blocks, BookOpen, Calculator, ChevronDown, HelpCircle, Lock, Sparkles, Trophy } from 'lucide-react';
 import { ALL_PROBLEM_IDS, getProblem } from '@sdp/problems';
 import type { TemplateId } from '@sdp/knowledge';
 import { ARCHITECTURE_TEMPLATES, type ArchitectureTemplate } from '@/lib/canvas-templates';
@@ -188,6 +188,15 @@ export function ChallengeTopBar({
       >
         <BookOpen className="size-4 text-violet-400" aria-hidden />
         Biblioteca
+      </Link>
+
+      {/* M2.8: progresso verificado pelo servidor (XP, nível, ofensiva, conquistas) e o ranking. */}
+      <Link
+        href="/app/progresso"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-3 py-1.5 text-sm text-zinc-200 transition hover:border-violet-500"
+      >
+        <Trophy className="size-4 text-violet-400" aria-hidden />
+        Progresso
       </Link>
     </div>
   );

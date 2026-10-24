@@ -404,8 +404,19 @@ frontend" deixa de ser adiável aqui: é a primeira vez que um marco pontua uma 
 oficial). XP e nível medem **atividade de estudo**, nunca viram uma nota agregada de qualidade do
 design (Constitution V).
 
-Escopo exato (o que dá XP, ranking entre usuários, e a fronteira com o M4 — "salvar designs com
-histórico" e "progresso por conceito" já estão no M4) fica pro `/speckit-clarify` de M2.8.
+Escopo decidido no `/speckit-clarify` (2026-10-23, `specs/gamificacao-progresso-conta/spec.md`):
+XP só por desafio resolvido e reconferido pelo servidor; todos começam do zero (nada do
+`localStorage` é creditado); **ranking por XP e perfil público** por apelido escolhido (único, nunca
+o e-mail), ligados por padrão com opção de se esconder, visíveis só pra quem está logado — o perfil
+mostra nível, XP, conquistas, desafios resolvidos e ofensiva, nunca designs. Salvar designs na conta
+continua no M4.
+
+**Status (2026-10-23)**: **concluído** e verificado no browser. Submissão reexecutada pelo servidor
+(`POST /api/submissions`, só `problemId` + design), XP por evento imutável e idempotente (100 por
+desafio), níveis 0/100/300/600/1000, ofensiva por qualquer submissão verificada (fuso de SP), 5
+conquistas, painel `/app/progresso`, ranking `/app/ranking` e perfil `/app/u/<apelido>` só para
+logados. A trava de desafios passou a ler o servidor. Migração `0004` aplicada ao Neon. Engine,
+narrador e `NARRATOR_PROMPT_VERSION` intocados.
 
 > Nota de quem escreveu isto: numeração (M2.7, M2.8), posição (após M2.6, antes de M3) e o corte
 > entre os dois marcos são uma proposta — mesmo tipo de decisão que M2.5/M2.6 registraram como

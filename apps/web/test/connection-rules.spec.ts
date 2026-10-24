@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ComponentType } from '@sdp/engine';
-import { connectableKindOf, getAllowedTargets, isValidCanvasConnection, type ConnectableKind } from '../src/lib/connection-rules';
+import { connectableKindOf, getAllowedTargets, isConnectableKind, isValidCanvasConnection, type ConnectableKind } from '../src/lib/connection-rules';
 import type { FlowNodeData } from '../src/lib/canvas-types';
 
 const ALL_COMPONENT_TYPES: readonly ComponentType[] = [
@@ -374,5 +374,15 @@ describe('getAllowedTargets — completude da matriz', () => {
       if (leafTypes.includes(source)) continue;
       expect(getAllowedTargets(source).length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('isConnectableKind', () => {
+  it('reconhece tipos do catálogo e o Cliente; recusa o resto', () => {
+    expect(isConnectableKind('app_server')).toBe(true);
+    expect(isConnectableKind('client')).toBe(true);
+    expect(isConnectableKind('mainframe')).toBe(false);
+    expect(isConnectableKind('toString')).toBe(false);
+    expect(isConnectableKind(42)).toBe(false);
   });
 });
