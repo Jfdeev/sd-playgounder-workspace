@@ -11,32 +11,41 @@ dependem do conteúdo e vêm antes — são elas que permitem rodar as checagens
 
 ## Phase 1: Setup
 
-- [ ] T001 Baseline: `pnpm -r test`, `pnpm -r exec tsc --noEmit`, `pnpm --filter web build` verdes;
+- [x] T001 Baseline: `pnpm -r test`, `pnpm -r exec tsc --noEmit`, `pnpm --filter web build` verdes;
       gravar um snapshot de `simulate()` de todo problema (referência), template e preset — base do SC-006
 
 ## Phase 2: Foundational
 
-- [ ] T002 [P] `packages/engine`: `DesignNode.capacityFactor?: number` (gate 3); capacidade ×
+- [x] T002 [P] `packages/engine`: `DesignNode.capacityFactor?: number` (gate 3); capacidade ×
       fator; teste: ausente/1 ⇒ idêntico; 0.5 ⇒ metade da capacidade; fator inválido (≤ 0) vira violação
       estrutural sem lançar. Teste de não-regressão: o snapshot do T001 é idêntico (SC-006). Conferir que
       `canonicalizeDesign` (narrador) não muda o hash de designs sem o campo
-- [ ] T003 [P] `packages/problems/src/incidents/zones.ts` + teste — regra fixa de 3 zonas (rodízio):
+- [x] T003 [P] `packages/problems/src/incidents/zones.ts` + teste — regra fixa de 3 zonas (rodízio):
       quantas réplicas um nó perde quando a zona `z` cai (`ceil(r/3)` pra zona 0, etc. — determinístico)
-- [ ] T004 `packages/problems/src/incidents/faults.ts` + teste — `Fault` (5 tipos) e
+- [x] T004 `packages/problems/src/incidents/faults.ts` + teste — `Fault` (5 tipos) e
       `applyFault(design, fault)`: relativa; nó que fica com 0 réplicas é removido com suas arestas (e
       sai de `entryNodeIds`); nunca gera `replicas: 0`; não muta a entrada
-- [ ] T005 `apps/web/src/lib/incidents/snapshot.ts` + teste — serializador do estado "durante" (lista
+- [x] T005 `apps/web/src/lib/incidents/snapshot.ts` + teste — serializador do estado "durante" (lista
       branca, gate 4) a partir do design **original** + resultado do engine sobre o design com falha;
       nó removido ⇒ `offeredLoad: 0`, status `no-traffic`; teste: sem `replicas`/`capacity`/
       `cacheHitRate`/design com falha na saída (SC-003)
-- [ ] T006 `packages/problems/src/incidents/uniqueness.ts` + teste — gera todo par (componente ×
+- [x] T006 `packages/problems/src/incidents/uniqueness.ts` + teste — gera todo par (componente ×
       tipo, com parâmetros do próprio incidente) e devolve os pares cujo snapshot é igual ao do par
       plantado (gate 1); depende de um comparador de snapshot sobre os mesmos campos da lista branca
-- [ ] T007 `apps/web/src/lib/incidents/fix.ts` + teste — avalia o critério do fix com a falha
+- [x] T007 `apps/web/src/lib/incidents/fix.ts` + teste — avalia o critério do fix com a falha
       aplicada ao design submetido: p99, saturação, throughput, alvo presente e alcançável, sem órfão
       novo; devolve as checagens que falharam (nomes fixos)
-- [ ] T008 `apps/web/src/lib/incidents/diagnosis.ts` + teste — `(nodeId, faultType)` × falha plantada
+- [x] T008 `apps/web/src/lib/incidents/diagnosis.ts` + teste — `(nodeId, faultType)` × falha plantada
       → `correct | right-component | wrong`; tipo fora dos 5 rejeitado
+
+**Refinamento da estrutura (2026-10-24)**: serializador do estado "durante" (`snapshot.ts`),
+comparação do diagnóstico (`diagnosis.ts`) e critério do fix (`fix.ts`) ficaram em
+`packages/problems/src/incidents/` junto das falhas — a busca de unicidade e os testes de cada
+incidente usam as mesmas funções, sem cópia em `apps/web`. Duas regras de modelagem explícitas em
+`diagnosis.ts`: zona caída aceita o tipo com qualquer componente (a causa é a zona); partição aceita
+qualquer uma das duas pontas. `capacityFactor` só aceita (0, 1] — falha só tira capacidade. A busca já
+mostrou um par ambíguo real (perder metade das instâncias × pool a 50% no mesmo nó, sem SPOF) — os
+rascunhos precisam evitar isso.
 
 ## Phase 3: Conteúdo (gate 5)
 
