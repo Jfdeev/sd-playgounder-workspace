@@ -1,0 +1,136 @@
+import { and, asc, eq, isNotNull, sql } from 'drizzle-orm';
+import { buildProgress, type Progress } from '@/lib/gamification/progress';
+import { toLocalDay } from '@/lib/gamification/streak';
+import { SUBMISSION_RATE_LIMIT } from '@/lib/gamification/scoring';
+import type { RankingEntry } from '@/lib/gamification/ranking';
+import { db } from './client';
+import { activityDays, scoringEvents, submissionRateLimits, userProfiles } from './schema';
+
+/**
+ * Acesso ao banco do M2.8. Toda escrita é um único comando idempotente — o driver `neon-http` não
+ * tem transação (research.md §2) —, e nada aqui guarda contador: XP, nível, ranking etc. são
+ * derivados dos eventos imutáveis por `buildProgress`. Fica fora de `src/lib/` de propósito (mesma
+ * regra de `src/db/client.ts`): é wiring de banco, não regra testável sem ele.
+ */
+
+/** Conta uma submissão na janela do usuário; `false` = passou do limite (FR-014). Um upsert só, sem corrida. */
+export async function consumeSubmissionQuota(userId: string, now: Date): Promise<boolean> {
+  const windowCutoff = new Date(now.getTime() - SUBMISSION_RATE_LIMIT.windowMs);
+  const [row] = await db
+    .insert(submissionRateLimits)
+    .values({ userId, windowStart: now, count: 1 })
+    .onConflictDoUpdate({
+      target: submissionRateLimits.userId,
+      set: {
+        windowStart: sql`case when ${submissionRateLimits.windowStart} <= ${windowCutoff} then ${now} else ${submissionRateLimits.windowStart} end`,
+        count: sql`case when ${submissionRateLimits.windowStart} <= ${windowCutoff} then 1 else ${submissionRateLimits.count} + 1 end`,
+      },
+    })
+    .returning({ count: submissionRateLimits.count });
+  return (row?.count ?? 1) <= SUBMISSION_RATE_LIMIT.maxSubmissions;
+}
+
+/** Credita um evento; `true` só pra quem de fato inseriu (repetido ou concorrente → `false`, FR-003). */
+export async function creditEvent(
+  userId: string,
+  event: { eventKey: string; type: 'challenge' | 'achievement'; problemId: string | null; xp: number },
+): Promise<boolean> {
+  const inserted = await db
+    .insert(scoringEvents)
+    .values({ userId, ...event })
+    .onConflictDoNothing({ target: [scoringEvents.userId, scoringEvents.eventKey] })
+    .returning({ id: scoringEvents.id });
+  return inserted.length > 0;
+}
+
+/** Marca o dia (fuso de SP) como dia com atividade verificada — o mesmo dia conta uma vez (FR-007). */
+export async function recordActivityDay(userId: string, now: Date): Promise<void> {
+  await db.insert(activityDays).values({ userId, day: toLocalDay(now) }).onConflictDoNothing();
+}
+
+export async function loadProgress(userId: string, now: Date): Promise<Progress> {
+  const [events, days] = await Promise.all([
+    db
+      .select({
+        type: scoringEvents.type,
+        problemId: scoringEvents.problemId,
+        eventKey: scoringEvents.eventKey,
+        xp: scoringEvents.xp,
+        createdAt: scoringEvents.createdAt,
+      })
+      .from(scoringEvents)
+      .where(eq(scoringEvents.userId, userId))
+      .orderBy(asc(scoringEvents.createdAt)),
+    db.select({ day: activityDays.day }).from(activityDays).where(eq(activityDays.userId, userId)),
+  ]);
+  return buildProgress(events, days.map((row) => row.day), toLocalDay(now));
+}
+
+export type ProfileSettings = { nickname: string | null; isPublic: boolean };
+
+export async function loadProfileSettings(userId: string): Promise<ProfileSettings> {
+  const [row] = await db
+    .select({ nickname: userProfiles.nickname, isPublic: userProfiles.isPublic })
+    .from(userProfiles)
+    .where(eq(userProfiles.userId, userId))
+    .limit(1);
+  return row ?? { nickname: null, isPublic: true };
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  const code = (error as { code?: unknown; cause?: { code?: unknown } })?.code ?? (error as { cause?: { code?: unknown } })?.cause?.code;
+  return code === '23505';
+}
+
+/**
+ * Grava apelido/visibilidade. Apelido já usado por outra conta → `'taken'`, decidido pela violação do
+ * índice único (FR-015), nunca por "checa e depois grava" — que deixaria duas contas pegarem o mesmo.
+ */
+export async function saveProfileSettings(
+  userId: string,
+  patch: Partial<ProfileSettings>,
+): Promise<ProfileSettings | 'taken'> {
+  const current = await loadProfileSettings(userId);
+  const next: ProfileSettings = { ...current, ...patch };
+  try {
+    await db
+      .insert(userProfiles)
+      .values({ userId, ...next, updatedAt: new Date() })
+      .onConflictDoUpdate({ target: userProfiles.userId, set: { ...next, updatedAt: new Date() } });
+  } catch (error) {
+    if (isUniqueViolation(error)) return 'taken';
+    throw error;
+  }
+  return next;
+}
+
+/** Quem aparece no ranking: tem apelido e não se escondeu (FR-015, FR-017). */
+const isListed = and(isNotNull(userProfiles.nickname), eq(userProfiles.isPublic, true));
+
+export async function loadRankingEntries(): Promise<RankingEntry[]> {
+  const rows = await db
+    .select({
+      nickname: userProfiles.nickname,
+      xp: sql<number>`coalesce(sum(${scoringEvents.xp}), 0)::int`,
+      lastXpAt: sql<Date | null>`max(${scoringEvents.createdAt}) filter (where ${scoringEvents.xp} > 0)`,
+    })
+    .from(userProfiles)
+    .leftJoin(scoringEvents, eq(scoringEvents.userId, userProfiles.userId))
+    .where(isListed)
+    .groupBy(userProfiles.nickname);
+  return rows.map((row) => ({
+    nickname: row.nickname!,
+    xp: Number(row.xp),
+    lastXpAt: row.lastXpAt ? new Date(row.lastXpAt) : null,
+  }));
+}
+
+/** Progresso de um perfil público pelo apelido; escondido ou inexistente → `null` (mesma resposta). */
+export async function loadPublicProgress(nickname: string, now: Date): Promise<Progress | null> {
+  const [row] = await db
+    .select({ userId: userProfiles.userId })
+    .from(userProfiles)
+    .where(and(isListed, eq(userProfiles.nickname, nickname)))
+    .limit(1);
+  return row ? loadProgress(row.userId, now) : null;
+}

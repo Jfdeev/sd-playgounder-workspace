@@ -233,6 +233,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       return true;
     },
+    // M2.8: o callback padrão do Auth.js só devolve name/email/image — o progresso no servidor
+    // precisa do id da conta, que na estratégia JWT já está em `token.sub`.
+    session({ session, token }) {
+      if (token.sub) session.user.id = token.sub;
+      return session;
+    },
   },
   pages: {
     signIn: '/entrar',
