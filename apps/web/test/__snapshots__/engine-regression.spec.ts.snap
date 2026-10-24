@@ -1,0 +1,867 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > arquitetura de referência discord 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "api-monolith": 180,
+      "elixir-gateway": 180,
+      "guild-fanout": 200,
+      "scylladb": 5760,
+    },
+    "monthlyTotal": 6320,
+  },
+  "nodes": {
+    "api-monolith": {
+      "capacity": 3000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 0.4,
+      "status": "healthy",
+      "utilization": 0.16666666666666666,
+    },
+    "elixir-gateway": {
+      "capacity": 3000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 0.4,
+      "status": "healthy",
+      "utilization": 0.16666666666666666,
+    },
+    "guild-fanout": {
+      "capacity": 20000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 0.05128205128205128,
+      "status": "healthy",
+      "utilization": 0.025,
+    },
+    "scylladb": {
+      "capacity": 576000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 0.001737619461337967,
+      "status": "healthy",
+      "utilization": 0.0008680555555555555,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 22.27846329825449,
+      "p95": 83.81574325008027,
+      "p99": 89.85007010773317,
+    },
+    "throughputRps": 1000,
+  },
+  "scores": {
+    "complexidade_operacional": 88,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 83,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > arquitetura de referência github 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "git-fileservers": 60,
+      "mysql-primary": 240,
+      "mysql-read-replicas": 400,
+      "push-events": 750,
+      "push-workers": 100,
+      "rails-monolith": 180,
+    },
+    "monthlyTotal": 1730,
+  },
+  "nodes": {
+    "git-fileservers": {
+      "capacity": 6000,
+      "offeredLoad": 250,
+      "queueLatencyMs": 0.1739130434782609,
+      "status": "healthy",
+      "utilization": 0.041666666666666664,
+    },
+    "mysql-primary": {
+      "capacity": 2000,
+      "offeredLoad": 250,
+      "queueLatencyMs": 0.5714285714285715,
+      "status": "healthy",
+      "utilization": 0.125,
+    },
+    "mysql-read-replicas": {
+      "capacity": 4000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 0.28571428571428575,
+      "status": "healthy",
+      "utilization": 0.125,
+    },
+    "push-events": {
+      "capacity": 300000,
+      "offeredLoad": 250,
+      "queueLatencyMs": 0.003336113427856547,
+      "status": "healthy",
+      "utilization": 0.0008333333333333334,
+    },
+    "push-workers": {
+      "capacity": 800,
+      "offeredLoad": 250,
+      "queueLatencyMs": 1.8181818181818181,
+      "status": "healthy",
+      "utilization": 0.3125,
+    },
+    "rails-monolith": {
+      "capacity": 3000,
+      "offeredLoad": 1000,
+      "queueLatencyMs": 0.5,
+      "status": "healthy",
+      "utilization": 0.3333333333333333,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 35.46712092602953,
+      "p95": 133.44743448248826,
+      "p99": 143.10348425577456,
+    },
+    "throughputRps": 1000,
+  },
+  "scores": {
+    "complexidade_operacional": 82,
+    "consistencia": 60,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 67,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > arquitetura de referência ifood-search 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "discovery-search": 180,
+      "elasticsearch": 450,
+      "item-enrichment": 60,
+      "merchant-enrichment": 60,
+    },
+    "monthlyTotal": 750,
+  },
+  "nodes": {
+    "discovery-search": {
+      "capacity": 3000,
+      "offeredLoad": 1000,
+      "queueLatencyMs": 0.5,
+      "status": "healthy",
+      "utilization": 0.3333333333333333,
+    },
+    "elasticsearch": {
+      "capacity": 9000,
+      "offeredLoad": 333.3333333333333,
+      "queueLatencyMs": 0.11538461538461539,
+      "status": "healthy",
+      "utilization": 0.037037037037037035,
+    },
+    "item-enrichment": {
+      "capacity": 600,
+      "offeredLoad": 333.3333333333333,
+      "queueLatencyMs": 3.75,
+      "status": "healthy",
+      "utilization": 0.5555555555555555,
+    },
+    "merchant-enrichment": {
+      "capacity": 600,
+      "offeredLoad": 333.3333333333333,
+      "queueLatencyMs": 3.75,
+      "status": "healthy",
+      "utilization": 0.5555555555555555,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 122.94587551737976,
+      "p95": 830.6910458360738,
+      "p99": 899.5719732904494,
+    },
+    "throughputRps": 1000,
+  },
+  "scores": {
+    "complexidade_operacional": 88,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 44,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > arquitetura de referência netflix 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "aws-services": 240,
+      "cassandra": 240,
+      "evcache": 180,
+      "open-connect": 420,
+      "transcoding-repo": 40,
+      "zuul": 160,
+    },
+    "monthlyTotal": 1280,
+  },
+  "nodes": {
+    "aws-services": {
+      "capacity": 4000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 0.28571428571428575,
+      "status": "healthy",
+      "utilization": 0.125,
+    },
+    "cassandra": {
+      "capacity": 24000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 0.0425531914893617,
+      "status": "healthy",
+      "utilization": 0.020833333333333332,
+    },
+    "evcache": {
+      "capacity": 150000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 0.006688963210702341,
+      "status": "healthy",
+      "utilization": 0.0033333333333333335,
+    },
+    "open-connect": {
+      "capacity": 600000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 0.0016680567139282735,
+      "status": "healthy",
+      "utilization": 0.0008333333333333334,
+    },
+    "transcoding-repo": {
+      "capacity": 4000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 0.28571428571428575,
+      "status": "healthy",
+      "utilization": 0.125,
+    },
+    "zuul": {
+      "capacity": 20000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 0.05128205128205128,
+      "status": "healthy",
+      "utilization": 0.025,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 24.767720121543086,
+      "p95": 91.32033242098618,
+      "p99": 97.77869398664129,
+    },
+    "throughputRps": 1000,
+  },
+  "scores": {
+    "complexidade_operacional": 82,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 88,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > arquitetura de referência nubank-defense 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "async-actions": 100,
+      "datomic": 240,
+      "etl": 900,
+      "external-providers": 60,
+      "flow-orchestrator": 180,
+      "kafka": 750,
+    },
+    "monthlyTotal": 2230,
+  },
+  "nodes": {
+    "async-actions": {
+      "capacity": 800,
+      "offeredLoad": 333.3333333333333,
+      "queueLatencyMs": 2.142857142857143,
+      "status": "healthy",
+      "utilization": 0.41666666666666663,
+    },
+    "datomic": {
+      "capacity": 24000,
+      "offeredLoad": 333.3333333333333,
+      "queueLatencyMs": 0.04225352112676056,
+      "status": "healthy",
+      "utilization": 0.013888888888888888,
+    },
+    "etl": {
+      "capacity": 600,
+      "offeredLoad": 333.3333333333333,
+      "queueLatencyMs": 3.75,
+      "status": "healthy",
+      "utilization": 0.5555555555555555,
+    },
+    "external-providers": {
+      "capacity": 600,
+      "offeredLoad": 333.3333333333333,
+      "queueLatencyMs": 3.75,
+      "status": "healthy",
+      "utilization": 0.5555555555555555,
+    },
+    "flow-orchestrator": {
+      "capacity": 3000,
+      "offeredLoad": 1000,
+      "queueLatencyMs": 0.5,
+      "status": "healthy",
+      "utilization": 0.3333333333333333,
+    },
+    "kafka": {
+      "capacity": 300000,
+      "offeredLoad": 333.3333333333333,
+      "queueLatencyMs": 0.003337041156840934,
+      "status": "healthy",
+      "utilization": 0.0011111111111111111,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 122.94587551737976,
+      "p95": 830.6910458360738,
+      "p99": 899.5719732904494,
+    },
+    "throughputRps": 1000,
+  },
+  "scores": {
+    "complexidade_operacional": 82,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 44,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > solução de referência do desafio ecommerce-checkout 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "app-server-1": 120,
+      "payment-1": 1000,
+      "rate-limiter-1": 40,
+      "sql-primary-1": 480,
+    },
+    "monthlyTotal": 1640,
+  },
+  "nodes": {
+    "app-server-1": {
+      "capacity": 2000,
+      "offeredLoad": 1388.888888888889,
+      "queueLatencyMs": 1.6363636363636365,
+      "status": "healthy",
+      "utilization": 0.6944444444444444,
+    },
+    "payment-1": {
+      "capacity": 1600,
+      "offeredLoad": 694.4444444444445,
+      "queueLatencyMs": 1.1042944785276074,
+      "status": "healthy",
+      "utilization": 0.4340277777777778,
+    },
+    "rate-limiter-1": {
+      "capacity": 24000,
+      "offeredLoad": 1388.888888888889,
+      "queueLatencyMs": 0.044226044226044224,
+      "status": "healthy",
+      "utilization": 0.05787037037037037,
+    },
+    "sql-primary-1": {
+      "capacity": 4000,
+      "offeredLoad": 694.4444444444445,
+      "queueLatencyMs": 0.3025210084033613,
+      "status": "healthy",
+      "utilization": 0.1736111111111111,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 172.43033460307822,
+      "p95": 924.0978693943932,
+      "p99": 994.8248655009975,
+    },
+    "throughputRps": 1388.888888888889,
+  },
+  "scores": {
+    "complexidade_operacional": 88,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 31,
+    "latencia": 0,
+    "seguranca": 30,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > solução de referência do desafio social-feed 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "app-server-1": 900,
+      "cache-1": 120,
+      "nosql-1": 320,
+    },
+    "monthlyTotal": 1340,
+  },
+  "nodes": {
+    "app-server-1": {
+      "capacity": 15000,
+      "offeredLoad": 13888.888888888889,
+      "queueLatencyMs": 0.8999999999999999,
+      "status": "warning",
+      "utilization": 0.9259259259259259,
+    },
+    "cache-1": {
+      "capacity": 100000,
+      "offeredLoad": 13888.888888888889,
+      "queueLatencyMs": 0.01161290322580645,
+      "status": "healthy",
+      "utilization": 0.1388888888888889,
+    },
+    "nosql-1": {
+      "capacity": 32000,
+      "offeredLoad": 2777.777777777777,
+      "queueLatencyMs": 0.03422053231939163,
+      "status": "healthy",
+      "utilization": 0.08680555555555552,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 21.131881913633034,
+      "p95": 87.32325966663655,
+      "p99": 94.35572393828343,
+    },
+    "throughputRps": 13888.888888888889,
+  },
+  "scores": {
+    "complexidade_operacional": 91,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 7,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > solução de referência do desafio url-shortener 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "app-server-1": 240,
+      "cache-1": 120,
+      "nosql-1": 160,
+    },
+    "monthlyTotal": 520,
+  },
+  "nodes": {
+    "app-server-1": {
+      "capacity": 4000,
+      "offeredLoad": 1736.111111111111,
+      "queueLatencyMs": 0.441717791411043,
+      "status": "healthy",
+      "utilization": 0.4340277777777778,
+    },
+    "cache-1": {
+      "capacity": 100000,
+      "offeredLoad": 1736.111111111111,
+      "queueLatencyMs": 0.010176678445229683,
+      "status": "healthy",
+      "utilization": 0.017361111111111112,
+    },
+    "nosql-1": {
+      "capacity": 16000,
+      "offeredLoad": 260.4166666666667,
+      "queueLatencyMs": 0.06353408338848444,
+      "status": "healthy",
+      "utilization": 0.016276041666666668,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 20.813229377691506,
+      "p95": 86.03388187003391,
+      "p99": 92.37363620640974,
+    },
+    "throughputRps": 1736.111111111111,
+  },
+  "scores": {
+    "complexidade_operacional": 91,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 57,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > template event-driven 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "db-a": 120,
+      "db-b": 160,
+      "gateway": 80,
+      "kafka": 250,
+      "producer": 90,
+      "worker-a": 50,
+      "worker-b": 50,
+    },
+    "monthlyTotal": 800,
+  },
+  "nodes": {
+    "db-a": {
+      "capacity": 1000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 2,
+      "status": "healthy",
+      "utilization": 0.5,
+    },
+    "db-b": {
+      "capacity": 16000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 0.06451612903225806,
+      "status": "healthy",
+      "utilization": 0.03125,
+    },
+    "gateway": {
+      "capacity": 10000,
+      "offeredLoad": 1000,
+      "queueLatencyMs": 0.11111111111111112,
+      "status": "healthy",
+      "utilization": 0.1,
+    },
+    "kafka": {
+      "capacity": 100000,
+      "offeredLoad": 1000,
+      "queueLatencyMs": 0.010101010101010102,
+      "status": "healthy",
+      "utilization": 0.01,
+    },
+    "producer": {
+      "capacity": 1500,
+      "offeredLoad": 1000,
+      "queueLatencyMs": 2,
+      "status": "healthy",
+      "utilization": 0.6666666666666666,
+    },
+    "worker-a": {
+      "capacity": 400,
+      "offeredLoad": 500,
+      "queueLatencyMs": Infinity,
+      "status": "saturated",
+      "utilization": 1.25,
+    },
+    "worker-b": {
+      "capacity": 400,
+      "offeredLoad": 500,
+      "queueLatencyMs": Infinity,
+      "status": "saturated",
+      "utilization": 1.25,
+    },
+  },
+  "path": {
+    "bottleneckId": "worker-a",
+    "latency": {
+      "p50": 23.46331071451544,
+      "p95": 87.09983389269561,
+      "p99": 95.72202594819709,
+    },
+    "throughputRps": 800,
+  },
+  "scores": {
+    "complexidade_operacional": 69,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 0,
+    "escalabilidade": 0,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [
+    {
+      "message": "Nó 'kafka' é ponto único de falha: apenas 1 réplica(s) no caminho crítico",
+      "nodeIds": [
+        "kafka",
+      ],
+      "type": "spof",
+    },
+    {
+      "message": "Nó 'db-a' é ponto único de falha: apenas 1 réplica(s) no caminho crítico",
+      "nodeIds": [
+        "db-a",
+      ],
+      "type": "spof",
+    },
+  ],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > template microservices 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "gateway": 80,
+      "orders-db": 120,
+      "orders-svc": 60,
+      "queue": 45,
+      "users-db": 160,
+      "users-svc": 60,
+      "worker": 50,
+    },
+    "monthlyTotal": 575,
+  },
+  "nodes": {
+    "gateway": {
+      "capacity": 10000,
+      "offeredLoad": 1000,
+      "queueLatencyMs": 0.11111111111111112,
+      "status": "healthy",
+      "utilization": 0.1,
+    },
+    "orders-db": {
+      "capacity": 1000,
+      "offeredLoad": 250,
+      "queueLatencyMs": 1.3333333333333333,
+      "status": "healthy",
+      "utilization": 0.25,
+    },
+    "orders-svc": {
+      "capacity": 1000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 2,
+      "status": "healthy",
+      "utilization": 0.5,
+    },
+    "queue": {
+      "capacity": 3000,
+      "offeredLoad": 250,
+      "queueLatencyMs": 0.3636363636363636,
+      "status": "healthy",
+      "utilization": 0.08333333333333333,
+    },
+    "users-db": {
+      "capacity": 16000,
+      "offeredLoad": 750,
+      "queueLatencyMs": 0.06557377049180328,
+      "status": "healthy",
+      "utilization": 0.046875,
+    },
+    "users-svc": {
+      "capacity": 1000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 2,
+      "status": "healthy",
+      "utilization": 0.5,
+    },
+    "worker": {
+      "capacity": 400,
+      "offeredLoad": 250,
+      "queueLatencyMs": 6.666666666666667,
+      "status": "healthy",
+      "utilization": 0.625,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 29.387506955262033,
+      "p95": 114.46149052954311,
+      "p99": 126.86225286284787,
+    },
+    "throughputRps": 1000,
+  },
+  "scores": {
+    "complexidade_operacional": 69,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 0,
+    "escalabilidade": 38,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [
+    {
+      "message": "Nó 'orders-db' é ponto único de falha: apenas 1 réplica(s) no caminho crítico",
+      "nodeIds": [
+        "orders-db",
+      ],
+      "type": "spof",
+    },
+    {
+      "message": "Nó 'queue' é ponto único de falha: apenas 1 réplica(s) no caminho crítico",
+      "nodeIds": [
+        "queue",
+      ],
+      "type": "spof",
+    },
+  ],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > template monolith 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "app": 60,
+      "db": 120,
+    },
+    "monthlyTotal": 180,
+  },
+  "nodes": {
+    "app": {
+      "capacity": 1000,
+      "offeredLoad": 1000,
+      "queueLatencyMs": Infinity,
+      "status": "saturated",
+      "utilization": 1,
+    },
+    "db": {
+      "capacity": 1000,
+      "offeredLoad": 1000,
+      "queueLatencyMs": Infinity,
+      "status": "saturated",
+      "utilization": 1,
+    },
+  },
+  "path": {
+    "bottleneckId": "app",
+    "latency": {
+      "p50": Infinity,
+      "p95": Infinity,
+      "p99": Infinity,
+    },
+    "throughputRps": 1000,
+  },
+  "scores": {
+    "complexidade_operacional": 89,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 0,
+    "escalabilidade": 0,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [
+    {
+      "message": "Nó 'db' é ponto único de falha: apenas 1 réplica(s) no caminho crítico",
+      "nodeIds": [
+        "db",
+      ],
+      "type": "spof",
+    },
+  ],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > template three-tier 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "app": 120,
+      "db-primary": 120,
+      "db-replica": 200,
+      "lb": 100,
+    },
+    "monthlyTotal": 540,
+  },
+  "nodes": {
+    "app": {
+      "capacity": 2000,
+      "offeredLoad": 1000,
+      "queueLatencyMs": 1,
+      "status": "healthy",
+      "utilization": 0.5,
+    },
+    "db-primary": {
+      "capacity": 1000,
+      "offeredLoad": 500,
+      "queueLatencyMs": 2,
+      "status": "healthy",
+      "utilization": 0.5,
+    },
+    "db-replica": {
+      "capacity": 2000,
+      "offeredLoad": 1000,
+      "queueLatencyMs": 1,
+      "status": "healthy",
+      "utilization": 0.5,
+    },
+    "lb": {
+      "capacity": 20000,
+      "offeredLoad": 1000,
+      "queueLatencyMs": 0.052631578947368425,
+      "status": "healthy",
+      "utilization": 0.05,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 33.80907015279557,
+      "p95": 136.8140686016318,
+      "p99": 151.66305812216225,
+    },
+    "throughputRps": 1000,
+  },
+  "scores": {
+    "complexidade_operacional": 83,
+    "consistencia": 60,
+    "custo": 0,
+    "disponibilidade": 0,
+    "escalabilidade": 50,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [
+    {
+      "message": "Nó 'db-primary' é ponto único de falha: apenas 1 réplica(s) no caminho crítico",
+      "nodeIds": [
+        "db-primary",
+      ],
+      "type": "spof",
+    },
+  ],
+}
+`;
