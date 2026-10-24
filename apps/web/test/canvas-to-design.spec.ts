@@ -101,6 +101,30 @@ describe('toDesign', () => {
     expect(design.nodes[0]).not.toHaveProperty('cacheHitRate');
   });
 
+  // O painel de Simular re-simula quando a assinatura deste Design muda (canvas.tsx) — então mover
+  // um nó ou a simulação gravar `result` de volta nos nós NÃO pode mudar o Design, senão o painel
+  // re-simularia a cada pixel de drag (ou em laço, a cada resultado aplicado).
+  it('ignora posição e o `result` da simulação — o Design só muda quando o design muda de fato', () => {
+    const edges = [edge('c-api', 'c', 'api'), edge('e1', 'api', 'db', { kind: 'write' })];
+    const base = toDesign([clientNode('c'), componentNode('api'), componentNode('db', { componentType: 'sql_primary' })], edges);
+
+    const movedWithResult = toDesign(
+      [
+        { ...clientNode('c'), position: { x: 400, y: 90 } },
+        componentNode('api', { position: { x: 120, y: 300 }, result: { status: 'saturated', isBottleneck: true } }),
+        componentNode('db', { componentType: 'sql_primary', position: { x: 9, y: 9 } }),
+      ],
+      edges,
+    );
+    expect(movedWithResult).toEqual(base);
+
+    const moreReplicas = toDesign(
+      [clientNode('c'), componentNode('api', { replicas: 5 }), componentNode('db', { componentType: 'sql_primary' })],
+      edges,
+    );
+    expect(moreReplicas).not.toEqual(base);
+  });
+
   it('nunca lança exceção para uma aresta apontando para um id de nó inexistente', () => {
     const nodes = [componentNode('api')];
     const edges = [edge('e1', 'api', 'no-existe')];
