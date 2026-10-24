@@ -47,8 +47,8 @@ de latência subiu 8× às 3h da manhã") e as métricas de cada componente — 
 1. **Given** a lista de incidentes, **When** o usuário abre um, **Then** vê a arquitetura no canvas, o
    alerta e as métricas de cada componente nos dois estados (normal e durante o incidente).
 2. **Given** um incidente aberto, **When** o usuário seleciona um componente, **Then** vê as métricas
-   dele (utilização, status, contribuição pra latência) nos dois estados — nunca um número que o
-   engine não calculou.
+   dele (utilização, status e carga que chega) nos dois estados — nunca um número que o engine não
+   calculou (lista branca do gate 4 do plan).
 3. **Given** o alerta de um incidente, **When** comparado às métricas "agora", **Then** o sintoma
    descrito no alerta está visível nelas (o alerta nunca descreve algo que o engine não mostra).
 4. **Given** um incidente aberto, **When** o usuário olha a tela, **Then** a causa raiz **não** está

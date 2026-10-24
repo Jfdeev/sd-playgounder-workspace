@@ -121,6 +121,13 @@ resolvidos e eles não contam como desafio resolvido.
 `getIncidentSecret`, `referenceFix`, `lostInstances`, `cutFrom`, `zone:0` ou o fator 0.3 aparecem em
 `apps/web/.next/static` (`whatHappened` aparece só como nome de campo no código do painel).
 
+**Achados da revisão final, corrigidos**: (1) diagnóstico e fix de incidente contavam pra ofensiva,
+mas só a rota de desafio avaliava conquistas — uma ofensiva feita só com incidentes nunca destravava
+"3 dias seguidos". `creditUnlockedAchievements` (db) passou a ser chamado pelas três rotas; conferido
+com conta throwaway (2 dias anteriores inseridos no banco + 1 diagnóstico → `streak-3`). (2) a busca de
+unicidade compara p50/p95/p99, mas o painel só mostrava p99 — duas causas poderiam diferir só no que não
+aparecia; o painel passou a mostrar os três. (3) cenário 2 da US1 no spec alinhado à lista branca.
+
 **Não-regressão (SC-006)**: o snapshot de `simulate()` de todo desafio, template e preset ficou
 idêntico depois do `capacityFactor`.
 

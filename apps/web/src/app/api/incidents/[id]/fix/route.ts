@@ -3,11 +3,10 @@ import { simulate } from '@sdp/engine';
 import { applyFault, buildIncidentSnapshot, evaluateFix, getIncident } from '@sdp/problems';
 import { getIncidentSecret } from '@sdp/problems/server';
 import { auth } from '@/auth';
-import { consumeSubmissionQuota, creditEvent, hasEvent, loadProgress, recordActivityDay } from '@/db/gamification';
+import { consumeSubmissionQuota, creditEvent, creditUnlockedAchievements, hasEvent, recordActivityDay } from '@/db/gamification';
 import { isSameOriginRequest } from '@/lib/csrf';
 import { validateSubmittedDesign } from '@/lib/gamification/design-validation';
-
-const INCIDENT_XP = 100;
+import { INCIDENT_XP } from '@/lib/gamification/scoring';
 
 /**
  * Fix de um incidente (M3, US3): só depois do diagnóstico certo (409 antes). O servidor aplica a
@@ -52,12 +51,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const credited =
       resolved && (await creditEvent(userId, { eventKey: `incident:${id}`, type: 'incident', problemId: null, xp: INCIDENT_XP }));
 
+    const { newAchievements, progress } = await creditUnlockedAchievements(userId, now, { solvedWithoutSpof: false });
     return NextResponse.json({
       resolved,
       failing,
       snapshot,
-      credited: { xp: credited ? INCIDENT_XP : 0 },
-      progress: await loadProgress(userId, now),
+      credited: { xp: credited ? INCIDENT_XP : 0, achievements: newAchievements },
+      progress,
     });
   } catch {
     return NextResponse.json({ error: 'PROGRESS_UNAVAILABLE' }, { status: 503 });

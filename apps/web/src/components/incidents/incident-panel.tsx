@@ -16,6 +16,7 @@ import { COMPONENT_UI } from '@/lib/canvas-ui-catalog';
 import { canvasDesignOf } from '@/lib/canvas-to-design';
 import { designToCanvas } from '@/lib/design-to-canvas';
 import type { ProgressJson } from '@/lib/gamification/progress';
+import { ACHIEVEMENTS } from '@/lib/gamification/achievements';
 import { FAULT_TYPE_LABELS, FIX_CHECK_LABELS, violationLabel } from '@/lib/incidents/labels';
 import { useCanvasStore } from '@/stores/canvas-store';
 import { useProgressionStore } from '@/stores/progression-store';
@@ -40,6 +41,13 @@ const ERROR_TEXT: Record<string, string> = {
 };
 
 const formatMs = (value: number | null) => (value === null ? '∞' : `${value} ms`);
+const PERCENTILES = ['p50', 'p95', 'p99'] as const;
+
+/** Texto de conquistas recém-desbloqueadas pela ação (ofensiva vale também pra incidentes). */
+function achievementsNote(ids: readonly string[] | undefined): string {
+  if (!ids || ids.length === 0) return '';
+  return ` Conquista: ${ids.map((id) => ACHIEVEMENTS.find((a) => a.id === id)?.name ?? id).join(', ')}.`;
+}
 
 export function IncidentPanel({ incident, onLeave }: { incident: IncidentPublic; onLeave: () => void }) {
   const nodes = useCanvasStore((s) => s.nodes);
@@ -98,16 +106,24 @@ export function IncidentPanel({ incident, onLeave }: { incident: IncidentPublic;
     setBusy(true);
     setMessage(null);
     try {
-      const { status, body } = await post<{ verdict?: DiagnosisVerdict; whatHappened?: string; error?: string }>(
+      const { status, body } = await post<{
+        verdict?: DiagnosisVerdict;
+        whatHappened?: string;
+        credited?: { achievements: string[] };
+        progress?: ProgressJson;
+        error?: string;
+      }>(
         `/api/incidents/${incident.id}/diagnosis`,
         { nodeId: nodeChoice, faultType: faultChoice },
       );
+      if (status === 200 && body?.progress) applyProgress(body.progress);
+      const conquests = achievementsNote(body?.credited?.achievements);
       if (status === 200 && body?.verdict === 'correct') {
         const whatHappened = body.whatHappened;
         setState((s) => s && { ...s, status: { ...s.status, diagnosed: true }, ...(whatHappened ? { whatHappened } : {}) });
-        setMessage({ tone: 'ok', text: 'Diagnóstico certo!' });
+        setMessage({ tone: 'ok', text: `Diagnóstico certo!${conquests}` });
       } else if (status === 200 && body?.verdict) {
-        setMessage({ tone: 'warn', text: VERDICT_TEXT[body.verdict as Exclude<DiagnosisVerdict, 'correct'>] });
+        setMessage({ tone: 'warn', text: `${VERDICT_TEXT[body.verdict as Exclude<DiagnosisVerdict, 'correct'>]}${conquests}` });
       } else {
         setMessage({ tone: 'warn', text: ERROR_TEXT[body?.error ?? ''] ?? 'Não deu pra conferir agora — tente de novo.' });
       }
@@ -127,7 +143,7 @@ export function IncidentPanel({ incident, onLeave }: { incident: IncidentPublic;
         resolved?: boolean;
         failing?: FixCheck[];
         snapshot?: IncidentSnapshot;
-        credited?: { xp: number };
+        credited?: { xp: number; achievements?: string[] };
         progress?: ProgressJson;
         error?: string;
       }>(`/api/incidents/${incident.id}/fix`, { design: canvasDesignOf(nodes, edges) });
@@ -135,7 +151,8 @@ export function IncidentPanel({ incident, onLeave }: { incident: IncidentPublic;
         if (body.progress) applyProgress(body.progress);
         if (body.snapshot) setState((s) => s && { ...s, snapshot: body.snapshot!, status: { ...s.status, resolved: s.status.resolved || !!body.resolved } });
         if (body.resolved) {
-          setMessage({ tone: 'ok', text: body.credited?.xp ? `Incidente resolvido! +${body.credited.xp} XP` : 'Incidente resolvido de novo — sem XP novo.' });
+          const conquests = achievementsNote(body.credited?.achievements);
+          setMessage({ tone: 'ok', text: (body.credited?.xp ? `Incidente resolvido! +${body.credited.xp} XP` : 'Incidente resolvido de novo — sem XP novo.') + conquests });
         } else {
           setFailing(body.failing ?? []);
           setMessage({ tone: 'warn', text: 'Com a falha ainda ativa, o sistema não voltou ao normal.' });
@@ -227,11 +244,13 @@ export function IncidentPanel({ incident, onLeave }: { incident: IncidentPublic;
                   </tr>
                 );
               })}
-              <tr className="border-t border-zinc-800 text-zinc-300">
-                <td className="py-1">Latência p99</td>
-                <td className="py-1 text-right">{formatMs(before.path.latency.p99)}</td>
-                <td className="py-1 text-right">{formatMs(now.path.latency.p99)}</td>
-              </tr>
+              {PERCENTILES.map((percentile) => (
+                <tr key={percentile} className="border-t border-zinc-800 text-zinc-300">
+                  <td className="py-1">Latência {percentile}</td>
+                  <td className="py-1 text-right">{formatMs(before.path.latency[percentile])}</td>
+                  <td className="py-1 text-right">{formatMs(now.path.latency[percentile])}</td>
+                </tr>
+              ))}
               <tr className="border-t border-zinc-800 text-zinc-300">
                 <td className="py-1">Throughput</td>
                 <td className="py-1 text-right">{before.path.throughputRps} rps</td>

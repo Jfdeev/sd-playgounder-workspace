@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { diagnose, getIncident, isFaultType } from '@sdp/problems';
 import { getIncidentSecret } from '@sdp/problems/server';
 import { auth } from '@/auth';
-import { consumeSubmissionQuota, creditEvent, recordActivityDay } from '@/db/gamification';
+import { consumeSubmissionQuota, creditEvent, creditUnlockedAchievements, recordActivityDay } from '@/db/gamification';
 import { isSameOriginRequest } from '@/lib/csrf';
 
 /**
@@ -38,13 +38,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (!(await consumeSubmissionQuota(userId))) {
       return NextResponse.json({ error: 'RATE_LIMITED' }, { status: 429 });
     }
+    const now = new Date();
     const verdict = diagnose(secret.fault, nodeId, faultType);
-    await recordActivityDay(userId, new Date());
+    await recordActivityDay(userId, now);
     if (verdict === 'correct') {
       await creditEvent(userId, { eventKey: `incident-diagnosis:${id}`, type: 'incident-diagnosis', problemId: null, xp: 0 });
-      return NextResponse.json({ verdict, whatHappened: secret.whatHappened });
     }
-    return NextResponse.json({ verdict });
+    const { newAchievements, progress } = await creditUnlockedAchievements(userId, now, { solvedWithoutSpof: false });
+    const credited = { achievements: newAchievements };
+    return NextResponse.json(
+      verdict === 'correct' ? { verdict, whatHappened: secret.whatHappened, credited, progress } : { verdict, credited, progress },
+    );
   } catch {
     return NextResponse.json({ error: 'PROGRESS_UNAVAILABLE' }, { status: 503 });
   }

@@ -20,8 +20,11 @@ réplicas/capacidade/taxa de acerto do design com falha (lista branca).
 Corpo: `{ "nodeId": "db", "faultType": "cache-cold" }` (qualquer outro campo é ignorado).
 
 ```json
-{ "verdict": "right-component" }
+{ "verdict": "right-component", "credited": { "achievements": [] }, "progress": { ... } }
 ```
+
+`credited.achievements`: conquistas que esta atividade destravou (a tentativa conta pra ofensiva, então
+pode desbloquear "3 dias seguidos"). `progress` é o progresso do próprio usuário (sem nada da causa).
 
 `verdict`: `correct` (registra `incident-diagnosis:<id>`, idempotente) | `right-component` (componente
 certo, tipo errado) | `wrong`. Nunca devolve a resposta certa. `faultType` fora dos 5 → 400.
@@ -35,7 +38,7 @@ Corpo: `{ "design": { ... } }` — validado como no M2.8 (`validateSubmittedDesi
 
 ```json
 { "resolved": false, "failing": ["p99", "target-unreachable"], "snapshot": { ... },
-  "credited": { "xp": 0 } }
+  "credited": { "xp": 0, "achievements": [] }, "progress": { ... } }
 ```
 
 `resolved: true` → `incident:<id>` creditado (100 XP, uma vez). `failing` lista só **quais** checagens

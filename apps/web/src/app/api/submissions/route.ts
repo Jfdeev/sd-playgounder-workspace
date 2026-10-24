@@ -1,19 +1,11 @@
 import { NextResponse } from 'next/server';
 import { ALL_PROBLEM_IDS, getProblem } from '@sdp/problems';
 import { auth } from '@/auth';
-import { consumeSubmissionQuota, creditEvent, loadProgress, loadSolvedProblemIds, recordActivityDay } from '@/db/gamification';
+import { consumeSubmissionQuota, creditEvent, creditUnlockedAchievements, loadSolvedProblemIds, recordActivityDay } from '@/db/gamification';
 import { isChallengeUnlocked } from '@/lib/challenge-progression';
 import { isSameOriginRequest } from '@/lib/csrf';
-import { achievementsUnlockedBy } from '@/lib/gamification/achievements';
 import { validateSubmittedDesign } from '@/lib/gamification/design-validation';
-import {
-  ACHIEVEMENT_XP,
-  CHALLENGE_XP,
-  achievementEventKey,
-  challengeEventKey,
-  evaluateSubmission,
-  parseSubmissionBody,
-} from '@/lib/gamification/scoring';
+import { CHALLENGE_XP, challengeEventKey, evaluateSubmission, parseSubmissionBody } from '@/lib/gamification/scoring';
 
 /**
  * Submissão verificada pelo servidor (M2.8, contracts/gamification-api.md). O corpo só traz
@@ -61,21 +53,7 @@ export async function POST(request: Request): Promise<Response> {
       solved &&
       (await creditEvent(userId, { eventKey: challengeEventKey(problem.id), type: 'challenge', problemId: problem.id, xp: CHALLENGE_XP }));
 
-    const before = await loadProgress(userId, now);
-    const candidates = achievementsUnlockedBy({
-      solvedProblemIds: before.solved.map((s) => s.problemId),
-      allProblemIds: ALL_PROBLEM_IDS,
-      solvedWithoutSpof,
-      currentStreak: before.streak.current,
-    });
-    const newAchievements: string[] = [];
-    for (const id of candidates) {
-      if (await creditEvent(userId, { eventKey: achievementEventKey(id), type: 'achievement', problemId: null, xp: ACHIEVEMENT_XP })) {
-        newAchievements.push(id);
-      }
-    }
-
-    const progress = newAchievements.length > 0 ? await loadProgress(userId, now) : before;
+    const { newAchievements, progress } = await creditUnlockedAchievements(userId, now, { solvedWithoutSpof });
     return NextResponse.json({
       solved,
       credited: { xp: creditedChallenge ? CHALLENGE_XP : 0, achievements: newAchievements },

@@ -11,6 +11,8 @@ import { isProblemSolved, toWorkload, type Problem } from '@sdp/problems';
 
 export const CHALLENGE_XP = 100;
 export const ACHIEVEMENT_XP = 0;
+/** M3: resolver um incidente vale o mesmo que um desafio (decisão do autor, 2026-10-24). */
+export const INCIDENT_XP = 100;
 export const SUBMISSION_RATE_LIMIT = { maxSubmissions: 10, windowMs: 60_000 } as const;
 
 export const challengeEventKey = (problemId: string) => `challenge:${problemId}`;
