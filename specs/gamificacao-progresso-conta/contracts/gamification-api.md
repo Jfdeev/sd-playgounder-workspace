@@ -14,6 +14,8 @@ Corpo — **só isto** (qualquer outro campo é ignorado):
 Regras:
 1. Limite de taxa por usuário antes de qualquer cálculo → `429 { "error": "RATE_LIMITED" }`.
 2. `problemId` desconhecido → `404 { "error": "UNKNOWN_PROBLEM" }`.
+   Desafio ainda travado pra esta conta (`isChallengeUnlocked` sobre os desafios resolvidos no servidor)
+   → `403 { "error": "CHALLENGE_LOCKED" }`, sem simular nem contar dia de atividade.
 3. Design inválido (`design-validation.ts`) → `400 { "error": "INVALID_DESIGN", "reason": "..." }`.
 4. O servidor deriva carga e custo de referência do problema e roda `simulate` + `isProblemSolved`.
    **Nunca lê resultado, carga ou nota do cliente.**

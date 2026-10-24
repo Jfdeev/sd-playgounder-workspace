@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { ALL_PROBLEM_IDS, getProblem } from '@sdp/problems';
 import { auth } from '@/auth';
-import { consumeSubmissionQuota, creditEvent, loadProgress, recordActivityDay } from '@/db/gamification';
+import { consumeSubmissionQuota, creditEvent, loadProgress, loadSolvedProblemIds, recordActivityDay } from '@/db/gamification';
+import { isChallengeUnlocked } from '@/lib/challenge-progression';
 import { isSameOriginRequest } from '@/lib/csrf';
 import { achievementsUnlockedBy } from '@/lib/gamification/achievements';
 import { validateSubmittedDesign } from '@/lib/gamification/design-validation';
@@ -18,7 +19,9 @@ import {
  * Submissão verificada pelo servidor (M2.8, contracts/gamification-api.md). O corpo só traz
  * `problemId` + `design`; o servidor valida o design, recalcula tudo (`evaluateSubmission`) e credita
  * eventos idempotentes. Toda submissão reexecutada conta como dia de atividade (ofensiva, opção A do
- * content-draft); só a primeira resolução de um desafio dá XP.
+ * content-draft); só a primeira resolução de um desafio dá XP. A trava de desafios também vale aqui:
+ * um desafio que o servidor ainda não destravou pra esta conta é recusado (403) — senão bastaria um
+ * `fetch` pelo DevTools pra pular a ordem (gate 2 do plan: "não dá pra burlar editando o navegador").
  */
 export async function POST(request: Request): Promise<Response> {
   const session = await auth();
@@ -47,6 +50,9 @@ export async function POST(request: Request): Promise<Response> {
   try {
     if (!(await consumeSubmissionQuota(userId))) {
       return NextResponse.json({ error: 'RATE_LIMITED' }, { status: 429 });
+    }
+    if (!isChallengeUnlocked(problem.id, ALL_PROBLEM_IDS, await loadSolvedProblemIds(userId))) {
+      return NextResponse.json({ error: 'CHALLENGE_LOCKED' }, { status: 403 });
     }
 
     const { solved, solvedWithoutSpof } = evaluateSubmission(problem, validation.design);

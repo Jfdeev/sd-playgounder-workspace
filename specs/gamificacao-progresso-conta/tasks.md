@@ -144,9 +144,12 @@ normalizado e único sem diferenciar caixa (409); perfil visto por outra conta s
 respostas do servidor (SC-007); esconder → some do ranking e o perfil dá "não encontrado", igual a um
 apelido inexistente (SC-008); sem sessão, ranking/perfil/painel redirecionam e a API dá 401.
 
-**Fora do escopo, registrado**: (a) o servidor não aplica a trava de desafios na submissão — dá pra
-submeter um desafio ainda travado direto pela API, mas só pontua com um design que de fato o resolve;
-(b) com a estratégia JWT, um token de conta apagada continua válido até expirar (comportamento do
+3. **Trava de desafios burlável pela API**: a rota aceitava qualquer `problemId`, então um `fetch` pelo
+   DevTools submetia um desafio ainda travado (pulando a ordem que o gate 2 prometeu proteger). A rota
+   agora recusa com `403 CHALLENGE_LOCKED` o que o servidor ainda não destravou pra conta (achado na
+   revisão pós-verificação).
+
+**Fora do escopo, registrado**: com a estratégia JWT, um token de conta apagada continua válido até expirar (comportamento do
 Auth.js, anterior a este marco) — as escritas dessa sessão falham na FK e caem no 503 (FR-013).
 
 ## Dependências

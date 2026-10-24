@@ -50,6 +50,15 @@ export async function creditEvent(
   return inserted.length > 0;
 }
 
+/** Desafios que o usuário já resolveu (eventos `challenge`) — base da trava de desafios no servidor. */
+export async function loadSolvedProblemIds(userId: string): Promise<string[]> {
+  const rows = await db
+    .select({ problemId: scoringEvents.problemId })
+    .from(scoringEvents)
+    .where(and(eq(scoringEvents.userId, userId), eq(scoringEvents.type, 'challenge')));
+  return rows.flatMap((row) => (row.problemId ? [row.problemId] : []));
+}
+
 /** Marca o dia (fuso de SP) como dia com atividade verificada — o mesmo dia conta uma vez (FR-007). */
 export async function recordActivityDay(userId: string, now: Date): Promise<void> {
   await db.insert(activityDays).values({ userId, day: toLocalDay(now) }).onConflictDoNothing();
