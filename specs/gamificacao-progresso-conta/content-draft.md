@@ -1,4 +1,4 @@
-# Rascunho de conteúdo — M2.8 — aguardando aprovação do autor
+# Conteúdo — M2.8 — **aprovado pelo autor em 2026-10-23** (ofensiva: opção A)
 
 > **Gate**: números e regras propostos; nada disso vira código antes da sua aprovação. A spec fixa as
 > regras (verificável, determinístico, sem nota agregada); aqui ficam os valores. Restrição real: o
@@ -43,7 +43,7 @@ leva até o nível 5.
 | **B** | só resolver um desafio (inclusive de novo, sem XP) | exige resolver algo todo dia; com 3 desafios vira "resolver de novo o mesmo" |
 | **C** | só a 1ª resolução (a que dá XP) | máximo de 3 dias de ofensiva na vida até o M4 ampliar o catálogo |
 
-Recomendação: **A** — é a única em que a ofensiva mede hábito de estudo com o catálogo atual, e
+**Decisão do autor (2026-10-23): A.** É a única em que a ofensiva mede hábito de estudo com o catálogo atual, e
 continua verificável (o servidor rodou o engine sobre um design válido).
 
 ## 5. Limite de taxa
@@ -63,7 +63,6 @@ Todas verificáveis pelo servidor, cada uma desbloqueia uma vez:
 | `streak-3` | 3 dias seguidos | ofensiva chegar a 3 |
 | `streak-7` | Uma semana | ofensiva chegar a 7 |
 
-Se a ofensiva ficar na opção C (§4), `streak-7` é inalcançável até o M4 e eu tiro ela da lista.
 
 ## 7. Desempate do ranking
 

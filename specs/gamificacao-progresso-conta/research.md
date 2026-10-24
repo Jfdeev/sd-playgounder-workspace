@@ -53,7 +53,7 @@ necessidade).
 
 Design inválido → 400, sem simular.
 
-## 4. Ofensiva com um catálogo de 3 desafios — **decisão do autor**
+## 4. Ofensiva com um catálogo de 3 desafios — **decidido: opção A** (autor, 2026-10-23)
 
 Se "atividade verificada" for só a primeira resolução de um desafio, cada usuário tem no máximo 3
 eventos na vida: a ofensiva (FR-007) morre em poucos dias e conquistas de ofensiva ficam
@@ -62,7 +62,7 @@ inalcançáveis. Opções em `content-draft.md` §4. O mecanismo é o mesmo em t
 calculado em `America/Sao_Paulo` com `Intl.DateTimeFormat` (nunca aritmética de offset — horário de
 verão), ofensiva atual e recorde calculados por função pura sobre a lista de dias.
 
-## 5. Trava de desafios — **decisão do autor**
+## 5. Trava de desafios — **decidido: pelo servidor** (autor, 2026-10-23)
 
 Hoje `challenge-progression.ts` destrava o desafio N quando N−1 está em `completedIds` do
 `localStorage`. Se "resolvido" passa a morar no servidor e a trava continua lendo o navegador, as duas
