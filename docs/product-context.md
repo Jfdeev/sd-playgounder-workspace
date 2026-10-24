@@ -431,6 +431,12 @@ partição, cache frio, esgotamento de pool (P0). Placar de tempo até diagnóst
 **Critério de saída de M3:** 5 cenários de incidente com causa raiz verificável, e
 o engine identifica a mesma causa que o autor plantou.
 
+**Decisões do autor (2026-10-24, `specs/modo-incidente-m3/`)**: "o engine identifica a causa" =
+só o par (componente, tipo de falha) plantado reproduz as métricas mostradas, verificado por busca
+sobre todos os pares; zona caída = regra fixa de 3 zonas com réplicas em rodízio; **exceção à linha
+"reaproveita 100% do engine"**: o engine ganha `capacityFactor` opcional no nó (padrão 1, sem mudar o
+resultado de nenhum design existente) para modelar pool de conexões esgotado.
+
 ### M4 — Progresso e conteúdo
 Login já existe desde M0.5. Aqui: salvar designs com histórico de versões · progresso
 **por conceito**, não por problema · biblioteca de 12 problemas · wiki de conceitos

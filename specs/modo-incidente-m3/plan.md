@@ -105,6 +105,10 @@ novo.
 
 ## Gates antes do `/speckit-tasks`
 
+**Decididos pelo autor em 2026-10-24**: 1 → busca de unicidade; 2 → regra fixa de 3 zonas; 3 →
+`capacityFactor` aprovado (pool esgotado entra); 4 → lista branca proposta. **Pendente**: 5 (os 5
+incidentes), redigidos depois das regras puras existirem pra rodar as checagens.
+
 1. **Definição de "o engine identifica a causa"** (research §3): só o par plantado reproduz as
    métricas expostas, verificado por busca sobre todo componente × todo tipo.
 2. **Regra de zonas** (research §2): 3 zonas fixas, réplicas em rodízio, perder uma zona remove
