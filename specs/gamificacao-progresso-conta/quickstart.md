@@ -4,6 +4,9 @@ Verificação por user story. `apps/web` não testa componente nem rota (conven�
 puras têm teste em `apps/web/test/gamification/`; o resto é conferido no browser e reenviando
 requisições à mão.
 
+**Verificado de ponta a ponta em 2026-10-23** (duas contas throwaway, apagadas ao final) — US1–US5
+confirmadas; 2 bugs achados e corrigidos (tasks.md, Execução).
+
 ## Pré-requisito
 
 Migração `0004_*` aplicada ao Neon **só com autorização do autor** (`pnpm --filter web db:migrate`).

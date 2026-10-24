@@ -1,15 +1,14 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { auth } from '@/auth';
 import { ProgressOverview } from '@/components/progress/progress-overview';
 import { loadProfileSettings, loadProgress } from '@/db/gamification';
+import { requireUserId } from '../_require-user-id';
 
 export const metadata = { robots: { index: false } };
 
 // Painel de progresso do próprio usuário (M2.8, US2–US4). O guard de sessão é o do layout de /app.
 export default async function ProgressPage() {
-  const session = await auth();
-  const userId = session!.user!.id!;
+  const userId = await requireUserId();
   const [progress, profile] = await Promise.all([loadProgress(userId, new Date()), loadProfileSettings(userId)]);
 
   return (

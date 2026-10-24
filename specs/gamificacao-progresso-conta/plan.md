@@ -117,7 +117,7 @@ isso. Nada em `packages/engine`, `packages/narrator`, `/api/narrator` ou `NARRAT
 
 **Decididos pelo autor em 2026-10-23**: 1 → opção A (qualquer submissão reexecutada conta pro
 dia); 2 → trava pelo servidor, re-travando quem já tinha resolvido; 3 → `content-draft.md`
-aprovado como está. **Pendente**: 4 (migração no Neon, autorizada na hora de aplicar).
+aprovado como está. 4 → migração `0004` aplicada ao Neon com autorização do autor (2026-10-23).
 
 1. **Ofensiva e "atividade verificada"** (`research.md` §4): com 3 desafios, se só a primeira
    resolução conta, um usuário tem no máximo 3 eventos na vida — a ofensiva morre em dias. O autor

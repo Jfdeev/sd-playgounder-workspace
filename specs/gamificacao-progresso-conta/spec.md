@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-03
 
-**Status**: Ready
+**Status**: Done
 
 **Input**: User description: "Incluir um sistema de gamificação no app: temos a conta do usuário mas não fazemos muita coisa com ela, porque as arquiteturas dele ficam num banco local (navegador). Fazer um sistema gamificado para incentivar o estudo."
 

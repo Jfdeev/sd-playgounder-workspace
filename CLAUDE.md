@@ -34,7 +34,7 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Plano ativo**: nenhum — M2.7 concluído; próximo da fila abaixo.
+**Plano ativo**: nenhum — M2.8 concluído; o M2.5 aguarda o merge do PR #8.
 
 M2.7 — Biblioteca de princípios de arquitetura
 ([specs/biblioteca-principios-arquitetura/plan.md](specs/biblioteca-principios-arquitetura/plan.md)):
@@ -46,12 +46,14 @@ leitura), `validateLibraryEntries`, rota `/app/biblioteca` (herda o guard do lay
 `tsc`/482 testes/build limpos. Engine, narrador, banco e `NARRATOR_PROMPT_VERSION` intocados. A
 verificação achou e corrigiu 1 bug (busca por "solid" vazia).
 
-Em fila, na ordem: **M2.5** Arquiteturas de referência
-([specs/arquiteturas-referencia/tasks.md](specs/arquiteturas-referencia/tasks.md) — spec `Ready`, plan e
-tasks prontos; aguarda o autor aprovar o `content-draft.md` do preset do GitHub) e **M2.8** Gamificação
-([specs/gamificacao-progresso-conta/spec.md](specs/gamificacao-progresso-conta/spec.md) — `Ready`
-após o clarify de 2026-10-23: começa do zero, ranking + perfil público por apelido (opt-out, só
-logados), designs na conta ficam no M4; próximo passo é o `/speckit-plan`). Ordem fora de sequência registrada no roadmap como decisão do autor.
+M2.8 — Gamificação e progresso na conta ([specs/gamificacao-progresso-conta/plan.md](specs/gamificacao-progresso-conta/plan.md)):
+**concluído e verificado no browser (2026-10-23)**, `spec.md` em `Done`. XP só por submissão
+reexecutada pelo servidor (`POST /api/submissions`), eventos imutáveis com chave única (o driver
+`neon-http` não tem transação), progresso derivado por consulta, ofensiva, conquistas, ranking e perfil
+público por apelido (só logados). Regras puras em `apps/web/src/lib/gamification/`, banco em
+`apps/web/src/db/gamification.ts`; migração `0004` aplicada ao Neon. A trava de desafios lê o servidor.
+
+Em fila: **M2.5** Arquiteturas de referência — código pronto no PR #8 (aguardando merge).
 
 M2.6 — Fundamentos de arquitetura ([specs/fundamentos-arquitetura/plan.md](specs/fundamentos-arquitetura/plan.md)):
 **código completo e verificado no browser (2026-09-27)** — `packages/knowledge` (7 fichas de característica + 4
@@ -73,7 +75,7 @@ com o λ total em vez de usar ρ; ramo async pesado escondia o ramo síncrono da
 ponderava percentis por (1−h) em vez do limiar de cauda) — números mudam pro mesmo design, então
 o cache do narrador foi invalidado e submissões observadas antes disso não contam.
 
-Marcos concluídos: M2.7 (Biblioteca de princípios, acima), M2 (Avaliação e biblioteca, com ressalva — acima), M1.5 (Catálogo expandido de componentes,
+Marcos concluídos: M2.8 (Gamificação, acima), M2.7 (Biblioteca de princípios, acima), M2 (Avaliação e biblioteca, com ressalva — acima), M1.5 (Catálogo expandido de componentes,
 [specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md)), M1 (Canvas e
 submissão, [specs/canvas-submissao-m1/plan.md](specs/canvas-submissao-m1/plan.md)), M0.5 (Landing
 Page e Conta, [specs/landing-page-conta-m0-5/plan.md](specs/landing-page-conta-m0-5/plan.md)) — mais

@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { ProgressOverview } from '@/components/progress/progress-overview';
 import { loadPublicProgress } from '@/db/gamification';
 import { toPublicProfile } from '@/lib/gamification/public-profile';
+import { requireUserId } from '../../_require-user-id';
 
 export const metadata = { robots: { index: false } };
 
@@ -10,6 +11,7 @@ export const metadata = { robots: { index: false } };
 // serializador público (nunca e-mail, nome da conta nem design — FR-018). Perfil escondido e apelido
 // inexistente dão a mesma página, pra não revelar que o apelido existe.
 export default async function PublicProfilePage({ params }: { params: Promise<{ apelido: string }> }) {
+  await requireUserId();
   const { apelido } = await params;
   const nickname = decodeURIComponent(apelido).toLowerCase();
   const progress = await loadPublicProgress(nickname, new Date());

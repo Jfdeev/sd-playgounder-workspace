@@ -1,18 +1,17 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { auth } from '@/auth';
 import { ProfileSettingsForm } from '@/components/progress/profile-settings-form';
 import { loadProfileSettings, loadRankingEntries } from '@/db/gamification';
 import { levelForXp } from '@/lib/gamification/levels';
 import { sortRanking } from '@/lib/gamification/ranking';
+import { requireUserId } from '../_require-user-id';
 
 export const metadata = { robots: { index: false } };
 
 // Ranking por XP de estudo (M2.8, US5). Só aparece quem tem apelido e não se escondeu; só usuários
 // logados chegam aqui (guard do layout de /app). Nunca mostra e-mail nem design (FR-018).
 export default async function RankingPage() {
-  const session = await auth();
-  const userId = session!.user!.id!;
+  const userId = await requireUserId();
   const [entries, profile] = await Promise.all([loadRankingEntries(), loadProfileSettings(userId)]);
   const ranking = sortRanking(entries);
 
