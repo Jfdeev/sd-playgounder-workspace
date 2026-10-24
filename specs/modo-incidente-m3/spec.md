@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-24
 
-**Status**: Ready
+**Status**: Done
 
 **Input**: Roadmap (`docs/product-context.md` §10, M3): "Arquitetura pronta + alerta + métricas simuladas; o usuário diagnostica a causa raiz plantada e propõe o fix. Reaproveita 100% do engine. Chaos: derrubar nó, derrubar AZ, partição, cache frio, esgotamento de pool (P0). Placar de tempo até diagnóstico (P2)." Detalhe em `docs/foundational-doc.md` §3.3 e §7.2 ("system design invertido").
 

@@ -3,6 +3,9 @@
 Regras puras com teste (falhas, unicidade, critério do fix, serializador, diagnóstico); UI e rotas no
 browser, com conta de teste throwaway apagada ao final.
 
+**Verificado de ponta a ponta em 2026-10-24** — US1–US3, bundle (SC-003) e não-regressão (SC-006)
+confirmados (tasks.md, Execução).
+
 ## Checagens automáticas
 
 ```bash

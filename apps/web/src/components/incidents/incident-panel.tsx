@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, RotateCcw, Siren, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ChevronDown, ChevronUp, RotateCcw, Siren, X } from 'lucide-react';
 import { simulate } from '@sdp/engine';
 import {
   FAULT_TYPES,
@@ -55,6 +55,8 @@ export function IncidentPanel({ incident, onLeave }: { incident: IncidentPublic;
   const [message, setMessage] = useState<{ tone: 'ok' | 'warn'; text: string } | null>(null);
   const [failing, setFailing] = useState<FixCheck[]>([]);
   const [busy, setBusy] = useState(false);
+  // Minimizável como o card de desafio — o painel não pode esconder os componentes que se investiga.
+  const [collapsed, setCollapsed] = useState(false);
 
   const before = useMemo(
     () => buildIncidentSnapshot(incident.design, simulate(incident.design, incident.workload)),
@@ -156,6 +158,20 @@ export function IncidentPanel({ incident, onLeave }: { incident: IncidentPublic;
 
   const now = state?.snapshot;
 
+  if (collapsed) {
+    return (
+      <button
+        type="button"
+        onClick={() => setCollapsed(false)}
+        className="absolute bottom-4 left-4 z-10 rounded-lg border border-red-500/40 bg-zinc-950/95 px-4 py-2 text-sm font-medium text-zinc-200 shadow-xl hover:border-red-400"
+      >
+        <Siren className="mr-1.5 inline size-3.5 text-red-400" aria-hidden />
+        {incident.title}
+        <ChevronUp className="ml-2 inline size-3.5" aria-hidden />
+      </button>
+    );
+  }
+
   return (
     <div className="absolute bottom-4 left-4 z-10 flex max-h-[calc(100%-2rem)] w-[26rem] flex-col overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950/95 p-4 text-sm shadow-2xl">
       <div className="mb-2 flex items-start justify-between gap-2">
@@ -166,6 +182,9 @@ export function IncidentPanel({ incident, onLeave }: { incident: IncidentPublic;
           <h2 className="mt-0.5 font-semibold text-zinc-100">{incident.title}</h2>
         </div>
         <div className="flex gap-1">
+          <button type="button" onClick={() => setCollapsed(true)} title="Minimizar" aria-label="Minimizar" className="rounded-md p-1 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200">
+            <ChevronDown className="size-4" aria-hidden />
+          </button>
           <button type="button" onClick={restart} title="Voltar ao estado original" aria-label="Voltar ao estado original" className="rounded-md p-1 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200">
             <RotateCcw className="size-4" aria-hidden />
           </button>

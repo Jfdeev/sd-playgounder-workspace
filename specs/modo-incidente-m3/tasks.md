@@ -49,47 +49,80 @@ rascunhos precisam evitar isso.
 
 ## Phase 3: Conteúdo (gate 5)
 
-- [ ] T009 Redigir os 5 incidentes (um por tipo de falha) em `content-draft.md`, gerados de dado que
+- [x] T009 Redigir os 5 incidentes (um por tipo de falha) em `content-draft.md`, gerados de dado que
       já passou, no scratchpad, em: sintoma presente no "durante" e ausente no "antes" (SC-002);
       unicidade (só o par plantado reproduz a tela — SC-001); fix de referência aceito; design original
       recusado; design sem o alvo recusado (SC-005); alerta descreve só o que o snapshot mostra
-- [ ] T010 ⚠️ **Aprovação do autor** do `content-draft.md`
-- [ ] T011 Criar `packages/problems/src/incidents/public.ts` e `secret.ts` com o conteúdo literal;
+- [x] T010 ⚠️ **Aprovação do autor** do `content-draft.md`
+- [x] T011 Criar `packages/problems/src/incidents/public.ts` e `secret.ts` com o conteúdo literal;
       teste por incidente rodando as mesmas checagens do T009 (viram regressão permanente)
 
 ## Phase 4: US1 — Abrir e investigar (P1) 🎯 MVP
 
-- [ ] T012 [US1] `app/api/incidents/[id]/route.ts` — `GET`: snapshot "durante" + status do usuário
+- [x] T012 [US1] `app/api/incidents/[id]/route.ts` — `GET`: snapshot "durante" + status do usuário
       (diagnosticado/resolvido); importa o módulo secreto só aqui (`server-only`)
-- [ ] T013 [US1] UI: menu "Incidentes" na topbar (livres, sem trava); modo incidente no canvas com
+- [x] T013 [US1] UI: menu "Incidentes" na topbar (livres, sem trava); modo incidente no canvas com
       storage próprio (`sdp-canvas-incident-<id>`), painel com alerta e "antes × agora" por componente
       (o "antes" calculado no cliente sobre o design público)
-- [ ] T014 [US1] Verificação manual — quickstart.md §US1, incluindo inspeção da resposta do servidor
+- [x] T014 [US1] Verificação manual — quickstart.md §US1, incluindo inspeção da resposta do servidor
 
 ## Phase 5: US2 — Diagnosticar (P2)
 
-- [ ] T015 [US2] `app/api/incidents/[id]/diagnosis/route.ts` — quota, `diagnosis.ts`, registra
+- [x] T015 [US2] `app/api/incidents/[id]/diagnosis/route.ts` — quota, `diagnosis.ts`, registra
       `incident-diagnosis:<id>` (XP 0) no acerto e o dia de atividade em toda tentativa conferida
-- [ ] T016 [US2] UI: escolher componente no canvas + tipo de falha; mostrar o veredito
-- [ ] T017 [US2] Verificação manual — quickstart.md §US2
+- [x] T016 [US2] UI: escolher componente no canvas + tipo de falha; mostrar o veredito
+- [x] T017 [US2] Verificação manual — quickstart.md §US2
 
 ## Phase 6: US3 — Corrigir (P3)
 
-- [ ] T018 [US3] `app/api/incidents/[id]/fix/route.ts` — 409 sem diagnóstico; `validateSubmittedDesign`;
+- [x] T018 [US3] `app/api/incidents/[id]/fix/route.ts` — 409 sem diagnóstico; `validateSubmittedDesign`;
       `fix.ts`; `incident:<id>` (100 XP) idempotente; dia de atividade
-- [ ] T019 [US3] Ampliar a união de tipos de `scoringEvents.type` (`incident-diagnosis`, `incident`) e
+- [x] T019 [US3] Ampliar a união de tipos de `scoringEvents.type` (`incident-diagnosis`, `incident`) e
       conferir que `buildProgress`, `all-challenges` e a trava de desafios seguem só com `challenge`
       (teste); painel de progresso lista incidentes resolvidos
-- [ ] T020 [US3] UI: "Submeter fix" no modo incidente, com as checagens que falharam e o XP
-- [ ] T021 [US3] Verificação manual — quickstart.md §US3 (fix antes do diagnóstico → 409; original e
+- [x] T020 [US3] UI: "Submeter fix" no modo incidente, com as checagens que falharam e o XP
+- [x] T021 [US3] Verificação manual — quickstart.md §US3 (fix antes do diagnóstico → 409; original e
       sem-o-alvo recusados; referência aceita; duas abas → um crédito)
 
 ## Phase 7: Polish
 
-- [ ] T022 `pnpm -r test`, `tsc`, build limpos; snapshot SC-006 idêntico; `.next/static` sem a falha
+- [x] T022 `pnpm -r test`, `tsc`, build limpos; snapshot SC-006 idêntico; `.next/static` sem a falha
       plantada (SC-003); narrador e `NARRATOR_PROMPT_VERSION` fora do diff
-- [ ] T023 Atualizar `docs/product-context.md` §10 e `CLAUDE.md`; promover `spec.md` a `Done` depois da
+- [x] T023 Atualizar `docs/product-context.md` §10 e `CLAUDE.md`; promover `spec.md` a `Done` depois da
       verificação manual
+
+## Execução (2026-10-24)
+
+Tudo implementado e verificado no browser com uma conta throwaway
+(`m3a-verificacao-qa@example.com`, apagada ao final). Conteúdo dos 5 incidentes aprovado pelo autor em
+2026-10-24.
+
+**Refinamentos em relação ao plan**:
+- Todas as regras puras do incidente (falhas, zonas, snapshot, diagnóstico, unicidade, critério do fix)
+  ficaram em `packages/problems/src/incidents/`; `apps/web` só tem rotas, UI e rótulos.
+- A parte secreta sai por `@sdp/problems/server` (subpath `exports` do pacote) em vez de
+  `import 'server-only'` — sem dependência nova; o índice público não a reexporta (teste) e o bundle
+  foi conferido (abaixo).
+- O critério do fix ganhou `component-removed` e `component-down` (aprovados com o conteúdo).
+- `canvasDesignOf` (lib) centraliza a conversão canvas → design, usada pelo canvas e pelo painel.
+- O painel do incidente é minimizável (achado na verificação: numa janela estreita ele cobria os
+  componentes a investigar).
+
+**Confirmado no browser**: menu com os 5 incidentes (livres); arquitetura carregada no canvas do
+incidente; painel com alerta e "antes × agora" (banco 240 → 2.400 rps, saturado, p99 ∞); a resposta de
+`GET /api/incidents/[id]` só tem `snapshot` e `status`, sem falha, réplicas, capacidade nem "o que
+aconteceu" (SC-003); diagnóstico errado → "Não é isso", componente certo e tipo errado → "o componente
+está certo", certo → "Diagnóstico certo!" + "o que aconteceu"; fix antes do diagnóstico → 409; design
+original recusado com as checagens em pt-br; banco com 4 réplicas → "+100 XP"; reenviar → sem XP
+novo; duas submissões simultâneas → um crédito só (SC-004); painel de progresso lista os incidentes
+resolvidos e eles não contam como desafio resolvido.
+
+**Bundle (SC-003)**: depois de `pnpm --filter web build`, nenhum dos textos de "o que aconteceu", nem
+`getIncidentSecret`, `referenceFix`, `lostInstances`, `cutFrom`, `zone:0` ou o fator 0.3 aparecem em
+`apps/web/.next/static` (`whatHappened` aparece só como nome de campo no código do painel).
+
+**Não-regressão (SC-006)**: o snapshot de `simulate()` de todo desafio, template e preset ficou
+idêntico depois do `capacityFactor`.
 
 ## Dependências
 

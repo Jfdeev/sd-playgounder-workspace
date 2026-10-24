@@ -34,10 +34,15 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Plano ativo**: M3 — Modo Incidente ([specs/modo-incidente-m3/spec.md](specs/modo-incidente-m3/spec.md)),
-branch `feature/001-incident-mode`. Spec `Ready` (clarify de 2026-10-24: diagnóstico = componente +
-tipo de falha conferido no servidor, fix conferido pelo engine com a falha ativa, XP como desafio,
-tentativas ilimitadas com pista, incidentes livres). Próximo passo: `/speckit-plan`.
+**Plano ativo**: nenhum — M3 concluído; o próximo do roadmap é o M4 (Progresso e conteúdo).
+
+M3 — Modo Incidente ([specs/modo-incidente-m3/plan.md](specs/modo-incidente-m3/plan.md)): **concluído
+e verificado no browser (2026-10-24)**, `spec.md` em `Done`. 5 incidentes (um por tipo de falha) em
+`packages/problems/src/incidents/` — parte pública no índice do pacote, causa plantada só em
+`@sdp/problems/server`. Falhas como transformação relativa do design; "o engine identifica a causa" =
+busca de unicidade (só a causa plantada reproduz a tela), testada por incidente. Diagnóstico
+(componente + tipo) e fix conferidos no servidor (`/api/incidents/[id]`), 100 XP por incidente. Engine
+ganhou `capacityFactor` opcional (snapshot de não-regressão de todo design existente intacto).
 
 M2.5 — Arquiteturas de referência ([specs/arquiteturas-referencia/plan.md](specs/arquiteturas-referencia/plan.md)):
 **concluído e verificado no browser (2026-10-08)**, `spec.md` em `Done`. `packages/knowledge` ganhou
@@ -85,7 +90,7 @@ com o λ total em vez de usar ρ; ramo async pesado escondia o ramo síncrono da
 ponderava percentis por (1−h) em vez do limiar de cauda) — números mudam pro mesmo design, então
 o cache do narrador foi invalidado e submissões observadas antes disso não contam.
 
-Marcos concluídos: M2.8 (Gamificação, acima), M2.5 (Arquiteturas de referência, acima), M2.7 (Biblioteca de princípios, acima), M2 (Avaliação e biblioteca, com ressalva — acima), M1.5 (Catálogo expandido de componentes,
+Marcos concluídos: M3 (Modo Incidente, acima), M2.8 (Gamificação, acima), M2.5 (Arquiteturas de referência, acima), M2.7 (Biblioteca de princípios, acima), M2 (Avaliação e biblioteca, com ressalva — acima), M1.5 (Catálogo expandido de componentes,
 [specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md)), M1 (Canvas e
 submissão, [specs/canvas-submissao-m1/plan.md](specs/canvas-submissao-m1/plan.md)), M0.5 (Landing
 Page e Conta, [specs/landing-page-conta-m0-5/plan.md](specs/landing-page-conta-m0-5/plan.md)) — mais

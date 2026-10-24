@@ -437,6 +437,12 @@ sobre todos os pares; zona caída = regra fixa de 3 zonas com réplicas em rodí
 "reaproveita 100% do engine"**: o engine ganha `capacityFactor` opcional no nó (padrão 1, sem mudar o
 resultado de nenhum design existente) para modelar pool de conexões esgotado.
 
+**Status (2026-10-24)**: **concluído** e verificado no browser — critério de saída atingido: 5
+incidentes (cache frio, nó caído, partição, zona caída, pool esgotado), cada um com teste de que só a
+causa plantada reproduz a tela. Diagnóstico e fix conferidos no servidor; a causa nunca chega ao
+navegador (conferido no bundle). Resolver um incidente dá 100 XP (uma vez) e conta pra ofensiva. Engine
+ganhou só `capacityFactor` (resultado de todo design existente idêntico); narrador intocado.
+
 ### M4 — Progresso e conteúdo
 Login já existe desde M0.5. Aqui: salvar designs com histórico de versões · progresso
 **por conceito**, não por problema · biblioteca de 12 problemas · wiki de conceitos
