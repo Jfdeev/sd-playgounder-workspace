@@ -34,8 +34,10 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Plano ativo**: nenhum — M2.5 e M2.8 concluídos; a fila de marcos inseridos está vazia (o próximo
-do roadmap é o M3 — Modo Incidente, `docs/product-context.md` §10).
+**Plano ativo**: M3 — Modo Incidente ([specs/modo-incidente-m3/spec.md](specs/modo-incidente-m3/spec.md)),
+branch `feature/001-incident-mode`. Spec `Ready` (clarify de 2026-10-24: diagnóstico = componente +
+tipo de falha conferido no servidor, fix conferido pelo engine com a falha ativa, XP como desafio,
+tentativas ilimitadas com pista, incidentes livres). Próximo passo: `/speckit-plan`.
 
 M2.5 — Arquiteturas de referência ([specs/arquiteturas-referencia/plan.md](specs/arquiteturas-referencia/plan.md)):
 **concluído e verificado no browser (2026-10-08)**, `spec.md` em `Done`. `packages/knowledge` ganhou
