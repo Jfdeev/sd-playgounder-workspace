@@ -29,6 +29,13 @@
       "when": 1790444644100,
       "tag": "0003_regular_prowler",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792807635914,
+      "tag": "0004_slow_jean_grey",
+      "breakpoints": true
     }
   ]
 }

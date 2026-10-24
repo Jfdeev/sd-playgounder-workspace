@@ -1,10 +1,12 @@
 import {
   boolean,
+  date,
   integer,
   pgTable,
   primaryKey,
   text,
   timestamp,
+  unique,
 } from 'drizzle-orm/pg-core';
 // Evita depender de '@auth/core' diretamente (não é dependência direta deste pacote, só
 // transitiva via next-auth) — união literal equivalente ao tipo `AdapterAccountType` do Auth.js.
@@ -149,3 +151,65 @@ export const authenticators = pgTable(
     }),
   ],
 );
+
+/**
+ * M2.8 — perfil social: apelido (já normalizado em minúsculas por `lib/gamification/nickname.ts`,
+ * então o índice único é insensível a maiúsculas — FR-015) e visibilidade (opt-out, FR-017). Sem
+ * linha = sem apelido = fora do ranking. Nunca guarda XP: progresso é derivado de `scoringEvents`.
+ */
+export const userProfiles = pgTable('userProfiles', {
+  userId: text('userId')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  nickname: text('nickname').unique(),
+  isPublic: boolean('isPublic').notNull().default(true),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
+});
+
+/**
+ * M2.8 — eventos de pontuação, imutáveis, fonte da verdade do XP (data-model.md). A restrição única
+ * `(userId, eventKey)` é o que garante "cada desafio credita uma vez, cada conquista desbloqueia uma
+ * vez" mesmo com submissões simultâneas: o driver `neon-http` não tem transação, então o crédito é
+ * um `INSERT … ON CONFLICT DO NOTHING` e quem perde a corrida simplesmente não insere (research §2).
+ */
+export const scoringEvents = pgTable(
+  'scoringEvents',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text('userId')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    eventKey: text('eventKey').notNull(),
+    type: text('type', { enum: ['challenge', 'achievement'] }).notNull(),
+    problemId: text('problemId'),
+    xp: integer('xp').notNull(),
+    createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+  },
+  (event) => [unique('scoringEvents_userId_eventKey_unique').on(event.userId, event.eventKey)],
+);
+
+/** M2.8 — um registro por dia (fuso de SP) com submissão verificada: o dia conta uma vez (FR-007). */
+export const activityDays = pgTable(
+  'activityDays',
+  {
+    userId: text('userId')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    day: date('day', { mode: 'string' }).notNull(),
+  },
+  (activity) => [primaryKey({ columns: [activity.userId, activity.day] })],
+);
+
+/**
+ * M2.8 — limite de submissões verificadas por usuário (FR-014). No banco, não em memória: em
+ * serverless cada instância teria o próprio contador. Mesmo padrão de `loginIpAttempts`.
+ */
+export const submissionRateLimits = pgTable('submissionRateLimits', {
+  userId: text('userId')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  windowStart: timestamp('windowStart', { mode: 'date' }).notNull(),
+  count: integer('count').notNull(),
+});
