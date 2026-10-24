@@ -143,6 +143,15 @@ export function connectableKindOf(data: FlowNodeData): ConnectableKind {
   return data.kind === 'client' ? 'client' : data.componentType;
 }
 
+/**
+ * `value` é um tipo conhecido pelo canvas (um componente do catálogo ou o Cliente)? A matriz é um
+ * `Record` com todos os `ConnectableKind` como chave, então ela mesma é a lista — usado pra validar
+ * um design que chega de fora (M2.8, submissão verificada pelo servidor).
+ */
+export function isConnectableKind(value: unknown): value is ConnectableKind {
+  return typeof value === 'string' && Object.hasOwn(ALLOWED_TARGETS, value);
+}
+
 /** Os tipos de componente que `source` pode alcançar por uma aresta de saída. */
 export function getAllowedTargets(source: ConnectableKind): readonly ComponentType[] {
   return ALLOWED_TARGETS[source];
