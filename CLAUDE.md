@@ -34,7 +34,16 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Plano ativo**: nenhum — M2.7 concluído; próximo da fila abaixo.
+**Plano ativo**: nenhum — M2.5 concluído; próximo da fila abaixo.
+
+M2.5 — Arquiteturas de referência ([specs/arquiteturas-referencia/plan.md](specs/arquiteturas-referencia/plan.md)):
+**concluído e verificado no browser (2026-10-08)**, `spec.md` em `Done`. `packages/knowledge` ganhou
+`reference-architectures` (tipos, 7 invariantes, `toDesign`) e 5 presets aprovados pelo autor em
+`presets/`: GitHub, Discord (mensagens + gateway), iFood (busca), Nubank (Defense Platform) e Netflix
+(nuvem + Open Connect). `apps/web`: menu "Arquiteturas" (só no canvas livre), `loadedPresetId` no
+store, "Por que está aqui" no nó e o aviso de valores ilustrativos. Testes garantem, por preset:
+invariantes, arestas na matriz do canvas, `simulate()` sem violação e nenhum nó saturado em 1.000 rps.
+Engine, narrador, banco e `NARRATOR_PROMPT_VERSION` intocados.
 
 M2.7 — Biblioteca de princípios de arquitetura
 ([specs/biblioteca-principios-arquitetura/plan.md](specs/biblioteca-principios-arquitetura/plan.md)):
@@ -46,9 +55,7 @@ leitura), `validateLibraryEntries`, rota `/app/biblioteca` (herda o guard do lay
 `tsc`/482 testes/build limpos. Engine, narrador, banco e `NARRATOR_PROMPT_VERSION` intocados. A
 verificação achou e corrigiu 1 bug (busca por "solid" vazia).
 
-Em fila, na ordem: **M2.5** Arquiteturas de referência
-([specs/arquiteturas-referencia/tasks.md](specs/arquiteturas-referencia/tasks.md) — spec `Ready`, plan e
-tasks prontos; aguarda o autor aprovar o `content-draft.md` do preset do GitHub) e **M2.8** Gamificação
+Em fila: **M2.8** Gamificação
 ([specs/gamificacao-progresso-conta/spec.md](specs/gamificacao-progresso-conta/spec.md) — `Draft`, 3
 perguntas abertas). Ordem fora de sequência registrada no roadmap como decisão do autor.
 
@@ -72,7 +79,7 @@ com o λ total em vez de usar ρ; ramo async pesado escondia o ramo síncrono da
 ponderava percentis por (1−h) em vez do limiar de cauda) — números mudam pro mesmo design, então
 o cache do narrador foi invalidado e submissões observadas antes disso não contam.
 
-Marcos concluídos: M2.7 (Biblioteca de princípios, acima), M2 (Avaliação e biblioteca, com ressalva — acima), M1.5 (Catálogo expandido de componentes,
+Marcos concluídos: M2.5 (Arquiteturas de referência, acima), M2.7 (Biblioteca de princípios, acima), M2 (Avaliação e biblioteca, com ressalva — acima), M1.5 (Catálogo expandido de componentes,
 [specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md)), M1 (Canvas e
 submissão, [specs/canvas-submissao-m1/plan.md](specs/canvas-submissao-m1/plan.md)), M0.5 (Landing
 Page e Conta, [specs/landing-page-conta-m0-5/plan.md](specs/landing-page-conta-m0-5/plan.md)) — mais

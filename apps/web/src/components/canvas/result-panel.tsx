@@ -7,6 +7,8 @@ import { NODE_STATUS_UI, COMPONENT_UI } from '@/lib/canvas-ui-catalog';
 import { formatViolationMessage } from '@/lib/violation-messages';
 import { useCanvasStore } from '@/stores/canvas-store';
 
+const ILLUSTRATIVE_NOTICE = 'valores ilustrativos — não são os da empresa';
+
 /**
  * Painel de resultado (FR-008) — mostra exatamente o que o engine calcula: utilização/status por
  * nó, latência do caminho crítico, throughput, custo, violações. FR-013: NUNCA renderiza nenhum
@@ -21,6 +23,9 @@ import { useCanvasStore } from '@/stores/canvas-store';
  */
 export function ResultPanel({ result, actionError }: { result: SimulationResult | null; actionError: string | null }) {
   const nodes = useCanvasStore((s) => s.nodes);
+  // M2.5 (FR-005): resultado de um preset carregado sai de réplicas/carga ilustrativas — o aviso é só
+  // texto, nunca agrega as dimensões (Constitution V).
+  const loadedPresetId = useCanvasStore((s) => s.loadedPresetId);
   const [collapsed, setCollapsed] = useState(true);
 
   const nodeLabel = (nodeId: string) => {
@@ -49,7 +54,10 @@ export function ResultPanel({ result, actionError }: { result: SimulationResult 
         onClick={() => setCollapsed(false)}
         className="flex w-full items-center justify-between border-t border-zinc-800 bg-zinc-950 px-4 py-2 text-xs text-zinc-500 transition hover:text-zinc-300"
       >
-        Ver resultado da simulação
+        <span>
+          Ver resultado da simulação
+          {loadedPresetId && <span className="ml-2 text-amber-300/80">· {ILLUSTRATIVE_NOTICE}</span>}
+        </span>
         <ChevronUp className="size-3.5" aria-hidden />
       </button>
     );
@@ -69,6 +77,11 @@ export function ResultPanel({ result, actionError }: { result: SimulationResult 
           <X className="size-3.5" aria-hidden />
         </button>
       </div>
+      {loadedPresetId && (
+        <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-2 text-xs text-amber-300">
+          Arquitetura de referência: {ILLUSTRATIVE_NOTICE}.
+        </p>
+      )}
       <div className="mb-4 grid grid-cols-3 gap-3">
         <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
           <div className="flex items-center gap-1.5 text-xs text-zinc-500">

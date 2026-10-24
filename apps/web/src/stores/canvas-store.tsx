@@ -69,13 +69,20 @@ export type CanvasState = {
    * mudado desde a submissão).
    */
   lastWorkload: Workload | null;
+  /**
+   * M2.5: id da arquitetura de referência carregada (`@sdp/knowledge`), ou `null`. Alimenta a
+   * explicação "Por que está aqui" no nó selecionado e o aviso de valores ilustrativos no
+   * resultado. Faz parte do design (histórico do zundo e autosave): desfazer o carregamento de um
+   * preset volta ao par (design, preset) anterior, e um reload mantém os dois juntos.
+   */
+  loadedPresetId: string | null;
   onNodesChange: (changes: NodeChange<CanvasNode>[]) => void;
   onEdgesChange: (changes: EdgeChange<CanvasEdge>[]) => void;
   onConnect: (connection: Connection) => void;
   addNode: (node: CanvasNode) => void;
   clearCanvas: () => void;
-  /** Substitui nodes/edges inteiros de uma vez (aplicar um template — FR novo). Mesmo tratamento de `clearCanvas`: entra no histórico do zundo, limpa seleção/resultado. */
-  loadDesign: (design: { nodes: CanvasNode[]; edges: CanvasEdge[] }) => void;
+  /** Substitui nodes/edges inteiros de uma vez (aplicar um template — FR novo). Mesmo tratamento de `clearCanvas`: entra no histórico do zundo, limpa seleção/resultado. `presetId` só vem ao carregar uma arquitetura de referência (M2.5); sem ele, `loadedPresetId` é limpo. */
+  loadDesign: (design: { nodes: CanvasNode[]; edges: CanvasEdge[] }, options?: { presetId?: string }) => void;
   updateNodeConfig: (nodeId: string, patch: Partial<FlowNodeData>) => void;
   updateEdgeConfig: (edgeId: string, patch: Partial<FlowEdgeData>) => void;
   clearEdgeWeight: (edgeId: string) => void;
@@ -85,9 +92,9 @@ export type CanvasState = {
   applySimulationResult: (result: SimulationResult | null, design: Design | null, workload: Workload | null) => void;
 };
 
-// Só nodes/edges entram no histórico de undo/redo e no autosave — selectedNodeId/lastResult são
-// efêmeros (research.md §3 de M1).
-type PersistedCanvasState = Pick<CanvasState, 'nodes' | 'edges'>;
+// Só nodes/edges (e o preset que os gerou, M2.5) entram no histórico de undo/redo e no autosave —
+// selectedNodeId/lastResult são efêmeros (research.md §3 de M1).
+type PersistedCanvasState = Pick<CanvasState, 'nodes' | 'edges' | 'loadedPresetId'>;
 
 /**
  * Debounce mínimo (sem dependência nova) para o `handleSet` do zundo — sem isso, arrastar um nó
@@ -126,6 +133,7 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
       lastResult: null,
       lastDesign: null,
       lastWorkload: null,
+      loadedPresetId: null,
 
       onNodesChange: (changes) =>
         set((state) => {
@@ -163,11 +171,12 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
           state.lastResult = null;
           state.lastDesign = null;
           state.lastWorkload = null;
+          state.loadedPresetId = null;
         }),
 
       // Aplicar um template de arquitetura (FR novo) — mesmo tratamento destrutivo de
       // clearCanvas: substitui tudo, limpa seleção/resultado, entra no histórico do zundo.
-      loadDesign: (design) =>
+      loadDesign: (design, options) =>
         set((state) => {
           state.nodes = design.nodes;
           state.edges = design.edges;
@@ -176,6 +185,7 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
           state.lastResult = null;
           state.lastDesign = null;
           state.lastWorkload = null;
+          state.loadedPresetId = options?.presetId ?? null;
         }),
 
       updateNodeConfig: (nodeId, patch) =>
@@ -231,7 +241,11 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
         }),
     })),
     {
-      partialize: (state): PersistedCanvasState => ({ nodes: state.nodes, edges: state.edges }),
+      partialize: (state): PersistedCanvasState => ({
+        nodes: state.nodes,
+        edges: state.edges,
+        loadedPresetId: state.loadedPresetId,
+      }),
       handleSet: (handleSet) => debounce<Parameters<typeof handleSet>>((...args) => handleSet(...args), 300),
     },
   );
@@ -269,7 +283,7 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
         }
       },
     },
-    partialize: (state) => ({ nodes: state.nodes, edges: state.edges }),
+    partialize: (state) => ({ nodes: state.nodes, edges: state.edges, loadedPresetId: state.loadedPresetId }),
   };
 
   return createStore<CanvasState>()(persist(canvasStoreCreator, persistOptions));
