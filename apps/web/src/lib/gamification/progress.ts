@@ -30,3 +30,9 @@ export function buildProgress(events: readonly ScoringEventRow[], activityDays: 
   });
   return { xp, ...levelForXp(xp), solved, achievements, streak: computeStreak(activityDays, today) };
 }
+
+/** `Progress` como chega ao cliente pela API (datas viram strings ISO no JSON). */
+export type ProgressJson = Omit<Progress, 'solved' | 'achievements'> & {
+  solved: { problemId: string; solvedAt: string }[];
+  achievements: { id: AchievementId; unlockedAt: string }[];
+};
