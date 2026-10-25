@@ -75,8 +75,8 @@ M2.6 — Fundamentos de arquitetura ([specs/fundamentos-arquitetura/plan.md](spe
 de estilo), dicas de responsabilidade/acoplamento, UI de ficha, narrador citando uma ficha real via
 `citation_id`. Achou e corrigiu 2 bugs reais (narrador 500-ava em design saturado; timeout do narrador
 subido de 5s pra 15s por decisão do autor — RNF-5/SC-003 de M2 atualizados). US4 foi implementada antes
-do critério de saída do M2 (decisão do autor, 2026-09-26). O `spec.md` ainda está `Ready` (não promovido
-a `Done`).
+do critério de saída do M2 (decisão do autor, 2026-09-26). `spec.md` promovido a `Done` em 2026-10-24
+(decisão do autor).
 
 M2 — Avaliação e biblioteca ([specs/avaliacao-biblioteca-m2/plan.md](specs/avaliacao-biblioteca-m2/plan.md)):
 **código completo** (US1-US4: score por dimensão, narrador via Google Gemini `gemini-2.5-flash`,
@@ -90,7 +90,7 @@ com o λ total em vez de usar ρ; ramo async pesado escondia o ramo síncrono da
 ponderava percentis por (1−h) em vez do limiar de cauda) — números mudam pro mesmo design, então
 o cache do narrador foi invalidado e submissões observadas antes disso não contam.
 
-Marcos concluídos: M3 (Modo Incidente, acima), M2.8 (Gamificação, acima), M2.5 (Arquiteturas de referência, acima), M2.7 (Biblioteca de princípios, acima), M2 (Avaliação e biblioteca, com ressalva — acima), M1.5 (Catálogo expandido de componentes,
+Marcos concluídos: M3 (Modo Incidente, acima), M2.8 (Gamificação, acima), M2.6 (Fundamentos, acima), M2.5 (Arquiteturas de referência, acima), M2.7 (Biblioteca de princípios, acima), M2 (Avaliação e biblioteca, com ressalva — acima), M1.5 (Catálogo expandido de componentes,
 [specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md)), M1 (Canvas e
 submissão, [specs/canvas-submissao-m1/plan.md](specs/canvas-submissao-m1/plan.md)), M0.5 (Landing
 Page e Conta, [specs/landing-page-conta-m0-5/plan.md](specs/landing-page-conta-m0-5/plan.md)) — mais
