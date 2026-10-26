@@ -1,4 +1,5 @@
 import type { EdgeKind } from '@sdp/engine';
+import { getIncident, getProblem } from '@sdp/problems';
 import type { ClientVariant, FlowEdgeData } from '../canvas-types';
 import { isConnectableKind, isValidCanvasConnection, type ConnectableKind } from '../connection-rules';
 import { DESIGN_LIMITS } from '../gamification/design-validation';
@@ -95,3 +96,17 @@ export function normalizeDesignName(raw: unknown): { ok: true; name: string } | 
 
 /** Limites por conta (gate 2 do plan, aprovado pelo autor): acima disso salvar é recusado, nada é apagado. */
 export const ACCOUNT_DESIGN_LIMITS = { maxDesigns: 50, maxVersionsPerDesign: 100 } as const;
+
+/**
+ * Contexto onde o design foi salvo: canvas livre (sem id), desafio ou incidente existentes no catálogo.
+ * Recebido da API, então conferido contra o catálogo — nunca um id solto.
+ */
+export function validateDesignContext(
+  kind: unknown,
+  id: unknown,
+): { ok: true; contextKind: 'sandbox' | 'challenge' | 'incident'; contextId: string | null } | { ok: false } {
+  if (kind === 'sandbox') return { ok: true, contextKind: 'sandbox', contextId: null };
+  if (kind === 'challenge' && typeof id === 'string' && getProblem(id)) return { ok: true, contextKind: 'challenge', contextId: id };
+  if (kind === 'incident' && typeof id === 'string' && getIncident(id)) return { ok: true, contextKind: 'incident', contextId: id };
+  return { ok: false };
+}

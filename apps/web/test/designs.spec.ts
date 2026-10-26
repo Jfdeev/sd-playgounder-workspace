@@ -4,7 +4,7 @@ import { DESIGN_LIMITS } from '../src/lib/gamification/design-validation';
 import { safeReturnPath } from '../src/lib/designs/return-path';
 import { canonicalSavedCanvas, contentHash, fromSavedCanvas, toSavedCanvas, type SavedCanvas } from '../src/lib/designs/saved-canvas';
 import { toSharedDesignView } from '../src/lib/designs/shared-view';
-import { normalizeDesignName, validateSavedCanvas } from '../src/lib/designs/validate-saved-canvas';
+import { normalizeDesignName, validateDesignContext, validateSavedCanvas } from '../src/lib/designs/validate-saved-canvas';
 
 const canvasNodes = [
   { id: 'c', position: { x: 0, y: 10 }, data: { kind: 'client' as const, variant: 'web' as const } },
@@ -132,5 +132,16 @@ describe('toSharedDesignView (FR-009, SC-004)', () => {
     const json = JSON.stringify(toSharedDesignView(leaky));
     for (const leak of ['a@b.com', 'userId', 'u1', 'tok', 'email']) expect(json).not.toContain(leak);
     expect(toSharedDesignView(leaky).version.createdAt).toBe('2026-10-25T12:00:00.000Z');
+  });
+});
+
+describe('validateDesignContext', () => {
+  it('canvas livre sem id; desafio e incidente só se existirem', () => {
+    expect(validateDesignContext('sandbox', 'qualquer')).toEqual({ ok: true, contextKind: 'sandbox', contextId: null });
+    expect(validateDesignContext('challenge', 'url-shortener')).toEqual({ ok: true, contextKind: 'challenge', contextId: 'url-shortener' });
+    expect(validateDesignContext('incident', 'banco-no-limite')).toEqual({ ok: true, contextKind: 'incident', contextId: 'banco-no-limite' });
+    expect(validateDesignContext('challenge', 'nao-existe').ok).toBe(false);
+    expect(validateDesignContext('incident', 7).ok).toBe(false);
+    expect(validateDesignContext('galaxy', null).ok).toBe(false);
   });
 });
