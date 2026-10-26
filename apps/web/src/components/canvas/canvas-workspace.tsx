@@ -14,12 +14,14 @@
  * `CanvasWorkspaceInner`, um componente FILHO do Provider, nunca no componente que cria o Provider.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ALL_PROBLEM_IDS, getIncident, getProblem } from '@sdp/problems';
 import { getReferenceArchitecture, toDesign } from '@sdp/knowledge';
 import { canvasStorageKey, CanvasStoreProvider, incidentStorageKey, useCanvasStore } from '@/stores/canvas-store';
 import { instantiateTemplate, type ArchitectureTemplate } from '@/lib/canvas-templates';
 import { designToCanvas } from '@/lib/design-to-canvas';
+import { fromSavedCanvas, type SavedCanvas } from '@/lib/designs/saved-canvas';
+import { takePendingOpen, type PendingOpen } from '@/lib/designs/pending-open';
 import { isChallengeUnlocked } from '@/lib/challenge-progression';
 import { useProgressionStore } from '@/stores/progression-store';
 import { Canvas } from './canvas';
@@ -32,6 +34,9 @@ function CanvasWorkspaceInner({
   onLeaveChallenge,
   onSelectIncident,
   onLeaveIncident,
+  pendingOpen,
+  onPendingConsumed,
+  onOpenDesign,
 }: {
   activeChallengeId: string | null;
   activeIncidentId: string | null;
@@ -39,6 +44,9 @@ function CanvasWorkspaceInner({
   onLeaveChallenge: () => void;
   onSelectIncident: (incidentId: string) => void;
   onLeaveIncident: () => void;
+  pendingOpen: PendingOpen | null;
+  onPendingConsumed: () => void;
+  onOpenDesign: (designId: string, version?: number) => void;
 }) {
   const nodes = useCanvasStore((s) => s.nodes);
   const edges = useCanvasStore((s) => s.edges);
@@ -49,10 +57,29 @@ function CanvasWorkspaceInner({
   // M3: ao abrir um incidente pela primeira vez (canvas dele vazio), carrega a arquitetura pronta.
   const incidentLoaded = useRef(false);
   useEffect(() => {
-    if (!activeIncident || incidentLoaded.current) return;
+    if (!activeIncident || incidentLoaded.current || pendingOpen) return;
     incidentLoaded.current = true;
     if (nodes.length === 0) loadDesign(designToCanvas(activeIncident.design));
-  }, [activeIncident, nodes.length, loadDesign]);
+  }, [activeIncident, nodes.length, loadDesign, pendingOpen]);
+
+  // M4.1: um design pedido pra abrir (pela lista ou por "abrir cópia" de um link) carrega assim que o
+  // canvas do contexto certo estiver montado. Substituir um canvas com algo pede confirmação.
+  useEffect(() => {
+    if (!pendingOpen) return;
+    const here =
+      pendingOpen.contextKind === 'incident'
+        ? activeIncidentId === pendingOpen.contextId
+        : pendingOpen.contextKind === 'challenge'
+          ? activeChallengeId === pendingOpen.contextId && activeIncidentId === null
+          : activeChallengeId === null && activeIncidentId === null;
+    if (!here) return;
+    onPendingConsumed();
+    if (nodes.length > 0 && !window.confirm('Abrir este design? Isso substitui o que está no canvas agora (dá pra desfazer com Ctrl/Cmd+Z).')) return;
+    loadDesign(fromSavedCanvas(pendingOpen.canvas), {
+      presetId: pendingOpen.canvas.loadedPresetId,
+      ...(pendingOpen.openDesign ? { openDesign: pendingOpen.openDesign } : {}),
+    });
+  }, [pendingOpen, activeChallengeId, activeIncidentId, nodes.length, loadDesign, onPendingConsumed]);
 
   // Aplicar um template substitui o design inteiro (mesmo tratamento destrutivo da lixeira) —
   // pede confirmação se já existe algo no canvas; a ação em si ainda é desfazível (Ctrl/Cmd+Z).
@@ -89,6 +116,7 @@ function CanvasWorkspaceInner({
         onSelectIncident={onSelectIncident}
         onApplyTemplate={handleApplyTemplate}
         onLoadPreset={handleLoadPreset}
+        onOpenDesign={onOpenDesign}
       />
       <div className="flex min-h-0 flex-1">
         <Canvas
@@ -106,6 +134,49 @@ export function CanvasWorkspace({ initialProblemId }: { initialProblemId: string
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(initialProblemId);
   // M3: desafio e incidente são modos exclusivos; cada um com seu próprio canvas.
   const [activeIncidentId, setActiveIncidentId] = useState<string | null>(null);
+  const [pendingOpen, setPendingOpen] = useState<PendingOpen | null>(null);
+  const consumePending = useCallback(() => setPendingOpen(null), []);
+
+  // Vai pro contexto do design (desafio travado → canvas livre, com aviso) e deixa o conteúdo pendente
+  // até o canvas desse contexto montar.
+  function openInContext(pending: PendingOpen) {
+    let target = pending;
+    if (pending.contextKind === 'challenge' && !isChallengeUnlocked(pending.contextId!, ALL_PROBLEM_IDS, completedIds)) {
+      window.alert('Esse desafio ainda está travado pra você — o design abre no canvas livre.');
+      target = { ...pending, contextKind: 'sandbox', contextId: null };
+    }
+    setActiveChallengeId(target.contextKind === 'challenge' ? target.contextId : null);
+    setActiveIncidentId(target.contextKind === 'incident' ? target.contextId : null);
+    setPendingOpen(target);
+  }
+
+  async function openSavedDesign(designId: string, version?: number) {
+    const response = await fetch(`/api/designs/${designId}${version === undefined ? '' : `?version=${version}`}`, { cache: 'no-store' }).catch(() => null);
+    if (!response?.ok) {
+      window.alert('Não deu pra abrir esse design agora.');
+      return;
+    }
+    const design = (await response.json()) as {
+      id: string;
+      name: string;
+      contextKind: PendingOpen['contextKind'];
+      contextId: string | null;
+      selected: { content: SavedCanvas };
+    };
+    openInContext({ canvas: design.selected.content, contextKind: design.contextKind, contextId: design.contextId, openDesign: { id: design.id, name: design.name } });
+  }
+
+  // "Abrir uma cópia" vinda de um link compartilhado (outra página) — vai pro canvas livre, solta.
+  useEffect(() => {
+    let pending: PendingOpen | null = null;
+    try {
+      pending = takePendingOpen(sessionStorage);
+    } catch {
+      pending = null;
+    }
+    if (pending) openInContext(pending);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const storageKey = activeIncidentId ? incidentStorageKey(activeIncidentId) : canvasStorageKey(activeChallengeId);
   const completedIds = useProgressionStore((s) => s.completedIds);
   const progressStatus = useProgressionStore((s) => s.status);
@@ -146,6 +217,9 @@ export function CanvasWorkspace({ initialProblemId }: { initialProblemId: string
           setActiveIncidentId(incidentId);
         }}
         onLeaveIncident={() => setActiveIncidentId(null)}
+        pendingOpen={pendingOpen}
+        onPendingConsumed={consumePending}
+        onOpenDesign={(designId, version) => void openSavedDesign(designId, version)}
       />
     </CanvasStoreProvider>
   );

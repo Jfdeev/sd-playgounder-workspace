@@ -4,6 +4,7 @@ import { DESIGN_LIMITS } from '../src/lib/gamification/design-validation';
 import { safeReturnPath } from '../src/lib/designs/return-path';
 import { canonicalSavedCanvas, contentHash, fromSavedCanvas, toSavedCanvas, type SavedCanvas } from '../src/lib/designs/saved-canvas';
 import { toSharedDesignView } from '../src/lib/designs/shared-view';
+import { PENDING_OPEN_KEY, takePendingOpen, writePendingOpen } from '../src/lib/designs/pending-open';
 import { normalizeDesignName, validateDesignContext, validateSavedCanvas } from '../src/lib/designs/validate-saved-canvas';
 
 const canvasNodes = [
@@ -143,5 +144,42 @@ describe('validateDesignContext', () => {
     expect(validateDesignContext('challenge', 'nao-existe').ok).toBe(false);
     expect(validateDesignContext('incident', 7).ok).toBe(false);
     expect(validateDesignContext('galaxy', null).ok).toBe(false);
+  });
+});
+
+describe('pending-open (troca de contexto / página)', () => {
+  function memoryStorage(initial: Record<string, string> = {}) {
+    const data = new Map(Object.entries(initial));
+    return {
+      getItem: (k: string) => data.get(k) ?? null,
+      setItem: (k: string, v: string) => void data.set(k, v),
+      removeItem: (k: string) => void data.delete(k),
+      data,
+    };
+  }
+  const canvas = toSavedCanvas(canvasNodes, canvasEdges, null);
+
+  it('escreve, lê uma vez e apaga', () => {
+    const storage = memoryStorage();
+    writePendingOpen(storage, { canvas, contextKind: 'challenge', contextId: 'url-shortener', openDesign: { id: 'd1', name: 'X' } });
+    expect(takePendingOpen(storage)).toEqual({ canvas, contextKind: 'challenge', contextId: 'url-shortener', openDesign: { id: 'd1', name: 'X' } });
+    expect(takePendingOpen(storage)).toBeNull();
+  });
+
+  it('revalida o que lê: conteúdo ou contexto inválidos viram null', () => {
+    expect(takePendingOpen(memoryStorage({ [PENDING_OPEN_KEY]: 'não é json' }))).toBeNull();
+    expect(takePendingOpen(memoryStorage({ [PENDING_OPEN_KEY]: JSON.stringify({ canvas: { nodes: [] }, contextKind: 'sandbox' }) }))).toBeNull();
+    expect(takePendingOpen(memoryStorage({ [PENDING_OPEN_KEY]: JSON.stringify({ canvas, contextKind: 'challenge', contextId: 'x' }) }))).toBeNull();
+  });
+
+  it('openDesign malformado vira cópia solta', () => {
+    const storage = memoryStorage({ [PENDING_OPEN_KEY]: JSON.stringify({ canvas, contextKind: 'sandbox', openDesign: { id: 7 } }) });
+    expect(takePendingOpen(storage)?.openDesign).toBeNull();
+  });
+
+  it('storage que lança não quebra', () => {
+    const broken = { getItem: () => { throw new Error('x'); }, setItem: () => { throw new Error('x'); }, removeItem: () => undefined };
+    expect(() => writePendingOpen(broken, { canvas, contextKind: 'sandbox', contextId: null, openDesign: null })).not.toThrow();
+    expect(takePendingOpen(broken)).toBeNull();
   });
 });

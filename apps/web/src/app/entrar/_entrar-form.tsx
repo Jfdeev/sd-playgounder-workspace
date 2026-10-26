@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Lock, Mail } from 'lucide-react';
+import { safeReturnPath } from '@/lib/designs/return-path';
 import {
   fieldErrorClassName,
   googleButtonClassName,
@@ -58,7 +59,7 @@ export function EntrarForm() {
       return;
     }
 
-    router.push('/app');
+    router.push(safeReturnPath(searchParams.get('voltar')));
   }
 
   return (
@@ -119,7 +120,7 @@ export function EntrarForm() {
 
       <button
         type="button"
-        onClick={() => signIn('google', { callbackUrl: '/app' })}
+        onClick={() => signIn('google', { callbackUrl: safeReturnPath(searchParams.get('voltar')) })}
         className={googleButtonClassName}
       >
         Entrar com Google

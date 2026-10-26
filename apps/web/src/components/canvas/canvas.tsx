@@ -35,8 +35,8 @@ import { NarratorPanel } from './narrator-panel';
 import { ChallengeCard } from './challenge-card';
 import { IncidentPanel } from '../incidents/incident-panel';
 
-const nodeTypes = { component: ComponentNode, client: ClientNode };
-const edgeTypes = { typed: TypedEdge };
+export const nodeTypes = { component: ComponentNode, client: ClientNode };
+export const edgeTypes = { typed: TypedEdge };
 
 /**
  * `problem` é opcional (canvas livre/sandbox — pedido direto do autor: "o usuário pode entrar no
