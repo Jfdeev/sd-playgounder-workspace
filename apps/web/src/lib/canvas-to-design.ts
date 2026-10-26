@@ -10,7 +10,7 @@
  */
 
 import type { Design, DesignEdge, DesignNode, NodeId, Workload } from '@sdp/engine';
-import type { FlowEdge, FlowNode } from './canvas-types';
+import { toFlowEdge, toFlowNode, type FlowEdge, type FlowEdgeData, type FlowNode, type FlowNodeData } from './canvas-types';
 
 /**
  * Traduz o canvas montado pelo usuário para o Design que o engine consome.
@@ -79,4 +79,19 @@ export { toWorkload } from '@sdp/problems';
  */
 export function toManualWorkload(rps: number): Workload {
   return { rps, readWriteRatio: 0.8, payloadBytes: 1024, peakMultiplier: 1 };
+}
+
+/**
+ * `Design` a partir dos nós/arestas nativos do React Flow guardados na store do canvas — a mesma
+ * conversão que o canvas faz pra simular, usada também pelo painel do incidente (M3) pra submeter o
+ * fix sem repetir o mapeamento.
+ */
+export function canvasDesignOf(
+  nodes: readonly { id: string; position: { x: number; y: number }; data: FlowNodeData }[],
+  edges: readonly { id: string; source: string; target: string; data?: FlowEdgeData }[],
+): Design {
+  return toDesign(
+    nodes.map((n) => toFlowNode(n.id, n.position, n.data)),
+    edges.map((e) => toFlowEdge(e.id, e.source, e.target, e.data ?? { kind: 'read' })),
+  );
 }

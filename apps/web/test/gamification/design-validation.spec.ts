@@ -30,6 +30,11 @@ describe('validateSubmittedDesign', () => {
     expect(result).toEqual({ ok: true, design: validDesign() });
   });
 
+  it('descarta capacityFactor vindo do cliente (só uma falha aplicada pelo servidor define isso — M3)', () => {
+    const result = validateSubmittedDesign({ ...validDesign(), nodes: validDesign().nodes.map((n) => ({ ...n, capacityFactor: 1000 })) });
+    expect(result.ok && result.design.nodes.every((n) => !('capacityFactor' in n))).toBe(true);
+  });
+
   it.each(ALL_PROBLEM_IDS)('aceita a solução de referência de "%s"', (problemId) => {
     expect(validateSubmittedDesign(getProblem(problemId)!.referenceSolution.design).ok).toBe(true);
   });

@@ -1,10 +1,12 @@
 import { and, asc, eq, isNotNull, sql } from 'drizzle-orm';
+import { ALL_PROBLEM_IDS } from '@sdp/problems';
+import { achievementsUnlockedBy, type AchievementId } from '@/lib/gamification/achievements';
 import { buildProgress, type Progress } from '@/lib/gamification/progress';
 import { toLocalDay } from '@/lib/gamification/streak';
-import { SUBMISSION_RATE_LIMIT } from '@/lib/gamification/scoring';
+import { ACHIEVEMENT_XP, SUBMISSION_RATE_LIMIT, achievementEventKey } from '@/lib/gamification/scoring';
 import type { RankingEntry } from '@/lib/gamification/ranking';
 import { db } from './client';
-import { activityDays, scoringEvents, submissionRateLimits, userProfiles } from './schema';
+import { activityDays, scoringEvents, submissionRateLimits, userProfiles, type ScoringEventType } from './schema';
 
 /**
  * Acesso ao banco do M2.8. Toda escrita é um único comando idempotente — o driver `neon-http` não
@@ -40,7 +42,7 @@ export async function consumeSubmissionQuota(userId: string): Promise<boolean> {
 /** Credita um evento; `true` só pra quem de fato inseriu (repetido ou concorrente → `false`, FR-003). */
 export async function creditEvent(
   userId: string,
-  event: { eventKey: string; type: 'challenge' | 'achievement'; problemId: string | null; xp: number },
+  event: { eventKey: string; type: ScoringEventType; problemId: string | null; xp: number },
 ): Promise<boolean> {
   const inserted = await db
     .insert(scoringEvents)
@@ -48,6 +50,16 @@ export async function creditEvent(
     .onConflictDoNothing({ target: [scoringEvents.userId, scoringEvents.eventKey] })
     .returning({ id: scoringEvents.id });
   return inserted.length > 0;
+}
+
+/** O usuário já tem este evento (ex.: diagnóstico de um incidente acertado)? */
+export async function hasEvent(userId: string, eventKey: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: scoringEvents.id })
+    .from(scoringEvents)
+    .where(and(eq(scoringEvents.userId, userId), eq(scoringEvents.eventKey, eventKey)))
+    .limit(1);
+  return row !== undefined;
 }
 
 /** Desafios que o usuário já resolveu (eventos `challenge`) — base da trava de desafios no servidor. */
@@ -146,4 +158,31 @@ export async function loadPublicProgress(nickname: string, now: Date): Promise<P
     .where(and(isListed, eq(userProfiles.nickname, nickname)))
     .limit(1);
   return row ? loadProgress(row.userId, now) : null;
+}
+
+/**
+ * Credita as conquistas que o estado verificado atual destrava (M2.8, estendido no M3) e devolve as
+ * novas + o progresso já atualizado. Chamado por toda rota que registra atividade verificada —
+ * desafio, diagnóstico e fix de incidente —, senão uma ofensiva feita só com incidentes nunca
+ * desbloquearia "3 dias seguidos" (achado na revisão do M3).
+ */
+export async function creditUnlockedAchievements(
+  userId: string,
+  now: Date,
+  { solvedWithoutSpof }: { solvedWithoutSpof: boolean },
+): Promise<{ newAchievements: AchievementId[]; progress: Progress }> {
+  const before = await loadProgress(userId, now);
+  const candidates = achievementsUnlockedBy({
+    solvedProblemIds: before.solved.map((s) => s.problemId),
+    allProblemIds: ALL_PROBLEM_IDS,
+    solvedWithoutSpof,
+    currentStreak: before.streak.current,
+  });
+  const newAchievements: AchievementId[] = [];
+  for (const id of candidates) {
+    if (await creditEvent(userId, { eventKey: achievementEventKey(id), type: 'achievement', problemId: null, xp: ACHIEVEMENT_XP })) {
+      newAchievements.push(id);
+    }
+  }
+  return { newAchievements, progress: newAchievements.length > 0 ? await loadProgress(userId, now) : before };
 }

@@ -12,14 +12,14 @@ import {
 import '@xyflow/react/dist/style.css';
 import { Activity, Play, Redo2, Trash2, Undo2 } from 'lucide-react';
 import { simulate, type ComponentType, type Workload } from '@sdp/engine';
-import type { Problem } from '@sdp/problems';
-import { toDesign, toManualWorkload, toWorkload } from '@/lib/canvas-to-design';
+import type { IncidentPublic, Problem } from '@sdp/problems';
+import { canvasDesignOf, toManualWorkload, toWorkload } from '@/lib/canvas-to-design';
 import {
   describeSubmissionOutcome,
   type SubmissionFeedback,
   type SubmissionResponseBody,
 } from '@/lib/gamification/submission-feedback';
-import { toFlowEdge, toFlowNode, type ClientVariant } from '@/lib/canvas-types';
+import type { ClientVariant } from '@/lib/canvas-types';
 import { connectableKindOf, isValidCanvasConnection } from '@/lib/connection-rules';
 import { RPS_SLIDER_RESOLUTION, clampRps, rpsToSliderPosition, sliderPositionToRps } from '@/lib/rps-slider';
 import { useCanvasStore, useCanvasStoreApi, type CanvasEdge, type CanvasNode } from '@/stores/canvas-store';
@@ -33,6 +33,7 @@ import { ResultPanel } from './result-panel';
 import { ScorePanel } from './score-panel';
 import { NarratorPanel } from './narrator-panel';
 import { ChallengeCard } from './challenge-card';
+import { IncidentPanel } from '../incidents/incident-panel';
 
 const nodeTypes = { component: ComponentNode, client: ClientNode };
 const edgeTypes = { typed: TypedEdge };
@@ -55,7 +56,15 @@ const edgeTypes = { typed: TypedEdge };
  *   a carga só pra "passar" num desafio) — resolver um desafio continua exigindo Submeter na
  *   escala real dele.
  */
-function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; onLeaveChallenge: () => void }) {
+type CanvasProps = {
+  problem: Problem | null;
+  onLeaveChallenge: () => void;
+  /** M3: incidente ativo — mostra o painel do incidente no lugar do card de desafio. */
+  incident?: IncidentPublic | null;
+  onLeaveIncident?: () => void;
+};
+
+function CanvasInner({ problem, onLeaveChallenge, incident = null, onLeaveIncident = () => {} }: CanvasProps) {
   const nodes = useCanvasStore((s) => s.nodes);
   const edges = useCanvasStore((s) => s.edges);
   const onNodesChange = useCanvasStore((s) => s.onNodesChange);
@@ -84,14 +93,7 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
   // O `Design` que o engine enxerga — `toDesign` ignora posição, seleção e o `result` que a própria
   // simulação grava de volta nos nós, então a assinatura só muda quando o design muda de fato
   // (carregar template/arquitetura, apagar, réplicas, arestas), nunca a cada pixel de drag.
-  const design = useMemo(
-    () =>
-      toDesign(
-        nodes.map((n) => toFlowNode(n.id, n.position, n.data)),
-        edges.map((e) => toFlowEdge(e.id, e.source, e.target, e.data ?? { kind: 'read' })),
-      ),
-    [nodes, edges],
-  );
+  const design = useMemo(() => canvasDesignOf(nodes, edges), [nodes, edges]);
   const designSignature = useMemo(() => JSON.stringify(design), [design]);
 
   // Reabrir com o rps do desafio ativo como ponto de partida (explorar "a partir de onde o
@@ -289,6 +291,7 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
               a área do mapa (este div, que envolve só o `<ReactFlow>`), então o card flutua dentro
               da área do mapa como o MiniMap, nunca mais baixo que isso. */}
           {problem && <ChallengeCard problem={problem} onLeave={onLeaveChallenge} />}
+          {incident && <IncidentPanel incident={incident} onLeave={onLeaveIncident} />}
         </div>
         {simulatePanelOpen && (
           <div className="flex items-center gap-3 border-t border-zinc-800 bg-zinc-950 px-4 py-2">
@@ -392,10 +395,10 @@ function CanvasInner({ problem, onLeaveChallenge }: { problem: Problem | null; o
   );
 }
 
-export function Canvas({ problem, onLeaveChallenge }: { problem: Problem | null; onLeaveChallenge: () => void }) {
+export function Canvas(props: CanvasProps) {
   return (
     <ReactFlowProvider>
-      <CanvasInner problem={problem} onLeaveChallenge={onLeaveChallenge} />
+      <CanvasInner {...props} />
     </ReactFlowProvider>
   );
 }

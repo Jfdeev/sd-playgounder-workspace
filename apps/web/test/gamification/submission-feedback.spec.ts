@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { describeSubmissionOutcome, type SubmissionResponseBody } from '../../src/lib/gamification/submission-feedback';
 
 const progress: SubmissionResponseBody['progress'] = {
-  xp: 100, level: 2, xpIntoLevel: 0, xpForNextLevel: 200, solved: [], achievements: [], streak: { current: 1, best: 1 },
+  xp: 100, level: 2, xpIntoLevel: 0, xpForNextLevel: 200, solved: [], incidentsResolved: [], achievements: [], streak: { current: 1, best: 1 },
 };
 
 function body(overrides: Partial<SubmissionResponseBody> = {}): SubmissionResponseBody {

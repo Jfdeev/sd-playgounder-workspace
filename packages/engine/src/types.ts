@@ -69,6 +69,12 @@ export type DesignNode = {
   replicas: number;
   /** 0..1, só relevante para type === 'cache' (FR-008). */
   cacheHitRate?: number;
+  /**
+   * M3 (Modo Incidente — pool de conexões esgotado): fração da capacidade nominal por réplica que o nó
+   * consegue entregar. Opcional e aditivo: ausente = 1, exatamente o comportamento anterior. Nunca vem
+   * do canvas — só de uma falha aplicada pelo servidor.
+   */
+  capacityFactor?: number;
 };
 
 export type EdgeKind = 'read' | 'write' | 'async' | 'replication';
@@ -125,7 +131,8 @@ export type ViolationType =
   | 'cycle'
   | 'broken-edge-reference'
   | 'duplicate-node-id'
-  | 'invalid-replica-count';
+  | 'invalid-replica-count'
+  | 'invalid-capacity-factor';
 
 export type Violation = {
   type: ViolationType;

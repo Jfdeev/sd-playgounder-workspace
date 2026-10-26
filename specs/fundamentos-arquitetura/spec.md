@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-25
 
-**Status**: Ready
+**Status**: Done
 
 **Input**: User description: "M2.6 — Fundamentos de arquitetura. Base de conhecimento pesquisada previamente condensando Clean Architecture (Robert C. Martin), Fundamentals of Software Architecture (Mark Richards & Neal Ford) e Patterns of Enterprise Application Architecture (Martin Fowler), conectada às 7 dimensões de score e aos 4 templates de arquitetura já existentes."
 

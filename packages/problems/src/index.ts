@@ -33,3 +33,11 @@ export function getProblem(id: string): Problem | undefined {
 export type { Problem, ProblemScale, RubricCriterion, Hint } from './types.js';
 export { isProblemSolved } from './types.js';
 export { toWorkload } from './workload.js';
+
+// M3 — Modo Incidente: parte pública dos incidentes e regras puras (sem a causa plantada, que fica
+// em `@sdp/problems/server`).
+export { INCIDENTS, getIncident, type IncidentPublic } from './incidents/public.js';
+export { FAULT_TYPES, applyFault, isFaultType, type Fault, type FaultType } from './incidents/faults.js';
+export { diagnose, type DiagnosisVerdict } from './incidents/diagnosis.js';
+export { buildIncidentSnapshot, type IncidentSnapshot, type SnapshotNodeStatus } from './incidents/snapshot.js';
+export { evaluateFix, FIX_CHECKS, type FixCheck, type FixCriterion } from './incidents/fix.js';

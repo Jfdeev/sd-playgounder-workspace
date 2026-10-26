@@ -338,6 +338,9 @@ M2 precisa ser refeita contra o prompt atual (`NARRATOR_PROMPT_VERSION`), não c
 original. `hashDesign` inclui `promptVersion` no hash de cache exatamente pra isso não colidir
 silenciosamente com explicações cacheadas do prompt antigo.
 
+**Status (2026-10-24)**: **concluído** — verificado no browser em 2026-09-27 (US1–US4) e com o
+critério de saída do M2 já aceito (2026-10-03); `spec.md` promovido a `Done` (decisão do autor).
+
 **Verificação manual concluída em 2026-09-27** (migração `0003` aplicada ao Neon live; login via
 conta de teste throwaway criada e apagada na mesma sessão) — US1/US2/US3/US4 confirmados
 funcionando de ponta a ponta com dados reais (banco live, narrador via Gemini real). Achou e
@@ -430,6 +433,18 @@ partição, cache frio, esgotamento de pool (P0). Placar de tempo até diagnóst
 
 **Critério de saída de M3:** 5 cenários de incidente com causa raiz verificável, e
 o engine identifica a mesma causa que o autor plantou.
+
+**Decisões do autor (2026-10-24, `specs/modo-incidente-m3/`)**: "o engine identifica a causa" =
+só o par (componente, tipo de falha) plantado reproduz as métricas mostradas, verificado por busca
+sobre todos os pares; zona caída = regra fixa de 3 zonas com réplicas em rodízio; **exceção à linha
+"reaproveita 100% do engine"**: o engine ganha `capacityFactor` opcional no nó (padrão 1, sem mudar o
+resultado de nenhum design existente) para modelar pool de conexões esgotado.
+
+**Status (2026-10-24)**: **concluído** e verificado no browser — critério de saída atingido: 5
+incidentes (cache frio, nó caído, partição, zona caída, pool esgotado), cada um com teste de que só a
+causa plantada reproduz a tela. Diagnóstico e fix conferidos no servidor; a causa nunca chega ao
+navegador (conferido no bundle). Resolver um incidente dá 100 XP (uma vez) e conta pra ofensiva. Engine
+ganhou só `capacityFactor` (resultado de todo design existente idêntico); narrador intocado.
 
 ### M4 — Progresso e conteúdo
 Login já existe desde M0.5. Aqui: salvar designs com histórico de versões · progresso

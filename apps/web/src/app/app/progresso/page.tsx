@@ -30,6 +30,7 @@ export default async function ProgressPage() {
             xp: progress.xp,
             levelProgress: { xpIntoLevel: progress.xpIntoLevel, xpForNextLevel: progress.xpForNextLevel },
             solved: progress.solved,
+            incidentsResolved: progress.incidentsResolved,
             achievements: progress.achievements,
             streak: progress.streak,
             showLockedAchievements: true,

@@ -15,9 +15,9 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { ALL_PROBLEM_IDS, getProblem } from '@sdp/problems';
+import { ALL_PROBLEM_IDS, getIncident, getProblem } from '@sdp/problems';
 import { getReferenceArchitecture, toDesign } from '@sdp/knowledge';
-import { canvasStorageKey, CanvasStoreProvider, useCanvasStore } from '@/stores/canvas-store';
+import { canvasStorageKey, CanvasStoreProvider, incidentStorageKey, useCanvasStore } from '@/stores/canvas-store';
 import { instantiateTemplate, type ArchitectureTemplate } from '@/lib/canvas-templates';
 import { designToCanvas } from '@/lib/design-to-canvas';
 import { isChallengeUnlocked } from '@/lib/challenge-progression';
@@ -27,17 +27,32 @@ import { ChallengeTopBar } from './challenge-topbar';
 
 function CanvasWorkspaceInner({
   activeChallengeId,
+  activeIncidentId,
   onSelectChallenge,
   onLeaveChallenge,
+  onSelectIncident,
+  onLeaveIncident,
 }: {
   activeChallengeId: string | null;
+  activeIncidentId: string | null;
   onSelectChallenge: (problemId: string) => void;
   onLeaveChallenge: () => void;
+  onSelectIncident: (incidentId: string) => void;
+  onLeaveIncident: () => void;
 }) {
   const nodes = useCanvasStore((s) => s.nodes);
   const edges = useCanvasStore((s) => s.edges);
   const loadDesign = useCanvasStore((s) => s.loadDesign);
   const activeProblem = activeChallengeId ? (getProblem(activeChallengeId) ?? null) : null;
+  const activeIncident = activeIncidentId ? (getIncident(activeIncidentId) ?? null) : null;
+
+  // M3: ao abrir um incidente pela primeira vez (canvas dele vazio), carrega a arquitetura pronta.
+  const incidentLoaded = useRef(false);
+  useEffect(() => {
+    if (!activeIncident || incidentLoaded.current) return;
+    incidentLoaded.current = true;
+    if (nodes.length === 0) loadDesign(designToCanvas(activeIncident.design));
+  }, [activeIncident, nodes.length, loadDesign]);
 
   // Aplicar um template substitui o design inteiro (mesmo tratamento destrutivo da lixeira) —
   // pede confirmação se já existe algo no canvas; a ação em si ainda é desfazível (Ctrl/Cmd+Z).
@@ -69,12 +84,19 @@ function CanvasWorkspaceInner({
     <>
       <ChallengeTopBar
         activeChallengeId={activeChallengeId}
+        activeIncidentId={activeIncidentId}
         onSelectChallenge={onSelectChallenge}
+        onSelectIncident={onSelectIncident}
         onApplyTemplate={handleApplyTemplate}
         onLoadPreset={handleLoadPreset}
       />
       <div className="flex min-h-0 flex-1">
-        <Canvas problem={activeProblem} onLeaveChallenge={onLeaveChallenge} />
+        <Canvas
+          problem={activeProblem}
+          onLeaveChallenge={onLeaveChallenge}
+          incident={activeIncident}
+          onLeaveIncident={onLeaveIncident}
+        />
       </div>
     </>
   );
@@ -82,7 +104,9 @@ function CanvasWorkspaceInner({
 
 export function CanvasWorkspace({ initialProblemId }: { initialProblemId: string | null }) {
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(initialProblemId);
-  const storageKey = canvasStorageKey(activeChallengeId);
+  // M3: desafio e incidente são modos exclusivos; cada um com seu próprio canvas.
+  const [activeIncidentId, setActiveIncidentId] = useState<string | null>(null);
+  const storageKey = activeIncidentId ? incidentStorageKey(activeIncidentId) : canvasStorageKey(activeChallengeId);
   const completedIds = useProgressionStore((s) => s.completedIds);
   const progressStatus = useProgressionStore((s) => s.status);
   const refreshProgress = useProgressionStore((s) => s.refresh);
@@ -111,8 +135,17 @@ export function CanvasWorkspace({ initialProblemId }: { initialProblemId: string
     <CanvasStoreProvider key={storageKey} storageKey={storageKey}>
       <CanvasWorkspaceInner
         activeChallengeId={activeChallengeId}
-        onSelectChallenge={setActiveChallengeId}
+        activeIncidentId={activeIncidentId}
+        onSelectChallenge={(problemId) => {
+          setActiveIncidentId(null);
+          setActiveChallengeId(problemId);
+        }}
         onLeaveChallenge={() => setActiveChallengeId(null)}
+        onSelectIncident={(incidentId) => {
+          setActiveChallengeId(null);
+          setActiveIncidentId(incidentId);
+        }}
+        onLeaveIncident={() => setActiveIncidentId(null)}
       />
     </CanvasStoreProvider>
   );

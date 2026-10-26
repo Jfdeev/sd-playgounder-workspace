@@ -21,9 +21,22 @@ describe('buildProgress', () => {
       xpIntoLevel: 0,
       xpForNextLevel: 100,
       solved: [],
+      incidentsResolved: [],
       achievements: [],
       streak: { current: 0, best: 0 },
     });
+  });
+
+  it('M3: incidente resolvido soma XP e entra na lista; diagnóstico não conta nem vira desafio', () => {
+    const incidentEvents: ScoringEventRow[] = [
+      { type: 'incident-diagnosis', problemId: null, eventKey: 'incident-diagnosis:banco-no-limite', xp: 0, createdAt: day1 },
+      { type: 'incident', problemId: null, eventKey: 'incident:banco-no-limite', xp: 100, createdAt: day2 },
+    ];
+    const progress = buildProgress(incidentEvents, [], '2026-10-23');
+    expect(progress.xp).toBe(100);
+    expect(progress.incidentsResolved).toEqual([{ incidentId: 'banco-no-limite', resolvedAt: day2 }]);
+    expect(progress.solved).toEqual([]);
+    expect(progress.achievements).toEqual([]);
   });
 
   it('XP, nível, desafios, conquistas e ofensiva saem só dos eventos e dias', () => {
