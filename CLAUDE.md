@@ -34,7 +34,14 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Plano ativo**: nenhum — M3 concluído; o próximo do roadmap é o M4 (Progresso e conteúdo).
+**Plano ativo**: nenhum — M4.1 concluído; o próximo é o M4.2 (biblioteca de 12 problemas, +9), depois
+progresso por conceito + wiki.
+
+M4.1 — Designs na conta, histórico e compartilhamento ([specs/designs-conta-m4-1/plan.md](specs/designs-conta-m4-1/plan.md)):
+**concluído e verificado no browser (2026-10-25)**, `spec.md` em `Done`. Tabelas `savedDesigns` e
+`designVersions` (migração `0005` aplicada ao Neon), rotas em `/api/designs`, menu "Meus designs" no canvas,
+link `/app/d/[token]` só para logados. `src/middleware.ts` só repassa o caminho de `/app` pro layout
+devolver `voltar` no login. Engine, narrador e `NARRATOR_PROMPT_VERSION` intocados.
 
 M3 — Modo Incidente ([specs/modo-incidente-m3/plan.md](specs/modo-incidente-m3/plan.md)): **concluído
 e verificado no browser (2026-10-24)**, `spec.md` em `Done`. 5 incidentes (um por tipo de falha) em

@@ -452,6 +452,12 @@ Login já existe desde M0.5. Aqui: salvar designs com histórico de versões · 
 linkada aos problemas · compartilhar design por URL (P0). Widgets animados de conceito,
 galeria da comunidade com fronteira de Pareto custo × latência (P1).
 
+**Status (2026-10-25)**: fatiado em 3. **M4.1 concluído** e verificado no browser
+([specs/designs-conta-m4-1](../specs/designs-conta-m4-1/spec.md)): designs nomeados na conta (até 50),
+uma versão por "Salvar" (até 100, sem duplicata), restaurar versão, link de compartilhamento só para
+logados (só leitura + Simular + abrir cópia, revogável, aviso de spoiler em design de desafio, apelido do
+dono só se o perfil for visível). Faltam: biblioteca de 12 problemas (+9) e progresso por conceito + wiki.
+
 ### M5 — Modo Campanha, multiplayer e turma
 Campanha (mesmo problema em fases, com custo de migração no score) · canvas colaborativo
 via Yjs · modo turma com painel do professor. **Nada aqui começa antes de M4 fechar.**

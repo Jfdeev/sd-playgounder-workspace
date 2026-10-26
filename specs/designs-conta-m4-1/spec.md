@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-25
 
-**Status**: Ready
+**Status**: Done
 
 **Input**: Roadmap (`docs/product-context.md` §10, M4): "salvar designs com histórico de versões · … · compartilhar design por URL (P0)". Primeira fatia do M4, por decisão do autor (2026-10-25): designs na conta + histórico + compartilhar por URL — infraestrutura pro resto do marco. Os 9 problemas novos e o progresso por conceito + wiki vêm em fatias seguintes.
 
