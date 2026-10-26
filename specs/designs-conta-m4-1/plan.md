@@ -59,6 +59,10 @@ apps/web/src/
 
 ## Gates antes do `/speckit-tasks`
 
+**Decididos pelo autor em 2026-10-25**: 1 → migração autorizada; 2 → 50 designs / 100 versões; 3 →
+retorno validado como proposto. Extra: a visão compartilhada mostra o apelido público do dono quando
+ele tiver um e o perfil estiver visível (senão, anônimo).
+
 1. **Migração `0005` no Neon live** — autorizada pelo autor na hora de aplicar.
 2. **Limites por conta**: 50 designs e 100 versões por design (acima disso, salvar é recusado com
    mensagem; nada é apagado sozinho).
