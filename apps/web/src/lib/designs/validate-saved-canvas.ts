@@ -92,3 +92,6 @@ export function normalizeDesignName(raw: unknown): { ok: true; name: string } | 
   if (name.length > 80) return { ok: false, reason: 'O nome pode ter no máximo 80 caracteres.' };
   return { ok: true, name };
 }
+
+/** Limites por conta (gate 2 do plan, aprovado pelo autor): acima disso salvar é recusado, nada é apagado. */
+export const ACCOUNT_DESIGN_LIMITS = { maxDesigns: 50, maxVersionsPerDesign: 100 } as const;
