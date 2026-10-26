@@ -60,8 +60,10 @@ export function DesignsMenu({
   const refreshDetail = useCallback(async () => {
     if (!openDesign) return setDetail(null);
     const response = await fetch(`/api/designs/${openDesign.id}`, { cache: 'no-store' }).catch(() => null);
+    // Apagado, ou de outra conta (o rascunho do canvas é do navegador, não da conta): solta o vínculo.
+    if (response?.status === 404) setOpenDesign(null);
     setDetail(response?.ok ? ((await response.json()) as DesignDetail) : null);
-  }, [openDesign]);
+  }, [openDesign, setOpenDesign]);
 
   useEffect(() => {
     if (!open) return;
@@ -98,8 +100,12 @@ export function DesignsMenu({
   async function save() {
     if (!openDesign) return saveAs();
     setBusy(true);
-    const { ok, data } = await call(`/api/designs/${openDesign.id}/versions`, 'POST', { content: toSavedCanvas(nodes, edges, loadedPresetId) });
+    const { ok, status, data } = await call(`/api/designs/${openDesign.id}/versions`, 'POST', { content: toSavedCanvas(nodes, edges, loadedPresetId) });
     setBusy(false);
+    if (status === 404) {
+      setOpenDesign(null);
+      return setMessage('Esse design não está mais na sua conta — use "Salvar como…" pra criar um novo.');
+    }
     if (!ok) return fail(data);
     setMessage(data?.unchanged ? 'Nada mudou desde a última versão.' : `Versão ${String(data?.version)} salva.`);
     void refreshList();
@@ -131,6 +137,7 @@ export function DesignsMenu({
     setDetail((d) => d && { ...d, shareUrl: url });
     await navigator.clipboard?.writeText(url).catch(() => undefined);
     setMessage('Link copiado. Só quem tem conta consegue abrir.');
+    void refreshList();
   }
 
   async function unshare() {
@@ -139,6 +146,7 @@ export function DesignsMenu({
     if (!ok) return fail(data);
     setDetail((d) => d && { ...d, shareUrl: null });
     setMessage('Link revogado — quem tinha o link não abre mais.');
+    void refreshList();
   }
 
   const button = 'inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-zinc-200 hover:bg-zinc-800 disabled:text-zinc-600';
@@ -209,7 +217,7 @@ export function DesignsMenu({
                       {design.shared ? ' · compartilhado' : ''}
                     </span>
                     <span className="block text-xs text-zinc-500">
-                      {contextLabel(design.contextKind, design.contextId)} · {design.versionCount} versões · {dateFormatter.format(new Date(design.updatedAt))}
+                      {contextLabel(design.contextKind, design.contextId)} · {design.versionCount} {design.versionCount === 1 ? 'versão' : 'versões'} · {dateFormatter.format(new Date(design.updatedAt))}
                     </span>
                   </button>
                   <button type="button" onClick={() => void rename(design)} aria-label={`Renomear ${design.name}`} className="rounded p-1 text-zinc-500 hover:text-zinc-200">

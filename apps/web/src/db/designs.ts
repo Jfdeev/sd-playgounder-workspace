@@ -177,6 +177,7 @@ export async function loadSharedDesign(token: string) {
       name: savedDesigns.name,
       contextKind: savedDesigns.contextKind,
       contextId: savedDesigns.contextId,
+      ownerId: savedDesigns.userId,
       nickname: userProfiles.nickname,
       isPublic: userProfiles.isPublic,
     })
@@ -196,6 +197,8 @@ export async function loadSharedDesign(token: string) {
     name: design.name,
     contextKind: design.contextKind,
     contextId: design.contextId,
+    // só pra decidir o spoiler no servidor — `toSharedDesignView` não repassa
+    ownerId: design.ownerId,
     owner: { nickname: design.nickname, isPublic: design.isPublic ?? false },
     version: latest,
   };

@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
+import { PATHNAME_HEADER } from '@/lib/designs/return-path';
 import { SignOutButton } from './_sign-out-button';
 
 // Header mínimo compartilhado por /app/[problemId] — email da sessão + sair (movido do antigo
@@ -8,7 +10,9 @@ import { SignOutButton } from './_sign-out-button';
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await auth();
   if (!session) {
-    redirect('/entrar');
+    // M4.1: volta pra página pedida depois do login (o middleware repassa o caminho).
+    const path = (await headers()).get(PATHNAME_HEADER);
+    redirect(path ? `/entrar?voltar=${encodeURIComponent(path)}` : '/entrar');
   }
 
   return (

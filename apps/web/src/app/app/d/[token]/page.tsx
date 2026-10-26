@@ -18,6 +18,8 @@ export default async function SharedDesignPage({ params }: { params: Promise<{ t
   }
 
   const view = toSharedDesignView(shared);
-  const spoiler = view.contextKind === 'challenge' && !(await loadSolvedProblemIds(viewerId)).includes(view.contextId ?? '');
+  // O dono não leva aviso de spoiler no próprio design.
+  const spoiler =
+    view.contextKind === 'challenge' && shared.ownerId !== viewerId && !(await loadSolvedProblemIds(viewerId)).includes(view.contextId ?? '');
   return <SharedDesignViewer view={view} spoiler={spoiler} />;
 }

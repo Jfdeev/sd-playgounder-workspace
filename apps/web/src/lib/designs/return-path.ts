@@ -12,3 +12,6 @@ export function safeReturnPath(raw: unknown): string {
   if (!SAFE_PATH.test(raw) || raw.includes('//') || raw.split('/').includes('..')) return FALLBACK;
   return raw;
 }
+
+/** Header em que o middleware repassa o caminho de /app pro layout montar o `voltar` sem sessão. */
+export const PATHNAME_HEADER = 'x-sdp-pathname';
