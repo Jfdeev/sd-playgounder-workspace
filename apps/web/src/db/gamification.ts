@@ -105,7 +105,8 @@ export async function loadProfileSettings(userId: string): Promise<ProfileSettin
   return row ?? { nickname: null, isPublic: true };
 }
 
-function isUniqueViolation(error: unknown): boolean {
+/** Violação de restrição única do Postgres (23505) — o driver às vezes embrulha o erro em `cause`. */
+export function isUniqueViolation(error: unknown): boolean {
   const code = (error as { code?: unknown; cause?: { code?: unknown } })?.code ?? (error as { cause?: { code?: unknown } })?.cause?.code;
   return code === '23505';
 }

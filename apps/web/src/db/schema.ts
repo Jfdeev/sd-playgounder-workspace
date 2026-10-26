@@ -2,12 +2,14 @@ import {
   boolean,
   date,
   integer,
+  jsonb,
   pgTable,
   primaryKey,
   text,
   timestamp,
   unique,
 } from 'drizzle-orm/pg-core';
+import type { SavedCanvas } from '@/lib/designs/saved-canvas';
 // Evita depender de '@auth/core' diretamente (não é dependência direta deste pacote, só
 // transitiva via next-auth) — união literal equivalente ao tipo `AdapterAccountType` do Auth.js.
 type AdapterAccountType = 'oauth' | 'oidc' | 'email' | 'webauthn' | 'credentials';
@@ -218,3 +220,45 @@ export const submissionRateLimits = pgTable('submissionRateLimits', {
   windowStart: timestamp('windowStart', { mode: 'date' }).notNull(),
   count: integer('count').notNull(),
 });
+
+/**
+ * M4.1 — designs salvos na conta (arquivos nomeados). Cada um lembra o contexto onde foi salvo
+ * (canvas livre, desafio, incidente) pra reabrir no lugar certo. `shareToken` é o link de
+ * compartilhamento ativo (único; `null` = não compartilhado; revogar apaga, gerar de novo cria outro).
+ */
+export const savedDesigns = pgTable('savedDesigns', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text('userId')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  contextKind: text('contextKind', { enum: ['sandbox', 'challenge', 'incident'] }).notNull(),
+  contextId: text('contextId'),
+  shareToken: text('shareToken').unique(),
+  createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
+});
+
+/**
+ * M4.1 — versões imutáveis de um design. O número nasce num único `INSERT … SELECT max + 1`; a
+ * restrição única `(designId, number)` resolve duas abas salvando ao mesmo tempo (o driver `neon-http`
+ * não tem transação). `contentHash` evita versão duplicada quando nada mudou.
+ */
+export const designVersions = pgTable(
+  'designVersions',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    designId: text('designId')
+      .notNull()
+      .references(() => savedDesigns.id, { onDelete: 'cascade' }),
+    number: integer('number').notNull(),
+    content: jsonb('content').$type<SavedCanvas>().notNull(),
+    contentHash: text('contentHash').notNull(),
+    createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+  },
+  (version) => [unique('designVersions_designId_number_unique').on(version.designId, version.number)],
+);

@@ -76,13 +76,23 @@ export type CanvasState = {
    * preset volta ao par (design, preset) anterior, e um reload mantém os dois juntos.
    */
   loadedPresetId: string | null;
+  /**
+   * M4.1: design salvo na conta que está aberto neste canvas (o próximo "Salvar" vira versão dele).
+   * Vai pro autosave junto do rascunho, mas não pro histórico de desfazer — desfazer mexe no conteúdo,
+   * não em qual arquivo está aberto. Carregar template/arquitetura ou apagar tudo solta o vínculo.
+   */
+  openDesign: { id: string; name: string } | null;
+  setOpenDesign: (openDesign: { id: string; name: string } | null) => void;
   onNodesChange: (changes: NodeChange<CanvasNode>[]) => void;
   onEdgesChange: (changes: EdgeChange<CanvasEdge>[]) => void;
   onConnect: (connection: Connection) => void;
   addNode: (node: CanvasNode) => void;
   clearCanvas: () => void;
   /** Substitui nodes/edges inteiros de uma vez (aplicar um template — FR novo). Mesmo tratamento de `clearCanvas`: entra no histórico do zundo, limpa seleção/resultado. `presetId` só vem ao carregar uma arquitetura de referência (M2.5); sem ele, `loadedPresetId` é limpo. */
-  loadDesign: (design: { nodes: CanvasNode[]; edges: CanvasEdge[] }, options?: { presetId?: string }) => void;
+  loadDesign: (
+    design: { nodes: CanvasNode[]; edges: CanvasEdge[] },
+    options?: { presetId?: string | null; openDesign?: { id: string; name: string } },
+  ) => void;
   updateNodeConfig: (nodeId: string, patch: Partial<FlowNodeData>) => void;
   updateEdgeConfig: (edgeId: string, patch: Partial<FlowEdgeData>) => void;
   clearEdgeWeight: (edgeId: string) => void;
@@ -95,6 +105,8 @@ export type CanvasState = {
 // Só nodes/edges (e o preset que os gerou, M2.5) entram no histórico de undo/redo e no autosave —
 // selectedNodeId/lastResult são efêmeros (research.md §3 de M1).
 type PersistedCanvasState = Pick<CanvasState, 'nodes' | 'edges' | 'loadedPresetId'>;
+/** O autosave guarda também qual design salvo está aberto (M4.1); o histórico de desfazer, não. */
+type AutosavedCanvasState = PersistedCanvasState & Pick<CanvasState, 'openDesign'>;
 
 /**
  * Debounce mínimo (sem dependência nova) para o `handleSet` do zundo — sem isso, arrastar um nó
@@ -134,6 +146,12 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
       lastDesign: null,
       lastWorkload: null,
       loadedPresetId: null,
+      openDesign: null,
+
+      setOpenDesign: (openDesign) =>
+        set((state) => {
+          state.openDesign = openDesign;
+        }),
 
       onNodesChange: (changes) =>
         set((state) => {
@@ -172,6 +190,7 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
           state.lastDesign = null;
           state.lastWorkload = null;
           state.loadedPresetId = null;
+          state.openDesign = null;
         }),
 
       // Aplicar um template de arquitetura (FR novo) — mesmo tratamento destrutivo de
@@ -186,6 +205,7 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
           state.lastDesign = null;
           state.lastWorkload = null;
           state.loadedPresetId = options?.presetId ?? null;
+          state.openDesign = options?.openDesign ?? null;
         }),
 
       updateNodeConfig: (nodeId, patch) =>
@@ -255,7 +275,7 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
   // já está combinado com os mutators de `temporal`/`immer` (limitação conhecida da composição de
   // middlewares do Zustand); declarar o tipo aqui evita ter que especificar os 4 parâmetros de
   // tipo de `persist<...>` manualmente (o que apagaria a inferência de `store.temporal`).
-  const persistOptions: PersistOptions<CanvasState, PersistedCanvasState> = {
+  const persistOptions: PersistOptions<CanvasState, AutosavedCanvasState> = {
     name: storageKey,
     // Edge case do spec: localStorage indisponível/cheio (ex. navegação privada com restrições)
     // não deve quebrar o canvas — só degrada sem persistência entre sessões nessa sessão.
@@ -283,7 +303,12 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
         }
       },
     },
-    partialize: (state) => ({ nodes: state.nodes, edges: state.edges, loadedPresetId: state.loadedPresetId }),
+    partialize: (state) => ({
+      nodes: state.nodes,
+      edges: state.edges,
+      loadedPresetId: state.loadedPresetId,
+      openDesign: state.openDesign,
+    }),
   };
 
   return createStore<CanvasState>()(persist(canvasStoreCreator, persistOptions));

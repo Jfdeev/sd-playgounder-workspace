@@ -20,6 +20,8 @@ import { isChallengeUnlocked } from '@/lib/challenge-progression';
 import { useProgressionStore } from '@/stores/progression-store';
 import { CapacityCalculatorPanel } from './capacity-calculator-panel';
 import { ReferenceArchitecturesMenu } from './reference-architectures-menu';
+import { DesignsMenu } from '../designs/designs-menu';
+import type { DesignContextKind } from '@/lib/designs/shared-view';
 import { StyleSheet } from './style-sheet';
 
 // Nomes do site de inspiração que ainda não têm um Problem completo autorado — aparecem na lista
@@ -44,15 +46,17 @@ export function ChallengeTopBar({
   onSelectIncident,
   onApplyTemplate,
   onLoadPreset,
+  onOpenDesign,
 }: {
   activeChallengeId: string | null;
   activeIncidentId: string | null;
+  onOpenDesign: (designId: string, version?: number) => void;
   onSelectChallenge: (problemId: string) => void;
   onSelectIncident: (incidentId: string) => void;
   onApplyTemplate: (template: ArchitectureTemplate) => void;
   onLoadPreset: (presetId: string) => void;
 }) {
-  const [openMenu, setOpenMenu] = useState<'challenges' | 'incidents' | 'templates' | 'architectures' | 'calculator' | null>(null);
+  const [openMenu, setOpenMenu] = useState<'challenges' | 'incidents' | 'templates' | 'architectures' | 'calculator' | 'designs' | null>(null);
   const [openStyleId, setOpenStyleId] = useState<TemplateId | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   useClickOutside(containerRef, () => setOpenMenu(null));
@@ -63,6 +67,11 @@ export function ChallengeTopBar({
   // render gera loop de re-render. Ver o comentário em challenge-progression.ts.
   const completedIds = useProgressionStore((s) => s.completedIds);
   const progress = useProgressionStore((s) => s.progress);
+  const designContext: { kind: DesignContextKind; id: string | null } = activeIncidentId
+    ? { kind: 'incident', id: activeIncidentId }
+    : activeChallengeId
+      ? { kind: 'challenge', id: activeChallengeId }
+      : { kind: 'sandbox', id: null };
 
   return (
     <div ref={containerRef} className="flex items-center gap-2 border-b border-zinc-800 bg-zinc-950 px-4 py-2">
@@ -223,6 +232,17 @@ export function ChallengeTopBar({
           </div>
         )}
       </div>
+
+      {/* M4.1: designs salvos na conta, histórico e compartilhamento. */}
+      <DesignsMenu
+        open={openMenu === 'designs'}
+        onToggle={() => setOpenMenu((m) => (m === 'designs' ? null : 'designs'))}
+        context={designContext}
+        onOpen={(designId, version) => {
+          setOpenMenu(null);
+          onOpenDesign(designId, version);
+        }}
+      />
 
       {/* M2.7: biblioteca de princípios — página própria (o autosave por design já preserva o canvas ao navegar). */}
       <Link
