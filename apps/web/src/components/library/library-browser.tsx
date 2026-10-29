@@ -4,7 +4,8 @@
  * Navegador da biblioteca de princípios — apps/web/src/components/library/library-browser.tsx (M2.7)
  *
  * Busca por nome/id (`filterLibraryEntries`), categorias → grupos, uma entrada aberta por vez. Sem
- * nenhum estado de usuário, progresso ou ranking (FR-010 — progresso por conceito é do M4).
+ * progresso nem ranking (FR-010 — o progresso por conceito mora em /app/progresso). M4.3: a seção de
+ * conceitos mostra os desafios de cada um, com a trava já calculada pelo servidor.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -15,6 +16,9 @@ import { filterLibraryEntries } from '@/lib/library-search';
 import { LibraryEntryCard } from './library-entry-card';
 
 const CATEGORY_ORDER = Object.keys(LIBRARY_CATEGORY_LABELS) as LibraryCategory[];
+
+/** Um desafio na lista "aparece em" de um conceito; `lockedBy` = rótulo do nível que falta resolver. */
+export type ConceptProblemLink = { id: string; title: string; lockedBy: string | null };
 
 /** Agrupa preservando a ordem de aparição dos grupos dentro da categoria. */
 function groupByGroup(entries: readonly LibraryEntry[]): Array<[string, LibraryEntry[]]> {
@@ -30,9 +34,11 @@ function groupByGroup(entries: readonly LibraryEntry[]): Array<[string, LibraryE
 export function LibraryBrowser({
   entries,
   initialEntryId,
+  conceptProblems,
 }: {
   entries: readonly LibraryEntry[];
   initialEntryId: string | null;
+  conceptProblems: Readonly<Record<string, readonly ConceptProblemLink[]>>;
 }) {
   const [query, setQuery] = useState('');
   // Um id desconhecido (?entry=xyz) é ignorado — nunca quebra a página.
@@ -48,6 +54,14 @@ export function LibraryBrowser({
   }, []);
 
   const filtered = filterLibraryEntries(entries, query);
+  const byId = new Map(entries.map((entry) => [entry.id, entry]));
+
+  // Abrir uma entrada relacionada: limpa a busca (senão ela pode estar filtrada) e rola até ela.
+  function openEntry(id: string) {
+    setQuery('');
+    setOpenId(id);
+    requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ block: 'center' }));
+  }
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-6">
@@ -61,11 +75,11 @@ export function LibraryBrowser({
 
       <h1 className="flex items-center gap-2 text-lg font-semibold text-zinc-100">
         <BookOpen className="size-5 text-violet-400" aria-hidden />
-        Biblioteca de princípios
+        Biblioteca
       </h1>
       <p className="mt-1 text-xs text-zinc-500">
-        Princípios, características e padrões da literatura clássica de arquitetura — só leitura, sem
-        pontuação. Nenhum deles é calculado pela plataforma.
+        Conceitos de system design e princípios, características e padrões da literatura clássica de
+        arquitetura — só leitura, sem pontuação, sempre com a fonte.
       </p>
 
       <label className="mt-4 flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 focus-within:border-violet-500">
@@ -74,7 +88,7 @@ export function LibraryBrowser({
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Buscar por nome (ex.: SOLID, lock, recuperabilidade)"
+          placeholder="Buscar por nome (ex.: cache, idempotência, SOLID)"
           aria-label="Buscar na biblioteca"
           className="w-full bg-transparent text-sm text-zinc-200 outline-none placeholder:text-zinc-600"
         />
@@ -117,7 +131,12 @@ export function LibraryBrowser({
                         </button>
                         {isOpen && (
                           <div className="mt-1.5">
-                            <LibraryEntryCard entry={entry} />
+                            <LibraryEntryCard
+                              entry={entry}
+                              relatedEntries={(entry.relatedEntryIds ?? []).flatMap((id) => byId.get(id) ?? [])}
+                              onOpenEntry={openEntry}
+                              {...(entry.category === 'concepts' ? { problems: conceptProblems[entry.id] ?? [] } : {})}
+                            />
                           </div>
                         )}
                       </li>

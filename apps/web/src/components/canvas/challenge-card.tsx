@@ -27,6 +27,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { BookOpen, ChevronDown, ChevronUp, Circle, LogOut, X } from 'lucide-react';
+import { getLibraryEntry } from '@sdp/knowledge';
 import type { Problem } from '@sdp/problems';
 import { useCanvasStore } from '@/stores/canvas-store';
 import { ReferenceSolutionPanel } from './reference-solution-panel';
@@ -94,6 +95,20 @@ export function ChallengeCard({ problem, onLeave }: { problem: Problem; onLeave:
 
       <div className="max-h-96 overflow-y-auto px-4 py-3">
         <p className="text-xs text-zinc-400">{problem.statement}</p>
+
+        {/* M4.3: os conceitos que o desafio exercita, cada um levando ao verbete na biblioteca. */}
+        <ul className="mt-2 flex flex-wrap gap-1" aria-label="Conceitos deste desafio">
+          {problem.concepts.map((conceptId) => (
+            <li key={conceptId}>
+              <Link
+                href={`/app/biblioteca?entry=${conceptId}`}
+                className="inline-flex rounded-full border border-zinc-700 px-2 py-0.5 text-[11px] text-zinc-300 hover:border-violet-500 hover:text-violet-200"
+              >
+                {getLibraryEntry(conceptId)?.name ?? conceptId}
+              </Link>
+            </li>
+          ))}
+        </ul>
 
         <div className="mt-3">
           <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Critérios</h3>
