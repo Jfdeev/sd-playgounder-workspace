@@ -1,6 +1,8 @@
 # M4.2 — Rascunho de conteúdo dos 9 problemas novos
 
-**Status**: aguardando aprovação do autor. Nada disto vira código antes do "aprovado".
+**Status**: **aprovado pelo autor (2026-10-28)**, com 2 ajustes de entrada por causa da matriz de
+conexões do canvas (spec.md, Clarifications 2026-10-28): Rate limiter sem Load Balancer na frente e
+Crawler com API Gateway na entrada. Os números das duas referências são reconferidos pelo teste.
 
 Como ler: cada problema traz o nível, o enunciado, os requisitos, a escala (e o pico em rps que ela gera),
 a rubrica, as dicas e a solução de referência. Os números da referência (ρ por nó, p99 e custo) **já
@@ -66,7 +68,7 @@ caia.
   uma réplica cara de App Server (500 rps cada). Recusar cedo, num componente barato e rápido (12.000
   rps por réplica), é o que protege o resto.
 
-**Solução de referência**: Load Balancer ×2 → Rate Limiter ×2 → App Server ×10, com o Rate Limiter
+**Solução de referência**: (Cliente →) Rate Limiter ×2 → App Server ×10, com o Rate Limiter
 consultando um Cache ×2 (contadores).
 Rodado: p99 87ms · ρ máx 0,35 (App Server) · US$ 560/mês · sem violações.
 **Raciocínio**: o pico é ~3.472 rps; 10 réplicas de App Server (5.000 rps) escoam com folga. O Rate
@@ -309,7 +311,7 @@ página duas vezes e sem derrubar os sites que visita.
 - *Como saber se uma URL já foi vista, com bilhões delas?* — Um conjunto de URLs vistas num NoSQL (ou um
   filtro de Bloom em Cache, que erra só para o lado de "já vi"). O Worker consulta antes de baixar.
 
-**Solução de referência**: Scheduler ×6 (entrada) → Fila ×2 → Worker ×6; Worker → NoSQL ×2 (vistas) e
+**Solução de referência**: API Gateway ×2 (sementes) → Scheduler ×6 → Fila ×2 → Worker ×6; Worker → NoSQL ×2 (vistas) e
 → Object Storage ×2 (páginas).
 Rodado: p99 77ms · ρ máx 0,77 (Scheduler e Worker) · US$ 560/mês · sem violações.
 **Raciocínio**: o Scheduler solta as URLs no ritmo permitido por site para a fila; os Workers baixam,
@@ -485,3 +487,19 @@ réplicas satura.
   compartilhados em `packages/problems`; os 3 problemas atuais passam a usá-los, sem mudar o que avaliam.
 - "Catálogo completo" passa a exigir os 12 (quem já ganhou continua com a conquista).
 - Engine, narrador e banco intocados.
+
+---
+
+## Dicas citadas acrescentadas (aprovadas em 2026-10-28)
+
+A regra do M2.6 exige uma dica citando obra clássica em todo problema; estas completam os 6 que não
+tinham.
+
+| Problema | Dica | Obra · entrada |
+|---|---|---|
+| Rate limiter | *Por que o limitador é um componente e não um `if` dentro da API?* — Limitar tráfego e atender o negócio mudam por motivos e por pessoas diferentes; separados, um não quebra o outro. | Clean Architecture · `srp` |
+| Leaderboard | *E se o Cache cair?* — O ranking em memória é reconstruído a partir do NoSQL; por isso a pontuação é gravada num banco durável. | Fundamentals · `recoverability` |
+| Chat | *E se uma réplica de conexões cair?* — O app reconecta em outra e busca o que perdeu no histórico do NoSQL; o chat segue funcionando sob falha. | Fundamentals · `robustness` |
+| Vídeo | *Por que o upload não sabe nada de transcoding?* — A fila é uma fronteira: o upload só publica "vídeo novo"; trocar o transcodificador não mexe no upload. | Clean Architecture · `boundaries` |
+| Web crawler | *Onde ficam robots.txt, timeouts e o intervalo por site?* — Num único ponto que encapsula o acesso aos sites externos. | PoEAA · `gateway` |
+| Cliques em anúncios | *Por quanto tempo guardar os cliques brutos?* — O que a cobrança e a auditoria exigem; depois, arquivados ou apagados conforme a política. | Fundamentals · `archivability` |

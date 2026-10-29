@@ -62,9 +62,16 @@ export type Hint = {
   libraryEntryId?: string;
 };
 
+/**
+ * Nível do desafio (M4.2): a progressão é por nível — o básico está sempre aberto e resolver qualquer
+ * problema de um nível abre o seguinte (`apps/web/src/lib/challenge-progression.ts`).
+ */
+export type ProblemLevel = 'basic' | 'intermediate' | 'advanced';
+
 export type Problem = {
   id: string;
   title: string;
+  level: ProblemLevel;
   /** Anatomia §2.1 parte 1 — enunciado curto e ambíguo de propósito. */
   statement: string;
   /** Anatomia §2.1 parte 3. */
