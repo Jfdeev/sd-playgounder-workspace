@@ -87,6 +87,7 @@ export const PIX_PAYMENT: Problem = {
   id: 'pix-payment',
   title: 'Pagamento Pix',
   level: 'advanced',
+  concepts: ['idempotency', 'transactions', 'queues'],
 
   statement:
     'Projete o envio de Pix de um banco digital: o cliente confirma, o dinheiro sai da conta e chega no ' +

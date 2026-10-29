@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { CONCEPT_ENTRIES } from '@sdp/knowledge';
+import { ALL_PROBLEMS } from '@sdp/problems';
+import { ConceptProgressPanel } from '@/components/progress/concept-progress-panel';
 import { ProgressOverview } from '@/components/progress/progress-overview';
+import { conceptProgress } from '@/lib/gamification/concept-progress';
 import { loadProfileSettings, loadProgress } from '@/db/gamification';
 import { requireUserId } from '../_require-user-id';
 
@@ -10,6 +14,8 @@ export const metadata = { robots: { index: false } };
 export default async function ProgressPage() {
   const userId = await requireUserId();
   const [progress, profile] = await Promise.all([loadProgress(userId, new Date()), loadProfileSettings(userId)]);
+  const solvedIds = progress.solved.map((s) => s.problemId);
+  const conceptIds = CONCEPT_ENTRIES.map((entry) => entry.id);
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
@@ -36,6 +42,7 @@ export default async function ProgressPage() {
             showLockedAchievements: true,
           }}
         />
+        <ConceptProgressPanel progress={conceptProgress(conceptIds, ALL_PROBLEMS, solvedIds)} anySolved={solvedIds.length > 0} />
       </div>
     </div>
   );

@@ -47,6 +47,11 @@ const PROBLEM_CATALOG: ReadonlyMap<string, Problem> = new Map(ALL_PROBLEMS.map((
 
 export const ALL_PROBLEM_IDS: readonly string[] = ALL_PROBLEMS.map((problem) => problem.id);
 
+/** Problemas que exercitam um conceito (M4.3), na ordem do catálogo — derivado de `Problem.concepts`. */
+export function problemsForConcept(conceptId: string): Problem[] {
+  return ALL_PROBLEMS.filter((problem) => problem.concepts.includes(conceptId));
+}
+
 export function getProblem(id: string): Problem | undefined {
   return PROBLEM_CATALOG.get(id);
 }

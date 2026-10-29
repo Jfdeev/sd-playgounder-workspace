@@ -98,6 +98,7 @@ export const URL_SHORTENER: Problem = {
   id: 'url-shortener',
   title: 'Encurtador de URL',
   level: 'basic',
+  concepts: ['caching', 'redundancy'],
 
   statement:
     'Projete um sistema que recebe uma URL longa e devolve uma URL curta e única; quem acessa a ' +

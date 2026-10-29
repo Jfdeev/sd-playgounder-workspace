@@ -10,6 +10,8 @@ import { PROBLEM_LEVELS, type Problem, type ProblemLevel } from '@sdp/problems';
 
 type CatalogEntry = Pick<Problem, 'id' | 'level'>;
 
+export const LEVEL_LABEL: Record<ProblemLevel, string> = { basic: 'Básico', intermediate: 'Intermediário', advanced: 'Avançado' };
+
 /**
  * Nível em que falta resolver um problema para abrir `problemId`; `null` se já está aberto (ou se o id
  * não existe no catálogo — use `isChallengeUnlocked` para saber se dá pra entrar).

@@ -1,5 +1,6 @@
 export {
   CLEAN_ARCHITECTURE,
+  DESIGNING_DATA_INTENSIVE_APPLICATIONS,
   FUNDAMENTALS_OF_SOFTWARE_ARCHITECTURE,
   PATTERNS_OF_ENTERPRISE_APPLICATION_ARCHITECTURE,
   type Source,
@@ -10,6 +11,7 @@ export { ALL_KNOWLEDGE_IDS, isKnownKnowledgeId } from './citation.js';
 export {
   LIBRARY_CATEGORY_LABELS,
   LIBRARY_ENTRIES,
+  CONCEPT_ENTRIES,
   getLibraryEntry,
   validateLibraryEntries,
   type LibraryCategory,
