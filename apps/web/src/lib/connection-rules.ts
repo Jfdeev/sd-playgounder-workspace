@@ -48,7 +48,11 @@ const ALLOWED_TARGETS: Record<ConnectableKind, readonly ComponentType[]> = {
   load_balancer: ['app_server', 'worker', 'serverless', 'auth_service', 'search', 'scheduler', 'notifications', 'analytics'],
   // M1.5 US2: mesma expansão de load_balancer, + llm_gateway (único ponto de entrada do pipeline
   // de IA a partir da borda, junto com app_server — research.md §3).
-  api_gateway: ['app_server', 'worker', 'serverless', 'auth_service', 'search', 'scheduler', 'notifications', 'analytics', 'llm_gateway'],
+  // M4.2: + kafka/event_stream (ingestão direta num log durável, ex. coleta de cliques).
+  api_gateway: [
+    'app_server', 'worker', 'serverless', 'auth_service', 'search', 'scheduler', 'notifications', 'analytics', 'llm_gateway',
+    'kafka', 'event_stream',
+  ],
   // App Server é o nó mais versátil — toca cache, os três tipos de banco, fila e object storage.
   // M1.5 US2: + os 5 sinks novos (Storage/Messaging), + llm_gateway, + External.
   // M1.5 US3: + os 5 componentes de Observability (alcançáveis "a partir de qualquer componente
@@ -62,11 +66,13 @@ const ALLOWED_TARGETS: Record<ConnectableKind, readonly ComponentType[]> = {
   // Worker processa e grava o resultado, ou encadeia pra próxima fila. M1.5 US2: + os 5 sinks
   // novos + External (sem llm_gateway — só app_server/api_gateway chamam IA).
   // M1.5 US3: + os 5 componentes de Observability.
+  // M4.2: + notifications (o Worker consome a fila e entrega pelo serviço de notificações).
   worker: [
     'sql_primary', 'nosql_kv', 'cache', 'object_storage', 'queue',
     'data_warehouse', 'vector_db', 'pubsub', 'event_stream', 'kafka',
     'third_party_api', 'payment', 'email',
     'metrics', 'logs', 'tracing', 'alerting', 'health_check',
+    'notifications',
   ],
   // Aresta de saída do cache = caminho de miss (ver comentário do módulo). M1.5 US2: + vector_db
   // (miss path plausível pra embeddings, ex. cache de resultado de busca semântica).
@@ -87,12 +93,14 @@ const ALLOWED_TARGETS: Record<ConnectableKind, readonly ComponentType[]> = {
   dns: ['waf', 'ingress', 'rate_limiter', 'load_balancer', 'api_gateway', 'app_server'],
   waf: ['dns', 'ingress', 'rate_limiter', 'load_balancer', 'api_gateway', 'app_server'],
   ingress: ['dns', 'waf', 'rate_limiter', 'load_balancer', 'api_gateway', 'app_server'],
-  rate_limiter: ['dns', 'waf', 'ingress', 'load_balancer', 'api_gateway', 'app_server'],
+  // M4.2: + cache/nosql_kv — o contador compartilhado entre réplicas (ex. Redis com incremento atômico).
+  rate_limiter: ['dns', 'waf', 'ingress', 'load_balancer', 'api_gateway', 'app_server', 'cache', 'nosql_kv'],
 
   // --- Compute novos (M1.5 US2) — variações de app_server no grafo (research.md §3): mesmo leque
   // de destino, via COMPUTE_TARGETS.
   serverless: COMPUTE_TARGETS,
-  auth_service: COMPUTE_TARGETS,
+  // M4.2: + app_server — autenticação na frente do serviço que ela protege.
+  auth_service: [...COMPUTE_TARGETS, 'app_server'],
   search: COMPUTE_TARGETS,
   scheduler: COMPUTE_TARGETS,
   notifications: COMPUTE_TARGETS,
@@ -104,8 +112,9 @@ const ALLOWED_TARGETS: Record<ConnectableKind, readonly ComponentType[]> = {
 
   // --- Messaging novos (M1.5 US2) — só entregam pra Worker, mesma regra de queue → worker.
   pubsub: ['worker'],
-  event_stream: ['worker'],
-  kafka: ['worker'],
+  // M4.2: + analytics/data_warehouse (processamento em stream e carga bruta direto do log).
+  event_stream: ['worker', 'analytics', 'data_warehouse'],
+  kafka: ['worker', 'analytics', 'data_warehouse'],
 
   // --- Pipeline de IA (M1.5 US2) — app_server/api_gateway → llm_gateway → orchestrator →
   // {tool_registry, memory_fabric}; safety_mesh é um hop inserível em qualquer ponto do pipeline.

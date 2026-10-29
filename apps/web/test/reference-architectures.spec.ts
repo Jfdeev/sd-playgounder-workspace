@@ -1,23 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { simulate, type Workload } from '@sdp/engine';
 import { REFERENCE_ARCHITECTURES, toDesign, type ReferenceArchitecture } from '@sdp/knowledge';
-import { isValidCanvasConnection } from '../src/lib/connection-rules';
 import { designToCanvas } from '../src/lib/design-to-canvas';
+import { forbiddenEdges } from './forbidden-edges';
 
 // Carga ilustrativa — as violações estruturais (SPOF, órfão, ciclo, estrutura) não dependem dela.
 const ILLUSTRATIVE_WORKLOAD: Workload = { rps: 500, readWriteRatio: 0.8, payloadBytes: 2048, peakMultiplier: 1 };
-
-/** Arestas do preset que o canvas recusaria desenhar à mão (mais a do Cliente até cada entrada). */
-function forbiddenEdges(preset: ReferenceArchitecture): string[] {
-  const typeOf = new Map(preset.nodes.map((node) => [node.id, node.type]));
-  const forbidden = preset.edges
-    .filter((edge) => !isValidCanvasConnection(typeOf.get(edge.from)!, typeOf.get(edge.to)!))
-    .map((edge) => `${edge.from} → ${edge.to}`);
-  for (const entry of preset.entryNodeIds) {
-    if (!isValidCanvasConnection('client', typeOf.get(entry)!)) forbidden.push(`client → ${entry}`);
-  }
-  return forbidden;
-}
 
 describe('arquiteturas de referência no canvas', () => {
   it('o teste acusa uma aresta proibida (senão passaria no vácuo)', () => {

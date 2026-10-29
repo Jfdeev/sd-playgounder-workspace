@@ -1,29 +1,40 @@
 /**
  * Progressão travada de desafios — apps/web/src/lib/challenge-progression.ts
  *
- * Regra pedida pelo autor: "os próximos desafios ficam bloqueados até completar o primeiro" —
- * função pura sobre a ordem do catálogo (`ALL_PROBLEM_IDS`, de `@sdp/problems`) e o conjunto de
- * ids já completados (persistido em `stores/progression-store.ts`). Um desafio N só destrava
- * quando o desafio N-1 estiver em `completedIds` — o primeiro da lista está sempre destravado.
+ * Por nível (M4.2, decisão do autor): o nível básico está sempre aberto; um nível abre quando há ao
+ * menos um problema resolvido no nível anterior. Mesma função no cliente (menu) e no servidor
+ * (`POST /api/submissions`). Só abre mais do que a regra antiga (fila: N abria com N-1 resolvido).
  */
 
+import { PROBLEM_LEVELS, type Problem, type ProblemLevel } from '@sdp/problems';
+
+type CatalogEntry = Pick<Problem, 'id' | 'level'>;
+
 /**
- * `completedIds` como array, não `Set` — de propósito: o chamador mais comum (`challenge-
- * topbar.tsx`) lê direto de `useProgressionStore((s) => s.completedIds)`, e um seletor Zustand
- * MUST devolver a mesma referência entre renders quando o valor não mudou (v5 usa
- * `useSyncExternalStore` por baixo, que compara snapshots com `Object.is`); embrulhar num `new
- * Set(...)` dentro do seletor cria uma referência nova a cada render e gera loop de re-render
- * ("The result of getSnapshot should be cached"). `.includes()` num array pequeno (poucos
- * desafios) é suficiente — não precisa da performance de um `Set` aqui.
+ * Nível em que falta resolver um problema para abrir `problemId`; `null` se já está aberto (ou se o id
+ * não existe no catálogo — use `isChallengeUnlocked` para saber se dá pra entrar).
+ *
+ * `completedIds` como array, não `Set` — o chamador mais comum lê direto de um seletor Zustand, que
+ * precisa devolver a mesma referência entre renders (um `new Set(...)` no seletor gera loop de
+ * re-render).
  */
+export function blockingLevel(
+  problemId: string,
+  catalog: readonly CatalogEntry[],
+  completedIds: readonly string[],
+): ProblemLevel | null {
+  const problem = catalog.find((entry) => entry.id === problemId);
+  if (!problem) return null;
+  const previous = PROBLEM_LEVELS[PROBLEM_LEVELS.indexOf(problem.level) - 1];
+  if (previous === undefined) return null; // nível básico, sempre aberto
+  const solvedPrevious = catalog.some((entry) => entry.level === previous && completedIds.includes(entry.id));
+  return solvedPrevious ? null : previous;
+}
+
 export function isChallengeUnlocked(
   problemId: string,
-  orderedProblemIds: readonly string[],
+  catalog: readonly CatalogEntry[],
   completedIds: readonly string[],
 ): boolean {
-  const index = orderedProblemIds.indexOf(problemId);
-  if (index === -1) return false; // id desconhecido — nunca destravado
-  if (index === 0) return true; // primeiro desafio sempre disponível
-  const previousId = orderedProblemIds[index - 1]!;
-  return completedIds.includes(previousId);
+  return catalog.some((entry) => entry.id === problemId) && blockingLevel(problemId, catalog, completedIds) === null;
 }

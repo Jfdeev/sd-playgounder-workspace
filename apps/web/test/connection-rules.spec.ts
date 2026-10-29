@@ -140,6 +140,23 @@ describe('isValidCanvasConnection — componentes novos (M1.5 US2)', () => {
     expect(isValidCanvasConnection('rate_limiter', 'worker')).toBe(false);
   });
 
+  it('M4.2: as 5 conexões novas da biblioteca de problemas', () => {
+    expect(isValidCanvasConnection('rate_limiter', 'cache')).toBe(true);
+    expect(isValidCanvasConnection('rate_limiter', 'nosql_kv')).toBe(true);
+    expect(isValidCanvasConnection('worker', 'notifications')).toBe(true);
+    expect(isValidCanvasConnection('auth_service', 'app_server')).toBe(true);
+    expect(isValidCanvasConnection('api_gateway', 'kafka')).toBe(true);
+    expect(isValidCanvasConnection('api_gateway', 'event_stream')).toBe(true);
+    for (const source of ['kafka', 'event_stream'] as const) {
+      expect(isValidCanvasConnection(source, 'analytics')).toBe(true);
+      expect(isValidCanvasConnection(source, 'data_warehouse')).toBe(true);
+    }
+    // e só elas: os vizinhos continuam proibidos
+    expect(isValidCanvasConnection('rate_limiter', 'sql_primary')).toBe(false);
+    expect(isValidCanvasConnection('pubsub', 'analytics')).toBe(false);
+    expect(isValidCanvasConnection('search', 'app_server')).toBe(false);
+  });
+
   it('Cliente e a borda alcançam os 6 componentes de "cômputo especializado" — variações de App Server no grafo', () => {
     expect(isValidCanvasConnection('load_balancer', 'serverless')).toBe(true);
     expect(isValidCanvasConnection('load_balancer', 'sql_primary')).toBe(false);
@@ -163,7 +180,7 @@ describe('isValidCanvasConnection — componentes novos (M1.5 US2)', () => {
     expect(isValidCanvasConnection('vector_db', 'cache')).toBe(false);
   });
 
-  it('Pub/Sub, Event Stream e Kafka só entregam pra Worker — mesma regra de Fila → Worker', () => {
+  it('Pub/Sub, Event Stream e Kafka entregam pra Worker — mesma regra de Fila → Worker', () => {
     expect(isValidCanvasConnection('pubsub', 'worker')).toBe(true);
     expect(isValidCanvasConnection('pubsub', 'app_server')).toBe(false);
     expect(isValidCanvasConnection('event_stream', 'worker')).toBe(true);
@@ -242,9 +259,9 @@ describe('getAllowedTargets — conteúdo completo das chaves novas/editadas (M1
     );
   });
 
-  it('api_gateway: mesma expansão de load_balancer + llm_gateway', () => {
+  it('api_gateway: mesma expansão de load_balancer + llm_gateway + kafka/event_stream (M4.2)', () => {
     expect(sorted('api_gateway')).toEqual(
-      ['analytics', 'app_server', 'auth_service', 'llm_gateway', 'notifications', 'scheduler', 'search', 'serverless', 'worker'].sort(),
+      ['analytics', 'app_server', 'auth_service', 'event_stream', 'kafka', 'llm_gateway', 'notifications', 'scheduler', 'search', 'serverless', 'worker'].sort(),
     );
   });
 
@@ -259,13 +276,14 @@ describe('getAllowedTargets — conteúdo completo das chaves novas/editadas (M1
     );
   });
 
-  it('worker: 5 originais + 5 sinks + 3 External (US2, sem llm_gateway) + 5 Observability (US3)', () => {
+  it('worker: 5 originais + 5 sinks + 3 External (US2, sem llm_gateway) + 5 Observability (US3) + notifications (M4.2)', () => {
     expect(sorted('worker')).toEqual(
       [
         'sql_primary', 'nosql_kv', 'cache', 'object_storage', 'queue',
         'data_warehouse', 'vector_db', 'pubsub', 'event_stream', 'kafka',
         'third_party_api', 'payment', 'email',
         'metrics', 'logs', 'tracing', 'alerting', 'health_check',
+        'notifications',
       ].sort(),
     );
     expect(getAllowedTargets('worker')).not.toContain('llm_gateway');
@@ -280,7 +298,9 @@ describe('getAllowedTargets — conteúdo completo das chaves novas/editadas (M1
     for (const source of ['dns', 'waf', 'ingress', 'rate_limiter'] as const) {
       const targets = sorted(source);
       const otherBorda = ['dns', 'waf', 'ingress', 'rate_limiter'].filter((k) => k !== source);
-      expect(targets).toEqual([...expected, ...otherBorda].sort());
+      // M4.2: o Rate Limiter também alcança o contador compartilhado
+      const counter = source === 'rate_limiter' ? ['cache', 'nosql_kv'] : [];
+      expect(targets).toEqual([...expected, ...otherBorda, ...counter].sort());
     }
   });
 
@@ -291,9 +311,11 @@ describe('getAllowedTargets — conteúdo completo das chaves novas/editadas (M1
       'third_party_api', 'payment', 'email',
       'metrics', 'logs', 'tracing', 'alerting', 'health_check',
     ].sort();
-    for (const source of ['serverless', 'auth_service', 'search', 'scheduler', 'notifications', 'analytics'] as const) {
+    for (const source of ['serverless', 'search', 'scheduler', 'notifications', 'analytics'] as const) {
       expect(sorted(source)).toEqual(expected);
     }
+    // M4.2: o Auth Service também alcança o App Server que protege
+    expect(sorted('auth_service')).toEqual([...expected, 'app_server'].sort());
   });
 
   it('os 5 componentes de Network têm exatamente o leque original de client (load_balancer/api_gateway/cdn/app_server)', () => {
@@ -314,9 +336,10 @@ describe('getAllowedTargets — conteúdo completo das chaves novas/editadas (M1
     expect(getAllowedTargets('vector_db')).toEqual([]);
   });
 
-  it('pubsub/event_stream/kafka só entregam pra worker', () => {
-    for (const source of ['pubsub', 'event_stream', 'kafka'] as const) {
-      expect(getAllowedTargets(source)).toEqual(['worker']);
+  it('pubsub só entrega pra worker; event_stream/kafka também pra analytics e data_warehouse (M4.2)', () => {
+    expect(getAllowedTargets('pubsub')).toEqual(['worker']);
+    for (const source of ['event_stream', 'kafka'] as const) {
+      expect(sorted(source)).toEqual(['analytics', 'data_warehouse', 'worker']);
     }
   });
 

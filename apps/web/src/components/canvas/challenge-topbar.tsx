@@ -13,10 +13,10 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Blocks, BookOpen, Calculator, ChevronDown, HelpCircle, Lock, Siren, Sparkles, Trophy } from 'lucide-react';
-import { ALL_PROBLEM_IDS, INCIDENTS, getProblem } from '@sdp/problems';
+import { ALL_PROBLEMS, INCIDENTS, PROBLEM_LEVELS, type ProblemLevel } from '@sdp/problems';
 import type { TemplateId } from '@sdp/knowledge';
 import { ARCHITECTURE_TEMPLATES, type ArchitectureTemplate } from '@/lib/canvas-templates';
-import { isChallengeUnlocked } from '@/lib/challenge-progression';
+import { blockingLevel, isChallengeUnlocked } from '@/lib/challenge-progression';
 import { useProgressionStore } from '@/stores/progression-store';
 import { CapacityCalculatorPanel } from './capacity-calculator-panel';
 import { ReferenceArchitecturesMenu } from './reference-architectures-menu';
@@ -27,7 +27,7 @@ import { StyleSheet } from './style-sheet';
 // Nomes do site de inspiração que ainda não têm um Problem completo autorado — aparecem na lista
 // como "em breve" (sempre bloqueados), pra manter a lista visualmente parecida com o site sem
 // fingir que existe conteúdo que não existe.
-const COMING_SOON_TITLES = ['Real-time Chat', 'Analytics Pipeline', 'Video Platform', 'AI Assistant', 'Public API'];
+const LEVEL_LABEL: Record<ProblemLevel, string> = { basic: 'Básico', intermediate: 'Intermediário', advanced: 'Avançado' };
 
 function useClickOutside(ref: React.RefObject<HTMLElement | null>, onOutside: () => void) {
   useEffect(() => {
@@ -86,40 +86,40 @@ export function ChallengeTopBar({
           <ChevronDown className="size-3.5 text-zinc-500" aria-hidden />
         </button>
         {openMenu === 'challenges' && (
-          <div className="absolute left-0 top-full z-20 mt-1 w-72 rounded-lg border border-zinc-800 bg-zinc-900 p-1.5 shadow-xl">
-            {ALL_PROBLEM_IDS.map((id) => {
-              const problem = getProblem(id);
-              if (!problem) return null;
-              const unlocked = isChallengeUnlocked(id, ALL_PROBLEM_IDS, completedIds);
-              const solved = completedIds.includes(id);
-              const active = activeChallengeId === id;
+          <div className="absolute left-0 top-full z-20 mt-1 max-h-[70vh] w-72 overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-900 p-1.5 shadow-xl">
+            {/* M4.2: agrupado por nível; o nível inteiro abre junto, então o motivo da trava vai no cabeçalho. */}
+            {PROBLEM_LEVELS.map((level) => {
+              const problems = ALL_PROBLEMS.filter((problem) => problem.level === level);
+              const blockedBy = blockingLevel(problems[0]!.id, ALL_PROBLEMS, completedIds);
               return (
-                <button
-                  key={id}
-                  type="button"
-                  disabled={!unlocked}
-                  onClick={() => {
-                    onSelectChallenge(id);
-                    setOpenMenu(null);
-                  }}
-                  className={`flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-sm transition ${
-                    active ? 'bg-violet-600/20 text-violet-300' : 'text-zinc-200 hover:bg-zinc-800'
-                  } disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent`}
-                >
-                  <span>{problem.title}{solved ? ' ✓' : ''}</span>
-                  {!unlocked && <Lock className="size-3.5 shrink-0" aria-hidden />}
-                </button>
+                <div key={level} className="mb-1 last:mb-0">
+                  <p className="px-2.5 pb-0.5 pt-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">{LEVEL_LABEL[level]}</p>
+                  {blockedBy && <p className="px-2.5 pb-1 text-xs text-zinc-500">Resolva um problema do nível {LEVEL_LABEL[blockedBy]}.</p>}
+                  {problems.map((problem) => {
+                    const unlocked = isChallengeUnlocked(problem.id, ALL_PROBLEMS, completedIds);
+                    const solved = completedIds.includes(problem.id);
+                    const active = activeChallengeId === problem.id;
+                    return (
+                      <button
+                        key={problem.id}
+                        type="button"
+                        disabled={!unlocked}
+                        onClick={() => {
+                          onSelectChallenge(problem.id);
+                          setOpenMenu(null);
+                        }}
+                        className={`flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-sm transition ${
+                          active ? 'bg-violet-600/20 text-violet-300' : 'text-zinc-200 hover:bg-zinc-800'
+                        } disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent`}
+                      >
+                        <span>{problem.title}{solved ? ' ✓' : ''}</span>
+                        {!unlocked && <Lock className="size-3.5 shrink-0" aria-hidden />}
+                      </button>
+                    );
+                  })}
+                </div>
               );
             })}
-            {COMING_SOON_TITLES.map((title) => (
-              <div
-                key={title}
-                className="flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-sm text-zinc-600"
-              >
-                <span>{title}</span>
-                <Lock className="size-3.5 shrink-0" aria-hidden />
-              </div>
-            ))}
           </div>
         )}
       </div>
