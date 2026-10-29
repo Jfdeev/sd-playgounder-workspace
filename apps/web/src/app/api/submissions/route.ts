@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { ALL_PROBLEM_IDS, getProblem } from '@sdp/problems';
+import { ALL_PROBLEMS, getProblem } from '@sdp/problems';
 import { auth } from '@/auth';
 import { consumeSubmissionQuota, creditEvent, creditUnlockedAchievements, loadSolvedProblemIds, recordActivityDay } from '@/db/gamification';
 import { isChallengeUnlocked } from '@/lib/challenge-progression';
@@ -43,7 +43,7 @@ export async function POST(request: Request): Promise<Response> {
     if (!(await consumeSubmissionQuota(userId))) {
       return NextResponse.json({ error: 'RATE_LIMITED' }, { status: 429 });
     }
-    if (!isChallengeUnlocked(problem.id, ALL_PROBLEM_IDS, await loadSolvedProblemIds(userId))) {
+    if (!isChallengeUnlocked(problem.id, ALL_PROBLEMS, await loadSolvedProblemIds(userId))) {
       return NextResponse.json({ error: 'CHALLENGE_LOCKED' }, { status: 403 });
     }
 

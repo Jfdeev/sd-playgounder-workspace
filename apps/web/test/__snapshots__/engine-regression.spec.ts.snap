@@ -363,6 +363,77 @@ exports[`engine — resultados congelados de todo design existente (SC-006) > ar
 }
 `;
 
+exports[`engine — resultados congelados de todo design existente (SC-006) > solução de referência do desafio ad-click-aggregator 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "analytics-1": 1200,
+      "api-gateway-1": 80,
+      "data-warehouse-1": 1500,
+      "kafka-1": 500,
+      "nosql-1": 160,
+    },
+    "monthlyTotal": 3440,
+  },
+  "nodes": {
+    "analytics-1": {
+      "capacity": 8400,
+      "offeredLoad": 6250,
+      "queueLatencyMs": 0.4651162790697675,
+      "status": "warning",
+      "utilization": 0.7440476190476191,
+    },
+    "api-gateway-1": {
+      "capacity": 10000,
+      "offeredLoad": 6944.444444444444,
+      "queueLatencyMs": 0.32727272727272727,
+      "status": "healthy",
+      "utilization": 0.6944444444444444,
+    },
+    "data-warehouse-1": {
+      "capacity": 1000,
+      "offeredLoad": 694.4444444444445,
+      "queueLatencyMs": 3.272727272727273,
+      "status": "healthy",
+      "utilization": 0.6944444444444444,
+    },
+    "kafka-1": {
+      "capacity": 200000,
+      "offeredLoad": 6944.444444444444,
+      "queueLatencyMs": 0.005179856115107913,
+      "status": "healthy",
+      "utilization": 0.034722222222222224,
+    },
+    "nosql-1": {
+      "capacity": 16000,
+      "offeredLoad": 6250,
+      "queueLatencyMs": 0.10256410256410256,
+      "status": "healthy",
+      "utilization": 0.390625,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 4.2304385708451475,
+      "p95": 12.34287770899154,
+      "p99": 13.531000725272378,
+    },
+    "throughputRps": 6944.444444444444,
+  },
+  "scores": {
+    "complexidade_operacional": 85,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 31,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [],
+}
+`;
+
 exports[`engine — resultados congelados de todo design existente (SC-006) > solução de referência do desafio ecommerce-checkout 1`] = `
 {
   "cost": {
@@ -421,6 +492,456 @@ exports[`engine — resultados congelados de todo design existente (SC-006) > so
     "escalabilidade": 31,
     "latencia": 0,
     "seguranca": 30,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > solução de referência do desafio leaderboard 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "app-server-1": 540,
+      "cache-1": 120,
+      "load-balancer-1": 100,
+      "nosql-1": 160,
+      "queue-1": 90,
+      "worker-1": 125,
+    },
+    "monthlyTotal": 1135,
+  },
+  "nodes": {
+    "app-server-1": {
+      "capacity": 9000,
+      "offeredLoad": 6944.444444444444,
+      "queueLatencyMs": 0.48648648648648646,
+      "status": "warning",
+      "utilization": 0.7716049382716049,
+    },
+    "cache-1": {
+      "capacity": 100000,
+      "offeredLoad": 6250,
+      "queueLatencyMs": 0.010666666666666668,
+      "status": "healthy",
+      "utilization": 0.0625,
+    },
+    "load-balancer-1": {
+      "capacity": 20000,
+      "offeredLoad": 6944.444444444444,
+      "queueLatencyMs": 0.07659574468085106,
+      "status": "healthy",
+      "utilization": 0.3472222222222222,
+    },
+    "nosql-1": {
+      "capacity": 16000,
+      "offeredLoad": 1006.9444444444448,
+      "queueLatencyMs": 0.0666975451597962,
+      "status": "healthy",
+      "utilization": 0.0629340277777778,
+    },
+    "queue-1": {
+      "capacity": 6000,
+      "offeredLoad": 694.4444444444445,
+      "queueLatencyMs": 0.18848167539267016,
+      "status": "healthy",
+      "utilization": 0.11574074074074074,
+    },
+    "worker-1": {
+      "capacity": 1000,
+      "offeredLoad": 694.4444444444445,
+      "queueLatencyMs": 3.272727272727273,
+      "status": "healthy",
+      "utilization": 0.6944444444444444,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 21.897692430883016,
+      "p95": 89.24513669100429,
+      "p99": 95.94936486499718,
+    },
+    "throughputRps": 6944.444444444444,
+  },
+  "scores": {
+    "complexidade_operacional": 82,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 23,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > solução de referência do desafio notifications 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "api-gateway-1": 80,
+      "app-server-1": 240,
+      "nosql-1": 160,
+      "notifications-1": 225,
+      "queue-1": 90,
+      "worker-1": 450,
+    },
+    "monthlyTotal": 1245,
+  },
+  "nodes": {
+    "api-gateway-1": {
+      "capacity": 10000,
+      "offeredLoad": 2777.777777777778,
+      "queueLatencyMs": 0.13846153846153844,
+      "status": "healthy",
+      "utilization": 0.2777777777777778,
+    },
+    "app-server-1": {
+      "capacity": 4000,
+      "offeredLoad": 2777.777777777778,
+      "queueLatencyMs": 0.8181818181818182,
+      "status": "healthy",
+      "utilization": 0.6944444444444444,
+    },
+    "nosql-1": {
+      "capacity": 16000,
+      "offeredLoad": 1388.888888888889,
+      "queueLatencyMs": 0.06844106463878326,
+      "status": "healthy",
+      "utilization": 0.08680555555555555,
+    },
+    "notifications-1": {
+      "capacity": 3600,
+      "offeredLoad": 1388.888888888889,
+      "queueLatencyMs": 0.4522613065326633,
+      "status": "healthy",
+      "utilization": 0.38580246913580246,
+    },
+    "queue-1": {
+      "capacity": 6000,
+      "offeredLoad": 2777.777777777778,
+      "queueLatencyMs": 0.3103448275862069,
+      "status": "healthy",
+      "utilization": 0.46296296296296297,
+    },
+    "worker-1": {
+      "capacity": 3600,
+      "offeredLoad": 2777.777777777778,
+      "queueLatencyMs": 1.2162162162162165,
+      "status": "warning",
+      "utilization": 0.7716049382716049,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 22.663094645458745,
+      "p95": 83.64135758185917,
+      "p99": 90.40550546463756,
+    },
+    "throughputRps": 2777.777777777778,
+  },
+  "scores": {
+    "complexidade_operacional": 82,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 23,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > solução de referência do desafio pix-payment 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "api-gateway-1": 80,
+      "app-server-1": 120,
+      "auth-service-1": 105,
+      "kafka-1": 500,
+      "nosql-1": 160,
+      "spi-1": 60,
+      "sql-primary-1": 240,
+      "worker-1": 50,
+    },
+    "monthlyTotal": 1315,
+  },
+  "nodes": {
+    "api-gateway-1": {
+      "capacity": 10000,
+      "offeredLoad": 925.925925925926,
+      "queueLatencyMs": 0.11020408163265305,
+      "status": "healthy",
+      "utilization": 0.0925925925925926,
+    },
+    "app-server-1": {
+      "capacity": 2000,
+      "offeredLoad": 925.925925925926,
+      "queueLatencyMs": 0.9310344827586208,
+      "status": "healthy",
+      "utilization": 0.46296296296296297,
+    },
+    "auth-service-1": {
+      "capacity": 1800,
+      "offeredLoad": 925.925925925926,
+      "queueLatencyMs": 1.1440677966101698,
+      "status": "healthy",
+      "utilization": 0.51440329218107,
+    },
+    "kafka-1": {
+      "capacity": 200000,
+      "offeredLoad": 154.320987654321,
+      "queueLatencyMs": 0.005003861003861004,
+      "status": "healthy",
+      "utilization": 0.0007716049382716049,
+    },
+    "nosql-1": {
+      "capacity": 16000,
+      "offeredLoad": 154.320987654321,
+      "queueLatencyMs": 0.06310868718348266,
+      "status": "healthy",
+      "utilization": 0.009645061728395061,
+    },
+    "spi-1": {
+      "capacity": 600,
+      "offeredLoad": 462.962962962963,
+      "queueLatencyMs": 7.297297297297299,
+      "status": "warning",
+      "utilization": 0.771604938271605,
+    },
+    "sql-primary-1": {
+      "capacity": 2000,
+      "offeredLoad": 154.320987654321,
+      "queueLatencyMs": 0.5418060200668896,
+      "status": "healthy",
+      "utilization": 0.07716049382716049,
+    },
+    "worker-1": {
+      "capacity": 400,
+      "offeredLoad": 154.320987654321,
+      "queueLatencyMs": 4.07035175879397,
+      "status": "healthy",
+      "utilization": 0.38580246913580246,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 138.5728399901172,
+      "p95": 889.5910152858745,
+      "p99": 969.669003652739,
+    },
+    "throughputRps": 925.925925925926,
+  },
+  "scores": {
+    "complexidade_operacional": 76,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 23,
+    "latencia": 0,
+    "seguranca": 30,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > solução de referência do desafio rate-limiter 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "app-server-1": 300,
+      "cache-1": 120,
+      "rate-limiter-1": 40,
+    },
+    "monthlyTotal": 460,
+  },
+  "nodes": {
+    "app-server-1": {
+      "capacity": 5000,
+      "offeredLoad": 1736.111111111111,
+      "queueLatencyMs": 0.30638297872340425,
+      "status": "healthy",
+      "utilization": 0.3472222222222222,
+    },
+    "cache-1": {
+      "capacity": 100000,
+      "offeredLoad": 1736.111111111111,
+      "queueLatencyMs": 0.010176678445229683,
+      "status": "healthy",
+      "utilization": 0.017361111111111112,
+    },
+    "rate-limiter-1": {
+      "capacity": 24000,
+      "offeredLoad": 3472.222222222222,
+      "queueLatencyMs": 0.048714479025710425,
+      "status": "healthy",
+      "utilization": 0.14467592592592593,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 20.746134801662805,
+      "p95": 78.0433687511707,
+      "p99": 83.63528422554639,
+    },
+    "throughputRps": 3472.222222222222,
+  },
+  "scores": {
+    "complexidade_operacional": 91,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 65,
+    "latencia": 0,
+    "seguranca": 30,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > solução de referência do desafio realtime-chat 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "app-server-1": 540,
+      "cache-1": 120,
+      "load-balancer-1": 100,
+      "nosql-1": 160,
+      "pubsub-1": 100,
+    },
+    "monthlyTotal": 1020,
+  },
+  "nodes": {
+    "app-server-1": {
+      "capacity": 9000,
+      "offeredLoad": 6944.444444444444,
+      "queueLatencyMs": 0.48648648648648646,
+      "status": "warning",
+      "utilization": 0.7716049382716049,
+    },
+    "cache-1": {
+      "capacity": 100000,
+      "offeredLoad": 2314.814814814815,
+      "queueLatencyMs": 0.010236966824644549,
+      "status": "healthy",
+      "utilization": 0.023148148148148147,
+    },
+    "load-balancer-1": {
+      "capacity": 20000,
+      "offeredLoad": 6944.444444444444,
+      "queueLatencyMs": 0.07659574468085106,
+      "status": "healthy",
+      "utilization": 0.3472222222222222,
+    },
+    "nosql-1": {
+      "capacity": 16000,
+      "offeredLoad": 2314.814814814815,
+      "queueLatencyMs": 0.07307171853856562,
+      "status": "healthy",
+      "utilization": 0.14467592592592593,
+    },
+    "pubsub-1": {
+      "capacity": 10000,
+      "offeredLoad": 2314.814814814815,
+      "queueLatencyMs": 0.13012048192771086,
+      "status": "healthy",
+      "utilization": 0.23148148148148148,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 24.480491506138335,
+      "p95": 91.28073137238708,
+      "p99": 98.19231646719138,
+    },
+    "throughputRps": 6944.444444444444,
+  },
+  "scores": {
+    "complexidade_operacional": 85,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 23,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > solução de referência do desafio ride-matching 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "cache-1": 120,
+      "load-balancer-1": 100,
+      "location-service-1": 540,
+      "matching-service-1": 180,
+      "sql-primary-1": 240,
+    },
+    "monthlyTotal": 1180,
+  },
+  "nodes": {
+    "cache-1": {
+      "capacity": 100000,
+      "offeredLoad": 7500.000000000002,
+      "queueLatencyMs": 0.01081081081081081,
+      "status": "healthy",
+      "utilization": 0.07500000000000002,
+    },
+    "load-balancer-1": {
+      "capacity": 20000,
+      "offeredLoad": 8333.333333333334,
+      "queueLatencyMs": 0.08571428571428572,
+      "status": "healthy",
+      "utilization": 0.4166666666666667,
+    },
+    "location-service-1": {
+      "capacity": 9000,
+      "offeredLoad": 6666.666666666668,
+      "queueLatencyMs": 0.4285714285714288,
+      "status": "warning",
+      "utilization": 0.7407407407407409,
+    },
+    "matching-service-1": {
+      "capacity": 3000,
+      "offeredLoad": 1666.666666666667,
+      "queueLatencyMs": 0.7500000000000001,
+      "status": "healthy",
+      "utilization": 0.5555555555555557,
+    },
+    "sql-primary-1": {
+      "capacity": 2000,
+      "offeredLoad": 833.3333333333335,
+      "queueLatencyMs": 0.8571428571428572,
+      "status": "healthy",
+      "utilization": 0.41666666666666674,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 27.173399155662196,
+      "p95": 106.37746922635313,
+      "p99": 115.79589524342269,
+    },
+    "throughputRps": 8333.333333333334,
+  },
+  "scores": {
+    "complexidade_operacional": 85,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 44,
+    "latencia": 0,
+    "seguranca": 10,
   },
   "violations": [],
 }
@@ -529,6 +1050,164 @@ exports[`engine — resultados congelados de todo design existente (SC-006) > so
     "custo": 0,
     "disponibilidade": 100,
     "escalabilidade": 57,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > solução de referência do desafio video-streaming 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "app-server-1": 60,
+      "cdn-1": 140,
+      "object-storage-1": 100,
+      "queue-1": 90,
+      "sql-primary-1": 240,
+      "worker-1": 50,
+    },
+    "monthlyTotal": 680,
+  },
+  "nodes": {
+    "app-server-1": {
+      "capacity": 1000,
+      "offeredLoad": 138.88888888888889,
+      "queueLatencyMs": 1.1612903225806452,
+      "status": "healthy",
+      "utilization": 0.1388888888888889,
+    },
+    "cdn-1": {
+      "capacity": 200000,
+      "offeredLoad": 6944.444444444444,
+      "queueLatencyMs": 0.005179856115107913,
+      "status": "healthy",
+      "utilization": 0.034722222222222224,
+    },
+    "object-storage-1": {
+      "capacity": 10000,
+      "offeredLoad": 6875,
+      "queueLatencyMs": 0.32,
+      "status": "healthy",
+      "utilization": 0.6875,
+    },
+    "queue-1": {
+      "capacity": 6000,
+      "offeredLoad": 69.44444444444444,
+      "queueLatencyMs": 0.1686182669789227,
+      "status": "healthy",
+      "utilization": 0.011574074074074073,
+    },
+    "sql-primary-1": {
+      "capacity": 2000,
+      "offeredLoad": 69.44444444444444,
+      "queueLatencyMs": 0.5179856115107914,
+      "status": "healthy",
+      "utilization": 0.034722222222222224,
+    },
+    "worker-1": {
+      "capacity": 400,
+      "offeredLoad": 69.44444444444444,
+      "queueLatencyMs": 3.0252100840336134,
+      "status": "healthy",
+      "utilization": 0.1736111111111111,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 26.36757578175954,
+      "p95": 104.4502602067497,
+      "p99": 113.75720558467418,
+    },
+    "throughputRps": 6944.444444444444,
+  },
+  "scores": {
+    "complexidade_operacional": 82,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 31,
+    "latencia": 0,
+    "seguranca": 10,
+  },
+  "violations": [],
+}
+`;
+
+exports[`engine — resultados congelados de todo design existente (SC-006) > solução de referência do desafio web-crawler 1`] = `
+{
+  "cost": {
+    "byNode": {
+      "api-gateway-1": 80,
+      "nosql-1": 160,
+      "object-storage-1": 40,
+      "queue-1": 90,
+      "scheduler-1": 120,
+      "worker-1": 150,
+    },
+    "monthlyTotal": 640,
+  },
+  "nodes": {
+    "api-gateway-1": {
+      "capacity": 10000,
+      "offeredLoad": 925.925925925926,
+      "queueLatencyMs": 0.11020408163265305,
+      "status": "healthy",
+      "utilization": 0.0925925925925926,
+    },
+    "nosql-1": {
+      "capacity": 16000,
+      "offeredLoad": 462.962962962963,
+      "queueLatencyMs": 0.06436233611442194,
+      "status": "healthy",
+      "utilization": 0.028935185185185185,
+    },
+    "object-storage-1": {
+      "capacity": 4000,
+      "offeredLoad": 462.962962962963,
+      "queueLatencyMs": 0.28272251308900526,
+      "status": "healthy",
+      "utilization": 0.11574074074074074,
+    },
+    "queue-1": {
+      "capacity": 6000,
+      "offeredLoad": 925.925925925926,
+      "queueLatencyMs": 0.19708029197080293,
+      "status": "healthy",
+      "utilization": 0.154320987654321,
+    },
+    "scheduler-1": {
+      "capacity": 1200,
+      "offeredLoad": 925.925925925926,
+      "queueLatencyMs": 3.6486486486486496,
+      "status": "warning",
+      "utilization": 0.771604938271605,
+    },
+    "worker-1": {
+      "capacity": 1200,
+      "offeredLoad": 925.925925925926,
+      "queueLatencyMs": 3.6486486486486496,
+      "status": "warning",
+      "utilization": 0.771604938271605,
+    },
+  },
+  "path": {
+    "bottleneckId": null,
+    "latency": {
+      "p50": 19.605438172134537,
+      "p95": 73.26051643564023,
+      "p99": 83.31015652701137,
+    },
+    "throughputRps": 925.925925925926,
+  },
+  "scores": {
+    "complexidade_operacional": 82,
+    "consistencia": 100,
+    "custo": 0,
+    "disponibilidade": 100,
+    "escalabilidade": 23,
     "latencia": 0,
     "seguranca": 10,
   },

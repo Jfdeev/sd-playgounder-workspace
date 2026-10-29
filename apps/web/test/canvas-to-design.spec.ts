@@ -146,6 +146,7 @@ describe('toWorkload', () => {
   const problem: Problem = {
     id: 'test-problem',
     title: 'Problema de teste',
+    level: 'basic',
     statement: 'Enunciado',
     functionalRequirements: [],
     nonFunctionalRequirements: [],

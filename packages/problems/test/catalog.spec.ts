@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ALL_PROBLEM_IDS, getProblem } from '../src/index.js';
+import { ALL_PROBLEM_IDS, ALL_PROBLEMS, getProblem, PROBLEM_LEVELS } from '../src/index.js';
 
 describe('getProblem', () => {
   it('retorna o problema do encurtador de URL para o id "url-shortener"', () => {
@@ -39,17 +39,32 @@ describe('getProblem', () => {
   });
 });
 
-describe('ALL_PROBLEM_IDS', () => {
-  it('contém exatamente os 3 problemas completos do catálogo', () => {
-    expect(ALL_PROBLEM_IDS).toHaveLength(3);
-    expect(ALL_PROBLEM_IDS).toContain('url-shortener');
-    expect(ALL_PROBLEM_IDS).toContain('social-feed');
-    expect(ALL_PROBLEM_IDS).toContain('ecommerce-checkout');
+describe('ALL_PROBLEM_IDS / ALL_PROBLEMS (M4.2)', () => {
+  it('tem os 12 problemas da biblioteca, sem id repetido', () => {
+    expect(ALL_PROBLEM_IDS).toEqual([
+      'url-shortener', 'rate-limiter', 'leaderboard', 'notifications',
+      'social-feed', 'realtime-chat', 'video-streaming', 'web-crawler',
+      'ecommerce-checkout', 'pix-payment', 'ride-matching', 'ad-click-aggregator',
+    ]);
+    expect(new Set(ALL_PROBLEM_IDS).size).toBe(12);
+  });
+
+  it.each([...PROBLEM_LEVELS])('nível %s tem exatamente 4 problemas', (level) => {
+    expect(ALL_PROBLEMS.filter((problem) => problem.level === level)).toHaveLength(4);
+  });
+
+  it('lista em ordem de nível (básico, intermediário, avançado)', () => {
+    const levelIndexes = ALL_PROBLEMS.map((problem) => PROBLEM_LEVELS.indexOf(problem.level));
+    expect(levelIndexes).toEqual([...levelIndexes].sort((a, b) => a - b));
+  });
+
+  it('getProblem devolve o mesmo objeto que ALL_PROBLEMS', () => {
+    for (const problem of ALL_PROBLEMS) expect(getProblem(problem.id)).toBe(problem);
   });
 });
 
 describe('todo problema do catálogo tem rubrica e dicas não-vazias', () => {
-  it.each(['url-shortener', 'social-feed', 'ecommerce-checkout'])('%s', (id) => {
+  it.each([...ALL_PROBLEM_IDS])('%s', (id) => {
     const problem = getProblem(id);
     expect(problem?.rubric.length).toBeGreaterThan(0);
     expect(problem?.hints.length).toBeGreaterThan(0);
@@ -59,7 +74,7 @@ describe('todo problema do catálogo tem rubrica e dicas não-vazias', () => {
 });
 
 describe('Problem.latencyBudgetMs (M2) fica consistente com o critério de rubrica "latency-p99"', () => {
-  it.each(['url-shortener', 'social-feed', 'ecommerce-checkout'])('%s', (id) => {
+  it.each([...ALL_PROBLEM_IDS])('%s', (id) => {
     const problem = getProblem(id);
     if (!problem) throw new Error(`problema "${id}" não encontrado — catálogo quebrado`);
 
@@ -72,5 +87,18 @@ describe('Problem.latencyBudgetMs (M2) fica consistente com o critério de rubri
     const fixture = (p99: number) => ({ path: { latency: { p99 } } }) as never;
     expect(criterion.evaluate(fixture(problem.latencyBudgetMs), {} as never)).toBe(true);
     expect(criterion.evaluate(fixture(problem.latencyBudgetMs + 0.01), {} as never)).toBe(false);
+  });
+});
+
+describe('todo problema tem a anatomia completa (M4.2, FR-002)', () => {
+  it.each([...ALL_PROBLEMS])('$id', (problem) => {
+    expect(problem.statement.length).toBeGreaterThan(0);
+    expect(problem.functionalRequirements.length).toBeGreaterThan(0);
+    expect(problem.nonFunctionalRequirements.length).toBeGreaterThan(0);
+    expect(problem.referenceSolution.reasoning.length).toBeGreaterThan(0);
+    const { dau, requestsPerUserPerDay, readWriteRatio, avgPayloadBytes, peakMultiplier } = problem.scale;
+    for (const value of [dau, requestsPerUserPerDay, avgPayloadBytes, peakMultiplier]) expect(value).toBeGreaterThan(0);
+    expect(readWriteRatio).toBeGreaterThan(0);
+    expect(readWriteRatio).toBeLessThanOrEqual(1);
   });
 });

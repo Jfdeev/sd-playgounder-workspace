@@ -34,8 +34,17 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Plano ativo**: nenhum — M4.1 concluído; o próximo é o M4.2 (biblioteca de 12 problemas, +9), depois
-progresso por conceito + wiki.
+**Plano ativo**: nenhum — M4.2 concluído; o próximo é o M4.3 (progresso por conceito + wiki de conceitos),
+que fecha o M4.
+
+M4.2 — Biblioteca de 12 problemas ([specs/biblioteca-problemas-m4-2/plan.md](specs/biblioteca-problemas-m4-2/plan.md)):
+**concluído e verificado no browser (2026-10-29)**, `spec.md` em `Done`. 9 problemas novos em
+`packages/problems/src/catalog/` (conteúdo aprovado em `content-draft.md`), `Problem.level` e
+`ALL_PROBLEMS` em ordem de nível, critérios repetidos em `rubric-criteria.ts`. `apps/web`: progressão
+por nível (`challenge-progression.ts`, cliente e servidor), menu Desafios agrupado, matriz de conexões
+com 5 conexões novas (rate_limiter → cache/nosql_kv, worker → notifications, auth_service → app_server,
+api_gateway → kafka/event_stream, kafka/event_stream → analytics/data_warehouse). Engine, narrador, banco
+e `NARRATOR_PROMPT_VERSION` intocados.
 
 M4.1 — Designs na conta, histórico e compartilhamento ([specs/designs-conta-m4-1/plan.md](specs/designs-conta-m4-1/plan.md)):
 **concluído e verificado no browser (2026-10-25)**, `spec.md` em `Done`. Tabelas `savedDesigns` e
@@ -97,7 +106,7 @@ com o λ total em vez de usar ρ; ramo async pesado escondia o ramo síncrono da
 ponderava percentis por (1−h) em vez do limiar de cauda) — números mudam pro mesmo design, então
 o cache do narrador foi invalidado e submissões observadas antes disso não contam.
 
-Marcos concluídos: M3 (Modo Incidente, acima), M2.8 (Gamificação, acima), M2.6 (Fundamentos, acima), M2.5 (Arquiteturas de referência, acima), M2.7 (Biblioteca de princípios, acima), M2 (Avaliação e biblioteca, com ressalva — acima), M1.5 (Catálogo expandido de componentes,
+Marcos concluídos: M4.2 (Biblioteca de 12 problemas, acima), M4.1 (Designs na conta, acima), M3 (Modo Incidente, acima), M2.8 (Gamificação, acima), M2.6 (Fundamentos, acima), M2.5 (Arquiteturas de referência, acima), M2.7 (Biblioteca de princípios, acima), M2 (Avaliação e biblioteca, com ressalva — acima), M1.5 (Catálogo expandido de componentes,
 [specs/catalogo-expandido-m1-5/plan.md](specs/catalogo-expandido-m1-5/plan.md)), M1 (Canvas e
 submissão, [specs/canvas-submissao-m1/plan.md](specs/canvas-submissao-m1/plan.md)), M0.5 (Landing
 Page e Conta, [specs/landing-page-conta-m0-5/plan.md](specs/landing-page-conta-m0-5/plan.md)) — mais

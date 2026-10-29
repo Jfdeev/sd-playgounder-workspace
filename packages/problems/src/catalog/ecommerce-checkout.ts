@@ -13,33 +13,16 @@
 
 import { CLEAN_ARCHITECTURE } from '@sdp/knowledge';
 import type { Problem } from '../types.js';
+import { latencyWithin, NO_SATURATED_NODE, NO_SPOF, usesComponent } from '../rubric-criteria.js';
+
+const LATENCY_BUDGET_MS = 2_000;
 
 const RUBRIC: Problem['rubric'] = [
-  {
-    id: 'latency-p99',
-    label: 'Checkout responde em até 2000ms (p99)',
-    evaluate: (result) => result.path.latency.p99 <= 2_000,
-  },
-  {
-    id: 'no-saturated-node',
-    label: 'Nenhum componente saturado',
-    evaluate: (result) => Object.values(result.nodes).every((node) => node.status !== 'saturated'),
-  },
-  {
-    id: 'uses-rate-limiter',
-    label: 'Usa um Rate Limiter na entrada',
-    evaluate: (_result, design) => design.nodes.some((node) => node.type === 'rate_limiter'),
-  },
-  {
-    id: 'uses-payment',
-    label: 'Processa pagamento via componente externo',
-    evaluate: (_result, design) => design.nodes.some((node) => node.type === 'payment'),
-  },
-  {
-    id: 'no-spof',
-    label: 'Sem ponto único de falha no caminho crítico',
-    evaluate: (result) => !result.violations.some((v) => v.type === 'spof'),
-  },
+  latencyWithin(LATENCY_BUDGET_MS, 'Checkout responde em até 2000ms (p99)'),
+  NO_SATURATED_NODE,
+  usesComponent('uses-rate-limiter', 'Usa um Rate Limiter na entrada', 'rate_limiter'),
+  usesComponent('uses-payment', 'Processa pagamento via componente externo', 'payment'),
+  NO_SPOF,
 ];
 
 const HINTS: Problem['hints'] = [
@@ -119,6 +102,7 @@ const REFERENCE_SOLUTION: Problem['referenceSolution'] = {
 export const ECOMMERCE_CHECKOUT: Problem = {
   id: 'ecommerce-checkout',
   title: 'E-commerce Checkout',
+  level: 'advanced',
 
   statement:
     'Projete o fluxo de checkout de uma loja online: o usuário finaliza a compra dos itens do ' +
@@ -147,8 +131,7 @@ export const ECOMMERCE_CHECKOUT: Problem = {
     peakMultiplier: 4,
   },
 
-  // Mesmo número do critério de rubrica 'latency-p99' abaixo (result.path.latency.p99 <= 2_000).
-  latencyBudgetMs: 2_000,
+  latencyBudgetMs: LATENCY_BUDGET_MS,
 
   rubric: RUBRIC,
   hints: HINTS,

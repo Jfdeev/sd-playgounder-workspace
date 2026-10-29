@@ -13,34 +13,16 @@
 
 import { CLEAN_ARCHITECTURE } from '@sdp/knowledge';
 import type { Problem } from '../types.js';
+import { latencyWithin, NO_SATURATED_NODE, NO_SPOF, usesComponent } from '../rubric-criteria.js';
+
+const LATENCY_BUDGET_MS = 100;
 
 const RUBRIC: Problem['rubric'] = [
-  {
-    id: 'latency-p99',
-    label: 'Redirecionamento responde em até 100ms (p99)',
-    evaluate: (result) => result.path.latency.p99 <= 100,
-  },
-  {
-    id: 'no-saturated-node',
-    label: 'Nenhum componente saturado',
-    evaluate: (result) => Object.values(result.nodes).every((node) => node.status !== 'saturated'),
-  },
-  {
-    id: 'uses-cache',
-    label: 'Usa uma camada de cache',
-    evaluate: (_result, design) => design.nodes.some((node) => node.type === 'cache'),
-  },
-  {
-    id: 'has-database',
-    label: 'Tem um banco de dados',
-    evaluate: (_result, design) =>
-      design.nodes.some((node) => node.type === 'sql_primary' || node.type === 'sql_replica' || node.type === 'nosql_kv'),
-  },
-  {
-    id: 'no-spof',
-    label: 'Sem ponto único de falha no caminho crítico',
-    evaluate: (result) => !result.violations.some((v) => v.type === 'spof'),
-  },
+  latencyWithin(LATENCY_BUDGET_MS, 'Redirecionamento responde em até 100ms (p99)'),
+  NO_SATURATED_NODE,
+  usesComponent('uses-cache', 'Usa uma camada de cache', 'cache'),
+  usesComponent('has-database', 'Tem um banco de dados', 'sql_primary', 'sql_replica', 'nosql_kv'),
+  NO_SPOF,
 ];
 
 const HINTS: Problem['hints'] = [
@@ -115,6 +97,7 @@ const REFERENCE_SOLUTION: Problem['referenceSolution'] = {
 export const URL_SHORTENER: Problem = {
   id: 'url-shortener',
   title: 'Encurtador de URL',
+  level: 'basic',
 
   statement:
     'Projete um sistema que recebe uma URL longa e devolve uma URL curta e única; quem acessa a ' +
@@ -142,8 +125,7 @@ export const URL_SHORTENER: Problem = {
     peakMultiplier: 3,
   },
 
-  // Mesmo número do critério de rubrica 'latency-p99' abaixo (result.path.latency.p99 <= 100).
-  latencyBudgetMs: 100,
+  latencyBudgetMs: LATENCY_BUDGET_MS,
 
   rubric: RUBRIC,
   hints: HINTS,

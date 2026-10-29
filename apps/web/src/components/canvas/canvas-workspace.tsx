@@ -15,7 +15,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ALL_PROBLEM_IDS, getIncident, getProblem } from '@sdp/problems';
+import { ALL_PROBLEMS, getIncident, getProblem } from '@sdp/problems';
 import { getReferenceArchitecture, toDesign } from '@sdp/knowledge';
 import { canvasStorageKey, CanvasStoreProvider, incidentStorageKey, useCanvasStore } from '@/stores/canvas-store';
 import { instantiateTemplate, type ArchitectureTemplate } from '@/lib/canvas-templates';
@@ -141,7 +141,7 @@ export function CanvasWorkspace({ initialProblemId }: { initialProblemId: string
   // até o canvas desse contexto montar.
   function openInContext(pending: PendingOpen) {
     let target = pending;
-    if (pending.contextKind === 'challenge' && !isChallengeUnlocked(pending.contextId!, ALL_PROBLEM_IDS, completedIds)) {
+    if (pending.contextKind === 'challenge' && !isChallengeUnlocked(pending.contextId!, ALL_PROBLEMS, completedIds)) {
       window.alert('Esse desafio ainda está travado pra você — o design abre no canvas livre.');
       target = { ...pending, contextKind: 'sandbox', contextId: null };
     }
@@ -197,7 +197,7 @@ export function CanvasWorkspace({ initialProblemId }: { initialProblemId: string
   useEffect(() => {
     if (deepLinkChecked.current || (progressStatus !== 'ready' && progressStatus !== 'error')) return;
     deepLinkChecked.current = true;
-    if (activeChallengeId && !isChallengeUnlocked(activeChallengeId, ALL_PROBLEM_IDS, completedIds)) {
+    if (activeChallengeId && !isChallengeUnlocked(activeChallengeId, ALL_PROBLEMS, completedIds)) {
       setActiveChallengeId(null);
     }
   }, [progressStatus, activeChallengeId, completedIds]);

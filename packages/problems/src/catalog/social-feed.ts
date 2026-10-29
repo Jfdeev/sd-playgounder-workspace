@@ -15,33 +15,16 @@
 
 import { CLEAN_ARCHITECTURE } from '@sdp/knowledge';
 import type { Problem } from '../types.js';
+import { latencyWithin, NO_SATURATED_NODE, NO_SPOF, usesComponent } from '../rubric-criteria.js';
+
+const LATENCY_BUDGET_MS = 200;
 
 const RUBRIC: Problem['rubric'] = [
-  {
-    id: 'latency-p99',
-    label: 'Feed carrega em até 200ms (p99)',
-    evaluate: (result) => result.path.latency.p99 <= 200,
-  },
-  {
-    id: 'no-saturated-node',
-    label: 'Nenhum componente saturado',
-    evaluate: (result) => Object.values(result.nodes).every((node) => node.status !== 'saturated'),
-  },
-  {
-    id: 'uses-cache',
-    label: 'Usa uma camada de cache',
-    evaluate: (_result, design) => design.nodes.some((node) => node.type === 'cache'),
-  },
-  {
-    id: 'uses-nosql-store',
-    label: 'Usa um banco NoSQL para o feed',
-    evaluate: (_result, design) => design.nodes.some((node) => node.type === 'nosql_kv'),
-  },
-  {
-    id: 'no-spof',
-    label: 'Sem ponto único de falha no caminho crítico',
-    evaluate: (result) => !result.violations.some((v) => v.type === 'spof'),
-  },
+  latencyWithin(LATENCY_BUDGET_MS, 'Feed carrega em até 200ms (p99)'),
+  NO_SATURATED_NODE,
+  usesComponent('uses-cache', 'Usa uma camada de cache', 'cache'),
+  usesComponent('uses-nosql-store', 'Usa um banco NoSQL para o feed', 'nosql_kv'),
+  NO_SPOF,
 ];
 
 const HINTS: Problem['hints'] = [
@@ -118,6 +101,7 @@ const REFERENCE_SOLUTION: Problem['referenceSolution'] = {
 export const SOCIAL_FEED: Problem = {
   id: 'social-feed',
   title: 'Social Feed',
+  level: 'intermediate',
 
   statement:
     'Projete um sistema onde um usuário publica posts curtos e seus seguidores veem esses posts, ' +
@@ -144,8 +128,7 @@ export const SOCIAL_FEED: Problem = {
     peakMultiplier: 3,
   },
 
-  // Mesmo número do critério de rubrica 'latency-p99' abaixo (result.path.latency.p99 <= 200).
-  latencyBudgetMs: 200,
+  latencyBudgetMs: LATENCY_BUDGET_MS,
 
   rubric: RUBRIC,
   hints: HINTS,
