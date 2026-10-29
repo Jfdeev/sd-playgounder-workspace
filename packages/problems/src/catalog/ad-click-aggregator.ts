@@ -84,6 +84,7 @@ export const AD_CLICK_AGGREGATOR: Problem = {
   id: 'ad-click-aggregator',
   title: 'Agregador de cliques em anúncios',
   level: 'advanced',
+  concepts: ['stream-processing', 'queues'],
 
   statement:
     'Anunciantes querem ver, quase em tempo real, quantos cliques cada anúncio recebeu por minuto — e ' +

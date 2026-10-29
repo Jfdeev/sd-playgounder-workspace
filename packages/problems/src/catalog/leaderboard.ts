@@ -85,6 +85,7 @@ export const LEADERBOARD: Problem = {
   id: 'leaderboard',
   title: 'Leaderboard',
   level: 'basic',
+  concepts: ['caching', 'queues'],
 
   statement:
     'Um jogo mobile quer mostrar o ranking global e a posição de cada jogador, atualizado a cada ' +

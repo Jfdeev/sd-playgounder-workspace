@@ -6,10 +6,15 @@ import {
   validateLibraryEntries,
   type LibraryEntry,
 } from '../src/library.js';
-import { CLEAN_ARCHITECTURE, FUNDAMENTALS_OF_SOFTWARE_ARCHITECTURE } from '../src/source.js';
+import { CLEAN_ARCHITECTURE, DESIGNING_DATA_INTENSIVE_APPLICATIONS, FUNDAMENTALS_OF_SOFTWARE_ARCHITECTURE } from '../src/source.js';
 
 /** Inventário aprovado pelo autor em 2026-10-03 (research.md §1) — nada entra ou sai sem passar por aqui. */
 const APPROVED_IDS = {
+  // M4.3, aprovado em 2026-10-29 (specs/conceitos-progresso-m4-3/content-draft.md)
+  concepts: [
+    'caching', 'fan-out', 'replication', 'partitioning', 'transactions', 'consensus', 'cap-pacelc',
+    'queues', 'pubsub', 'idempotency', 'backpressure', 'stream-processing', 'redundancy',
+  ],
   'clean-architecture': [
     'srp', 'ocp', 'lsp', 'isp', 'dip',
     'dependency-rule', 'boundaries', 'database-is-a-detail', 'frameworks-are-details',
@@ -53,6 +58,21 @@ function validCharacteristicEntry(overrides: Partial<LibraryEntry> = {}): Librar
   };
 }
 
+function validConceptEntry(overrides: Partial<LibraryEntry> = {}): LibraryEntry {
+  return {
+    id: 'z',
+    category: 'concepts',
+    group: 'g',
+    name: 'Z',
+    definition: 'def',
+    source: DESIGNING_DATA_INTENSIVE_APPLICATIONS,
+    platformNote: 'nota',
+    tradeoff: 'troca',
+    chapter: 'cap. 1',
+    ...overrides,
+  };
+}
+
 describe('validateLibraryEntries — cada invariante acusa uma violação (o teste não passa no vácuo)', () => {
   it('aceita entradas válidas', () => {
     expect(validateLibraryEntries([validCleanArchitectureEntry(), validCharacteristicEntry()])).toEqual([]);
@@ -68,10 +88,10 @@ describe('validateLibraryEntries — cada invariante acusa uma violação (o tes
     expect(problems.join('\n')).toContain('dimensão de score');
   });
 
-  it('acusa fonte fora das 3 obras (mesmo com o mesmo conteúdo — identidade, não igualdade)', () => {
+  it('acusa fonte fora das 4 obras (mesmo com o mesmo conteúdo — identidade, não igualdade)', () => {
     const copy = { ...CLEAN_ARCHITECTURE };
     const problems = validateLibraryEntries([validCleanArchitectureEntry({ source: copy })]);
-    expect(problems.join('\n')).toContain('fonte fora das 3 obras');
+    expect(problems.join('\n')).toContain('fonte fora das 4 obras');
   });
 
   it('acusa definição vazia', () => {
@@ -84,6 +104,23 @@ describe('validateLibraryEntries — cada invariante acusa uma violação (o tes
     expect(validateLibraryEntries([withoutTopology]).join('\n')).toContain('relação com a topologia');
     const blankNote = validCleanArchitectureEntry({ topology: { relation: 'nenhuma', note: ' ' } });
     expect(validateLibraryEntries([blankNote]).join('\n')).toContain('relação com a topologia');
+  });
+
+  it('aceita um conceito completo, citando DDIA', () => {
+    expect(validateLibraryEntries([validConceptEntry()])).toEqual([]);
+  });
+
+  it('acusa conceito sem trade-off ou sem capítulo (M4.3)', () => {
+    expect(validateLibraryEntries([validConceptEntry({ tradeoff: undefined })])).toEqual(['z: conceito exige trade-off']);
+    expect(validateLibraryEntries([validConceptEntry({ chapter: ' ' })])).toEqual(['z: conceito exige o capítulo da fonte']);
+  });
+
+  it('acusa entrada relacionada inexistente ou apontando para si mesma', () => {
+    const entries = [validConceptEntry({ relatedEntryIds: ['y', 'z', 'fantasma'] }), validCharacteristicEntry()];
+    expect(validateLibraryEntries(entries)).toEqual([
+      'z: entrada relacionada inválida "z"',
+      'z: entrada relacionada inválida "fantasma"',
+    ]);
   });
 
   it('acusa característica/padrão sem platformNote', () => {
@@ -102,8 +139,8 @@ describe('LIBRARY_ENTRIES', () => {
     expect([...actual].sort()).toEqual([...ids].sort());
   });
 
-  it('tem 39 entradas no total', () => {
-    expect(LIBRARY_ENTRIES).toHaveLength(39);
+  it('tem 52 entradas no total (39 do M2.7 + 13 conceitos do M4.3)', () => {
+    expect(LIBRARY_ENTRIES).toHaveLength(52);
   });
 
   it('inclui os cinco princípios SOLID (FR-003)', () => {
@@ -149,5 +186,20 @@ describe('getLibraryEntry', () => {
 
   it('devolve undefined para um id inexistente', () => {
     expect(getLibraryEntry('microkernel')).toBeUndefined();
+  });
+});
+
+describe('conceitos (M4.3)', () => {
+  const concepts = LIBRARY_ENTRIES.filter((entry) => entry.category === 'concepts');
+
+  it('todo conceito cita DDIA com capítulo', () => {
+    for (const entry of concepts) {
+      expect(entry.source, entry.id).toBe(DESIGNING_DATA_INTENSIVE_APPLICATIONS);
+      expect(entry.chapter, entry.id).toMatch(/^cap\. \d+ — /);
+    }
+  });
+
+  it('a categoria de conceitos vem primeiro na biblioteca', () => {
+    expect(Object.keys(LIBRARY_CATEGORY_LABELS)[0]).toBe('concepts');
   });
 });

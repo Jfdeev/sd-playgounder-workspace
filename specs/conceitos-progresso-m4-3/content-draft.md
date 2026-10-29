@@ -1,6 +1,6 @@
 # M4.3 — Rascunho de conteúdo: conceitos e mapa problema → conceito
 
-**Status**: aguardando aprovação do autor. Nada disto vira código antes do "aprovado".
+**Status**: **aprovado pelo autor (2026-10-29)**, incluindo os 3 pontos (limitação de taxa dentro de backpressure, CDN dentro de Caching, Replicação e Consenso sem problema).
 
 Como ler: 13 verbetes, cada um com **definição**, **trade-off**, **na plataforma** (como o conceito
 aparece no canvas) e **fonte** (obra + capítulo). A fonte nova é *Designing Data-Intensive
