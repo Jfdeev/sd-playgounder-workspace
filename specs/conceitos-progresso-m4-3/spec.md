@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-29
 
-**Status**: Ready — conteúdo aprovado pelo autor (2026-10-29)
+**Status**: Done
 
 **Input**: Roadmap (`docs/product-context.md` §10, M4): "progresso **por conceito**, não por problema ·
 … · wiki de conceitos linkada aos problemas (P0)". Última fatia P0 do M4, depois do M4.1 e M4.2.
