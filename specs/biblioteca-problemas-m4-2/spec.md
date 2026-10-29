@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-26
 
-**Status**: Ready
+**Status**: Done
 
 **Input**: Roadmap (`docs/product-context.md` §10, M4): "biblioteca de 12 problemas". Segunda fatia do
 M4, depois do M4.1. Lista de referência: `docs/foundational-doc.md` §2.2.

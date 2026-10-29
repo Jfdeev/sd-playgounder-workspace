@@ -456,7 +456,13 @@ galeria da comunidade com fronteira de Pareto custo × latência (P1).
 ([specs/designs-conta-m4-1](../specs/designs-conta-m4-1/spec.md)): designs nomeados na conta (até 50),
 uma versão por "Salvar" (até 100, sem duplicata), restaurar versão, link de compartilhamento só para
 logados (só leitura + Simular + abrir cópia, revogável, aviso de spoiler em design de desafio, apelido do
-dono só se o perfil for visível). Faltam: biblioteca de 12 problemas (+9) e progresso por conceito + wiki.
+dono só se o perfil for visível). **M4.2 concluído (2026-10-29)**
+([specs/biblioteca-problemas-m4-2](../specs/biblioteca-problemas-m4-2/spec.md)): biblioteca de 12
+problemas — os 3 anteriores + Rate limiter, Leaderboard, Notificações, Chat, Vídeo, Web crawler, Pix,
+Matching de corridas e Agregador de cliques (o Google Drive ficou de fora: é o que o engine menos
+consegue mostrar). Progressão **por nível** (básico sempre aberto; resolver qualquer problema de um
+nível abre o seguinte), matriz de conexões do canvas com 5 conexões novas, engine intocado. Falta:
+progresso por conceito + wiki.
 
 ### M5 — Modo Campanha, multiplayer e turma
 Campanha (mesmo problema em fases, com custo de migração no score) · canvas colaborativo
