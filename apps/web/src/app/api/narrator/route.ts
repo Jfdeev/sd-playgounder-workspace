@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { GoogleGenerativeAI, type GenerateContentResult, type GenerativeModel } from '@google/generative-ai';
-import type { Design, SimulationResult, Workload } from '@sdp/engine';
+import { simulate } from '@sdp/engine';
 import {
   EXPLAIN_RESULT_SCHEMA,
   buildNarratorPrompt,
@@ -11,17 +11,22 @@ import {
 } from '@sdp/narrator';
 import { auth } from '@/auth';
 import { db } from '@/db/client';
+import { consumeSubmissionQuota } from '@/db/gamification';
 import { narratorExplanations } from '@/db/schema';
 import { isSameOriginRequest } from '@/lib/csrf';
+import { narratorCacheKey, parseNarratorRequest } from '@/lib/narrator-request';
+import { scoreContextFor } from '@/lib/simulation-context';
 
 /**
  * Route Handler do narrador — contracts/narrator-contract.md. `auth()` direto na rota (sem
  * middleware novo, mesma decisão de M0.5/M1) — requisição sem sessão devolve 401.
  *
- * Regra 1 do contrato: NUNCA recalcula `simulate(design, workload)` pra conferir `result` — confia
- * no que o client já calculou (mesmo modelo de confiança de M1, submissão 100% client-side, sem
- * persistência "oficial" que dependa disso). `design`/`workload` só alimentam o hash de cache
- * (Regra 2) — nunca vão pro prompt do LLM, só `result` (já resumido) vai.
+ * Regra 1 do contrato, **revista em 2026-11-05** (relatório de segurança, item 2): o servidor recalcula
+ * `simulate(design, workload)` com o contexto do desafio e ignora qualquer `result` do navegador. Antes
+ * ele confiava no `result` do cliente e gravava a explicação num cache compartilhado — dava para
+ * envenenar a explicação que todo mundo recebe para um design. `design`/`workload` seguem fora do
+ * prompt; só o `result` (recalculado e resumido) vai. Cache miss cobra a mesma cota das submissões
+ * (item 3) — a cota do Gemini é pequena e compartilhada.
  */
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
@@ -37,21 +42,6 @@ const GEMINI_MODEL = 'gemini-2.5-flash';
  * limite que o código não respeita mais.
  */
 const NARRATOR_TIMEOUT_MS = 15_000;
-
-type NarratorRequestBody = { design: Design; workload: Workload; result: SimulationResult };
-
-function isValidRequestBody(body: unknown): body is NarratorRequestBody {
-  if (typeof body !== 'object' || body === null) return false;
-  const candidate = body as Record<string, unknown>;
-  return (
-    typeof candidate.design === 'object' &&
-    candidate.design !== null &&
-    typeof candidate.workload === 'object' &&
-    candidate.workload !== null &&
-    typeof candidate.result === 'object' &&
-    candidate.result !== null
-  );
-}
 
 class NarratorTimeoutError extends Error {}
 
@@ -76,16 +66,16 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: 'PROVIDER_UNAVAILABLE', message: 'Requisição inválida.' }, { status: 403 });
   }
 
-  const body: unknown = await request.json().catch(() => null);
-  if (!isValidRequestBody(body)) {
+  const parsed = parseNarratorRequest(await request.json().catch(() => null));
+  if (!parsed.ok) {
     return NextResponse.json(
-      { error: 'INVALID_RESPONSE', message: 'Corpo da requisição em formato inválido.' },
+      { error: 'INVALID_RESPONSE', message: `Corpo da requisição em formato inválido (${parsed.reason}).` },
       { status: 400 },
     );
   }
-  const { design, workload, result } = body;
+  const { design, workload, problem } = parsed.request;
 
-  const designHash = await hashDesign(design, workload);
+  const designHash = narratorCacheKey(await hashDesign(design, workload), problem);
 
   const [cached] = await db
     .select()
@@ -103,6 +93,14 @@ export async function POST(request: Request): Promise<Response> {
     });
   }
 
+  const userId = session.user?.id;
+  if (!userId || !(await consumeSubmissionQuota(userId))) {
+    return NextResponse.json(
+      { error: 'RATE_LIMITED', message: 'Muitas explicações seguidas — tente de novo em um minuto.' },
+      { status: 429 },
+    );
+  }
+
   if (!process.env.GEMINI_API_KEY) {
     return NextResponse.json(
       { error: 'PROVIDER_UNAVAILABLE', message: 'Narrador indisponível — chave de API não configurada.' },
@@ -115,6 +113,7 @@ export async function POST(request: Request): Promise<Response> {
     model: GEMINI_MODEL,
     generationConfig: { responseMimeType: 'application/json', responseSchema: EXPLAIN_RESULT_SCHEMA },
   });
+  const result = simulate(design, workload, scoreContextFor(problem));
   const prompt = buildNarratorPrompt(result);
 
   let rawText: string;

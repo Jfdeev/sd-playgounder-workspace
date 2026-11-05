@@ -15,7 +15,7 @@ const EDGE_KINDS: Record<EdgeKind, true> = { read: true, write: true, async: tru
 
 export type DesignValidation = { ok: true; design: Design } | { ok: false; reason: string };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 

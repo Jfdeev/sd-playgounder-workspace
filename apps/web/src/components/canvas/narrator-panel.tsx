@@ -43,7 +43,8 @@ function resolveCitation(citationId: string | undefined) {
 
 type NarratorResponseBody = (NarratorExplanation & { cached: boolean }) | { error: string; message: string };
 
-export function NarratorPanel() {
+/** `problemId`: o desafio ativo, se houver — o servidor recalcula o resultado com o contexto dele. */
+export function NarratorPanel({ problemId }: { problemId: string | null }) {
   const lastResult = useCanvasStore((s) => s.lastResult);
   const lastDesign = useCanvasStore((s) => s.lastDesign);
   const lastWorkload = useCanvasStore((s) => s.lastWorkload);
@@ -63,14 +64,14 @@ export function NarratorPanel() {
   if (!lastResult) return null;
 
   async function fetchExplanation() {
-    if (!lastDesign || !lastWorkload || !lastResult) return;
+    if (!lastDesign || !lastWorkload) return;
     setLoading(true);
     setError(null);
     try {
       const response = await fetch('/api/narrator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ design: lastDesign, workload: lastWorkload, result: lastResult }),
+        body: JSON.stringify({ design: lastDesign, workload: lastWorkload, problemId }),
       });
       const body = (await response.json()) as NarratorResponseBody;
       if (!response.ok || 'error' in body) {
