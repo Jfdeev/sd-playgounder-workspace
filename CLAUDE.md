@@ -34,9 +34,11 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Plano ativo**: nenhum — ajustes gerais concluídos; o relatório de segurança
-([specs/ajustes-gerais/security-report.md](specs/ajustes-gerais/security-report.md)) espera o autor decidir o
-que corrigir. Depois: P1 do M4 (widgets animados, galeria da comunidade) ou M5.
+**Plano ativo**: nenhum — os 13 itens do relatório de segurança
+([specs/ajustes-gerais/security-report.md](specs/ajustes-gerais/security-report.md)) foram corrigidos em 2026-11-05
+(dependências atualizadas, `pnpm audit` zerado; narrador recalcula no servidor; cabeçalhos HTTP; limites de
+cadastro/login por conta + IP; sessão revogável com `user.sessionVersion`, migração `0006` aplicada ao Neon). Ao
+publicar, definir `CLIENT_IP_HEADER`. Depois: P1 do M4 (widgets animados, galeria da comunidade) ou M5.
 
 Ajustes gerais (pós-M4) ([specs/ajustes-gerais/spec.md](specs/ajustes-gerais/spec.md)): **concluído e verificado
 no browser (2026-11-05)**. Card do desafio só verifica a rubrica com Submeter (`lib/rubric-status.ts` — Simular
