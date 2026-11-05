@@ -179,11 +179,10 @@ export async function creditUnlockedAchievements(
     solvedWithoutSpof,
     currentStreak: before.streak.current,
   });
-  const newAchievements: AchievementId[] = [];
-  for (const id of candidates) {
-    if (await creditEvent(userId, { eventKey: achievementEventKey(id), type: 'achievement', problemId: null, xp: ACHIEVEMENT_XP })) {
-      newAchievements.push(id);
-    }
-  }
+  // Em paralelo (ajustes gerais, US5): cada crédito é idempotente pela chave única, sem ordem entre eles.
+  const credited = await Promise.all(
+    candidates.map((id) => creditEvent(userId, { eventKey: achievementEventKey(id), type: 'achievement', problemId: null, xp: ACHIEVEMENT_XP })),
+  );
+  const newAchievements = candidates.filter((_, index) => credited[index]);
   return { newAchievements, progress: newAchievements.length > 0 ? await loadProgress(userId, now) : before };
 }

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ChevronDown, FolderOpen, History, Link2, Pencil, Save, Trash2 } from 'lucide-react';
 import { getIncident, getProblem } from '@sdp/problems';
+import { confirmDialog, promptDialog } from '@/lib/dialogs';
 import { toSavedCanvas } from '@/lib/designs/saved-canvas';
 import type { DesignContextKind } from '@/lib/designs/shared-view';
 import { useCanvasStore } from '@/stores/canvas-store';
@@ -85,7 +86,11 @@ export function DesignsMenu({
     setMessage(ERROR_TEXT[String(data?.error ?? '')] ?? (typeof data?.reason === 'string' ? data.reason : 'Não deu pra salvar agora — o rascunho continua neste navegador.'));
 
   async function saveAs() {
-    const name = window.prompt('Nome do design:', openDesign ? `${openDesign.name} (cópia)` : '');
+    const name = await promptDialog({
+      title: 'Salvar como',
+      label: 'Nome do design',
+      defaultValue: openDesign ? `${openDesign.name} (cópia)` : '',
+    });
     if (name === null) return;
     setBusy(true);
     const content = toSavedCanvas(nodes, edges, loadedPresetId);
@@ -113,7 +118,7 @@ export function DesignsMenu({
   }
 
   async function rename(design: DesignSummary) {
-    const name = window.prompt('Novo nome:', design.name);
+    const name = await promptDialog({ title: 'Renomear design', label: 'Novo nome', defaultValue: design.name });
     if (name === null) return;
     const { ok, data } = await call(`/api/designs/${design.id}`, 'PATCH', { name });
     if (!ok) return fail(data);
@@ -122,7 +127,13 @@ export function DesignsMenu({
   }
 
   async function remove(design: DesignSummary) {
-    if (!window.confirm(`Apagar "${design.name}" e todas as versões? Isso não dá pra desfazer.`)) return;
+    const confirmed = await confirmDialog({
+      title: `Apagar "${design.name}"?`,
+      message: 'Apaga o design e todas as versões. Isso não dá pra desfazer.',
+      confirmLabel: 'Apagar',
+      tone: 'danger',
+    });
+    if (!confirmed) return;
     const { ok, data } = await call(`/api/designs/${design.id}`, 'DELETE');
     if (!ok) return fail(data);
     if (openDesign?.id === design.id) setOpenDesign(null);

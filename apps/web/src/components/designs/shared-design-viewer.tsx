@@ -37,7 +37,7 @@ function Viewer({ view }: { view: SharedDesignView }) {
   function runSimulation() {
     const design = canvasDesignOf(nodes, edges);
     const workload = toManualWorkload(rps);
-    applySimulationResult(simulate(design, workload), design, workload);
+    applySimulationResult(simulate(design, workload), design, workload, 'simulate');
   }
 
   function openCopy() {

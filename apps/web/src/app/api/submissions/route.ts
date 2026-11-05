@@ -40,18 +40,21 @@ export async function POST(request: Request): Promise<Response> {
 
   const now = new Date();
   try {
-    if (!(await consumeSubmissionQuota(userId))) {
+    // Idas independentes ao banco em paralelo (ajustes gerais, US5) — cada uma custa uma volta ao Neon.
+    const [withinQuota, solvedIds] = await Promise.all([consumeSubmissionQuota(userId), loadSolvedProblemIds(userId)]);
+    if (!withinQuota) {
       return NextResponse.json({ error: 'RATE_LIMITED' }, { status: 429 });
     }
-    if (!isChallengeUnlocked(problem.id, ALL_PROBLEMS, await loadSolvedProblemIds(userId))) {
+    if (!isChallengeUnlocked(problem.id, ALL_PROBLEMS, solvedIds)) {
       return NextResponse.json({ error: 'CHALLENGE_LOCKED' }, { status: 403 });
     }
 
     const { solved, solvedWithoutSpof } = evaluateSubmission(problem, validation.design);
-    await recordActivityDay(userId, now);
-    const creditedChallenge =
-      solved &&
-      (await creditEvent(userId, { eventKey: challengeEventKey(problem.id), type: 'challenge', problemId: problem.id, xp: CHALLENGE_XP }));
+    // O dia de atividade precisa estar gravado antes de `creditUnlockedAchievements` ler a ofensiva.
+    const [, creditedChallenge] = await Promise.all([
+      recordActivityDay(userId, now),
+      solved && creditEvent(userId, { eventKey: challengeEventKey(problem.id), type: 'challenge', problemId: problem.id, xp: CHALLENGE_XP }),
+    ]);
 
     const { newAchievements, progress } = await creditUnlockedAchievements(userId, now, { solvedWithoutSpof });
     return NextResponse.json({

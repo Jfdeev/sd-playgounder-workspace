@@ -1,7 +1,6 @@
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import { CONCEPT_ENTRIES } from '@sdp/knowledge';
 import { ALL_PROBLEMS } from '@sdp/problems';
+import { AppPage } from '@/components/layout/app-page';
 import { ConceptProgressPanel } from '@/components/progress/concept-progress-panel';
 import { ProgressOverview } from '@/components/progress/progress-overview';
 import { conceptProgress } from '@/lib/gamification/concept-progress';
@@ -18,32 +17,20 @@ export default async function ProgressPage() {
   const conceptIds = CONCEPT_ENTRIES.map((entry) => entry.id);
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto">
-      <div className="mx-auto w-full max-w-3xl px-6 py-6">
-        <Link href="/app" className="mb-4 inline-flex items-center gap-1.5 text-xs text-zinc-500 transition hover:text-zinc-300">
-          <ArrowLeft className="size-3.5" aria-hidden />
-          Voltar ao canvas
-        </Link>
-        <div className="mb-6 flex items-baseline justify-between">
-          <h1 className="text-lg font-semibold text-zinc-100">Seu progresso</h1>
-          <Link href="/app/ranking" className="text-xs text-violet-300 hover:text-violet-200">
-            {profile.nickname ? `Ranking · @${profile.nickname}` : 'Ranking'}
-          </Link>
-        </div>
-        <ProgressOverview
-          data={{
-            level: progress.level,
-            xp: progress.xp,
-            levelProgress: { xpIntoLevel: progress.xpIntoLevel, xpForNextLevel: progress.xpForNextLevel },
-            solved: progress.solved,
-            incidentsResolved: progress.incidentsResolved,
-            achievements: progress.achievements,
-            streak: progress.streak,
-            showLockedAchievements: true,
-          }}
-        />
-        <ConceptProgressPanel progress={conceptProgress(conceptIds, ALL_PROBLEMS, solvedIds)} anySolved={solvedIds.length > 0} />
-      </div>
-    </div>
+    <AppPage title="Seu progresso" description={profile.nickname ? `Você aparece no ranking como @${profile.nickname}.` : undefined}>
+      <ProgressOverview
+        data={{
+          level: progress.level,
+          xp: progress.xp,
+          levelProgress: { xpIntoLevel: progress.xpIntoLevel, xpForNextLevel: progress.xpForNextLevel },
+          solved: progress.solved,
+          incidentsResolved: progress.incidentsResolved,
+          achievements: progress.achievements,
+          streak: progress.streak,
+          showLockedAchievements: true,
+        }}
+      />
+      <ConceptProgressPanel progress={conceptProgress(conceptIds, ALL_PROBLEMS, solvedIds)} anySolved={solvedIds.length > 0} />
+    </AppPage>
   );
 }
