@@ -29,6 +29,7 @@ import Link from 'next/link';
 import { BookOpen, ChevronDown, ChevronUp, Circle, LogOut, X } from 'lucide-react';
 import { getLibraryEntry } from '@sdp/knowledge';
 import type { Problem } from '@sdp/problems';
+import { criterionStatus } from '@/lib/rubric-status';
 import { useCanvasStore } from '@/stores/canvas-store';
 import { ReferenceSolutionPanel } from './reference-solution-panel';
 
@@ -40,6 +41,8 @@ export function ChallengeCard({ problem, onLeave }: { problem: Problem; onLeave:
 
   const lastResult = useCanvasStore((s) => s.lastResult);
   const lastDesign = useCanvasStore((s) => s.lastDesign);
+  const lastRunKind = useCanvasStore((s) => s.lastRunKind);
+  const lastRun = { kind: lastRunKind, result: lastResult, design: lastDesign };
 
   if (collapsed) {
     return (
@@ -112,13 +115,12 @@ export function ChallengeCard({ problem, onLeave }: { problem: Problem; onLeave:
 
         <div className="mt-3">
           <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Critérios</h3>
+          {lastRunKind !== 'submit' && (
+            <p className="mb-1.5 text-xs text-violet-300">Submeta para validar os critérios e ganhar XP — Simular não conta.</p>
+          )}
           <ul className="space-y-1">
             {problem.rubric.map((criterion) => {
-              const status: 'pass' | 'fail' | 'unchecked' = !lastResult || !lastDesign
-                ? 'unchecked'
-                : criterion.evaluate(lastResult, lastDesign)
-                  ? 'pass'
-                  : 'fail';
+              const status = criterionStatus(criterion, lastRun);
               return (
                 <li key={criterion.id} className="flex items-center gap-2 text-xs">
                   {status === 'pass' && <span className="text-emerald-400">✓</span>}

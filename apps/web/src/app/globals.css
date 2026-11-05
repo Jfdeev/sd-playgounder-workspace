@@ -47,3 +47,30 @@ body {
   }
 }
 
+
+/* Ajustes gerais (2026-11-05): entrada de modais e a animação de XP ganho. */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: translate(-50%, -48%) scale(0.96); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes xp-rise {
+  0% { opacity: 0; transform: translateY(12px) scale(0.8); }
+  25% { opacity: 1; transform: translateY(0) scale(1.08); }
+  45% { transform: scale(1); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes xp-shine {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; }
+}

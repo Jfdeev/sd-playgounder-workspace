@@ -10,7 +10,7 @@ import {
   type IsValidConnection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Activity, Play, Redo2, Trash2, Undo2 } from 'lucide-react';
+import { Activity, Loader2, Play, Redo2, Trash2, Undo2 } from 'lucide-react';
 import { simulate, type ComponentType, type Workload } from '@sdp/engine';
 import type { IncidentPublic, Problem } from '@sdp/problems';
 import { canvasDesignOf, toManualWorkload, toWorkload } from '@/lib/canvas-to-design';
@@ -21,6 +21,9 @@ import {
 } from '@/lib/gamification/submission-feedback';
 import type { ClientVariant } from '@/lib/canvas-types';
 import { connectableKindOf, isValidCanvasConnection } from '@/lib/connection-rules';
+import type { SimulationRunKind } from '@/lib/rubric-status';
+import { confirmDialog } from '@/lib/dialogs';
+import { celebrateXp } from '../ui/xp-celebration';
 import { RPS_SLIDER_RESOLUTION, clampRps, rpsToSliderPosition, sliderPositionToRps } from '@/lib/rps-slider';
 import { useCanvasStore, useCanvasStoreApi, type CanvasEdge, type CanvasNode } from '@/stores/canvas-store';
 import { useProgressionStore } from '@/stores/progression-store';
@@ -175,10 +178,11 @@ function CanvasInner({ problem, onLeaveChallenge, incident = null, onLeaveIncide
   // clara em vez de chamar o engine sem feedback. Compartilhada entre "Submeter" e "Simular" — as
   // duas só diferem no Workload usado. Devolve se de fato simulou (canvas vazio não simula).
   const runSimulation = useCallback(
-    (workload: Workload, actionLabel: string): boolean => {
+    (workload: Workload, kind: SimulationRunKind): boolean => {
+      const actionLabel = kind === 'submit' ? 'submeter' : 'simular';
       if (nodes.length === 0) {
         setActionError(`Adicione componentes antes de ${actionLabel}.`);
-        applySimulationResult(null, null, null);
+        applySimulationResult(null, null, null, null);
         return false;
       }
       setActionError(null);
@@ -188,7 +192,7 @@ function CanvasInner({ problem, onLeaveChallenge, incident = null, onLeaveIncide
         referenceCostUsd,
       });
 
-      applySimulationResult(result, design, workload);
+      applySimulationResult(result, design, workload, kind);
       for (const [nodeId, nodeResult] of Object.entries(result.nodes)) {
         updateNodeConfig(nodeId, {
           result: { status: nodeResult.status, isBottleneck: nodeId === result.path.bottleneckId },
@@ -203,10 +207,13 @@ function CanvasInner({ problem, onLeaveChallenge, incident = null, onLeaveIncide
   // roda sem `problem`; a escala vem sempre do problema, nunca do slider de Simular. O resultado
   // aparece na hora; em paralelo o servidor reexecuta tudo e é ele quem credita XP e destrava o
   // próximo desafio (M2.8, FR-002). Falha do servidor nunca esconde o resultado (FR-013).
+  const [submitting, setSubmitting] = useState(false);
+
   async function handleSubmit() {
-    if (!problem) return;
+    if (!problem || submitting) return;
     setSubmissionFeedback(null);
-    if (!runSimulation(toWorkload(problem), 'submeter')) return;
+    if (!runSimulation(toWorkload(problem), 'submit')) return;
+    setSubmitting(true);
 
     let status = 0;
     let body: SubmissionResponseBody | null = null;
@@ -221,14 +228,18 @@ function CanvasInner({ problem, onLeaveChallenge, incident = null, onLeaveIncide
     } catch {
       // rede fora — cai no aviso genérico de "progresso não registrado"
     }
-    if (body) applyProgress(body.progress);
+    if (body) {
+      applyProgress(body.progress);
+      celebrateXp(body.credited.xp, body.credited.achievements, 'Desafio resolvido');
+    }
+    setSubmitting(false);
     setSubmissionFeedback(describeSubmissionOutcome(status, body));
   }
 
   // Botão "Simular" — mesmo runSimulation, workload manual (só o rps do slider/input), nunca
   // conta pra progressão. Disponível em qualquer contexto (sandbox ou dentro de um desafio).
   function handleSimulate(rps: number) {
-    runSimulation(toManualWorkload(rps), 'simular');
+    runSimulation(toManualWorkload(rps), 'simulate');
   }
 
   // Ref sempre com a versão mais recente de handleSimulate (fecha sobre nodes/edges/problem
@@ -253,9 +264,14 @@ function CanvasInner({ problem, onLeaveChallenge, incident = null, onLeaveIncide
 
   // Lixeira do canvas (pedido direto do autor) — destrutivo, então pede confirmação antes; a
   // ação em si ainda é desfazível por Ctrl/Cmd+Z (clearCanvas entra no histórico do zundo).
-  function handleClearCanvas() {
+  async function handleClearCanvas() {
     if (nodes.length === 0 && edges.length === 0) return;
-    const confirmed = window.confirm('Apagar todo o canvas? Remove todos os componentes e conexões (dá pra desfazer com Ctrl/Cmd+Z).');
+    const confirmed = await confirmDialog({
+      title: 'Apagar todo o canvas?',
+      message: 'Remove todos os componentes e conexões. Dá pra desfazer com Ctrl/Cmd+Z.',
+      confirmLabel: 'Apagar',
+      tone: 'danger',
+    });
     if (!confirmed) return;
     clearCanvas();
     setActionError(null);
@@ -367,12 +383,13 @@ function CanvasInner({ problem, onLeaveChallenge, incident = null, onLeaveIncide
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={!problem}
+              disabled={!problem || submitting}
+              aria-busy={submitting}
               title={problem ? undefined : 'Entre em um desafio pra submeter e ver o resultado do engine'}
               className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
             >
-              <Play className="size-4" aria-hidden />
-              Submeter
+              {submitting ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Play className="size-4" aria-hidden />}
+              {submitting ? 'Registrando…' : 'Submeter'}
             </button>
           </div>
         </div>

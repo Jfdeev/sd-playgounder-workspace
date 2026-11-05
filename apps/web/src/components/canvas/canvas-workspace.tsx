@@ -15,6 +15,8 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { confirmReplaceCanvas } from '@/lib/dialogs';
 import { ALL_PROBLEMS, getIncident, getProblem } from '@sdp/problems';
 import { getReferenceArchitecture, toDesign } from '@sdp/knowledge';
 import { canvasStorageKey, CanvasStoreProvider, incidentStorageKey, useCanvasStore } from '@/stores/canvas-store';
@@ -74,36 +76,28 @@ function CanvasWorkspaceInner({
           : activeChallengeId === null && activeIncidentId === null;
     if (!here) return;
     onPendingConsumed();
-    if (nodes.length > 0 && !window.confirm('Abrir este design? Isso substitui o que está no canvas agora (dá pra desfazer com Ctrl/Cmd+Z).')) return;
-    loadDesign(fromSavedCanvas(pendingOpen.canvas), {
-      presetId: pendingOpen.canvas.loadedPresetId,
-      ...(pendingOpen.openDesign ? { openDesign: pendingOpen.openDesign } : {}),
-    });
+    void (async () => {
+      if (nodes.length > 0 && !(await confirmReplaceCanvas('Abrir este design?'))) return;
+      loadDesign(fromSavedCanvas(pendingOpen.canvas), {
+        presetId: pendingOpen.canvas.loadedPresetId,
+        ...(pendingOpen.openDesign ? { openDesign: pendingOpen.openDesign } : {}),
+      });
+    })();
   }, [pendingOpen, activeChallengeId, activeIncidentId, nodes.length, loadDesign, onPendingConsumed]);
 
   // Aplicar um template substitui o design inteiro (mesmo tratamento destrutivo da lixeira) —
   // pede confirmação se já existe algo no canvas; a ação em si ainda é desfazível (Ctrl/Cmd+Z).
-  function handleApplyTemplate(template: ArchitectureTemplate) {
-    if (nodes.length > 0 || edges.length > 0) {
-      const confirmed = window.confirm(
-        `Aplicar o template "${template.label}"? Isso substitui todo o design atual do canvas (dá pra desfazer com Ctrl/Cmd+Z).`,
-      );
-      if (!confirmed) return;
-    }
+  async function handleApplyTemplate(template: ArchitectureTemplate) {
+    if ((nodes.length > 0 || edges.length > 0) && !(await confirmReplaceCanvas(`Aplicar o template "${template.label}"?`))) return;
     loadDesign(instantiateTemplate(template));
   }
 
   // M2.5: carregar uma arquitetura de referência — mesma confirmação destrutiva do template. Os ids
   // dos nós do preset são preservados por `designToCanvas`, o que liga cada nó à sua explicação.
-  function handleLoadPreset(presetId: string) {
+  async function handleLoadPreset(presetId: string) {
     const preset = getReferenceArchitecture(presetId);
     if (!preset) return;
-    if (nodes.length > 0 || edges.length > 0) {
-      const confirmed = window.confirm(
-        `Carregar a arquitetura de referência do ${preset.company}? Isso substitui todo o design atual do canvas (dá pra desfazer com Ctrl/Cmd+Z).`,
-      );
-      if (!confirmed) return;
-    }
+    if ((nodes.length > 0 || edges.length > 0) && !(await confirmReplaceCanvas(`Carregar a arquitetura do ${preset.company}?`))) return;
     loadDesign(designToCanvas(toDesign(preset)), { presetId });
   }
 
@@ -142,7 +136,7 @@ export function CanvasWorkspace({ initialProblemId }: { initialProblemId: string
   function openInContext(pending: PendingOpen) {
     let target = pending;
     if (pending.contextKind === 'challenge' && !isChallengeUnlocked(pending.contextId!, ALL_PROBLEMS, completedIds)) {
-      window.alert('Esse desafio ainda está travado pra você — o design abre no canvas livre.');
+      toast.info('Esse desafio ainda está travado pra você — o design abre no canvas livre.');
       target = { ...pending, contextKind: 'sandbox', contextId: null };
     }
     setActiveChallengeId(target.contextKind === 'challenge' ? target.contextId : null);
@@ -153,7 +147,7 @@ export function CanvasWorkspace({ initialProblemId }: { initialProblemId: string
   async function openSavedDesign(designId: string, version?: number) {
     const response = await fetch(`/api/designs/${designId}${version === undefined ? '' : `?version=${version}`}`, { cache: 'no-store' }).catch(() => null);
     if (!response?.ok) {
-      window.alert('Não deu pra abrir esse design agora.');
+      toast.error('Não deu pra abrir esse design agora.');
       return;
     }
     const design = (await response.json()) as {

@@ -41,6 +41,7 @@ import {
 } from '@xyflow/react';
 import type { Design, SimulationResult, Workload } from '@sdp/engine';
 import type { FlowEdgeData, FlowNodeData } from '@/lib/canvas-types';
+import type { SimulationRunKind } from '@/lib/rubric-status';
 
 export type CanvasNode = Node<FlowNodeData>;
 export type CanvasEdge = Edge<FlowEdgeData>;
@@ -69,6 +70,8 @@ export type CanvasState = {
    * mudado desde a submissão).
    */
   lastWorkload: Workload | null;
+  /** De onde veio `lastResult` — o card do desafio só verifica a rubrica depois de um "Submeter". */
+  lastRunKind: SimulationRunKind | null;
   /**
    * M2.5: id da arquitetura de referência carregada (`@sdp/knowledge`), ou `null`. Alimenta a
    * explicação "Por que está aqui" no nó selecionado e o aviso de valores ilustrativos no
@@ -99,7 +102,12 @@ export type CanvasState = {
   selectNode: (nodeId: string | null) => void;
   selectEdge: (edgeId: string | null) => void;
   /** `design`/`workload` devem ser os mesmos objetos passados a `simulate()` para produzir `result` — nunca recomputados à parte. */
-  applySimulationResult: (result: SimulationResult | null, design: Design | null, workload: Workload | null) => void;
+  applySimulationResult: (
+    result: SimulationResult | null,
+    design: Design | null,
+    workload: Workload | null,
+    kind: SimulationRunKind | null,
+  ) => void;
 };
 
 // Só nodes/edges (e o preset que os gerou, M2.5) entram no histórico de undo/redo e no autosave —
@@ -145,6 +153,7 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
       lastResult: null,
       lastDesign: null,
       lastWorkload: null,
+      lastRunKind: null,
       loadedPresetId: null,
       openDesign: null,
 
@@ -189,6 +198,7 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
           state.lastResult = null;
           state.lastDesign = null;
           state.lastWorkload = null;
+          state.lastRunKind = null;
           state.loadedPresetId = null;
           state.openDesign = null;
         }),
@@ -204,6 +214,7 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
           state.lastResult = null;
           state.lastDesign = null;
           state.lastWorkload = null;
+          state.lastRunKind = null;
           state.loadedPresetId = options?.presetId ?? null;
           state.openDesign = options?.openDesign ?? null;
         }),
@@ -253,11 +264,12 @@ function createCanvasStoreInstance(storageKey: string): StoreApi<CanvasState> & 
           state.selectedNodeId = null;
         }),
 
-      applySimulationResult: (result, design, workload) =>
+      applySimulationResult: (result, design, workload, kind) =>
         set((state) => {
           state.lastResult = result;
           state.lastDesign = design;
           state.lastWorkload = workload;
+          state.lastRunKind = kind;
         }),
     })),
     {

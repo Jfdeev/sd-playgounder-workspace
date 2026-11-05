@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { Toaster } from 'sonner';
+import { DialogHost } from '@/components/ui/dialog-host';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -11,7 +13,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>
+        {children}
+        {/* Ajustes gerais: confirmações (modal) e avisos (toast) no visual do app, no lugar dos nativos. */}
+        <DialogHost />
+        <Toaster theme="dark" position="bottom-right" richColors closeButton />
+      </body>
     </html>
   );
 }

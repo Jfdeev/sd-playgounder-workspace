@@ -15,6 +15,8 @@ import {
 import { COMPONENT_UI } from '@/lib/canvas-ui-catalog';
 import { canvasDesignOf } from '@/lib/canvas-to-design';
 import { designToCanvas } from '@/lib/design-to-canvas';
+import { confirmDialog } from '@/lib/dialogs';
+import { celebrateXp } from '@/components/ui/xp-celebration';
 import type { ProgressJson } from '@/lib/gamification/progress';
 import { ACHIEVEMENTS } from '@/lib/gamification/achievements';
 import { FAULT_TYPE_LABELS, FIX_CHECK_LABELS, violationLabel } from '@/lib/incidents/labels';
@@ -151,6 +153,7 @@ export function IncidentPanel({ incident, onLeave }: { incident: IncidentPublic;
         if (body.progress) applyProgress(body.progress);
         if (body.snapshot) setState((s) => s && { ...s, snapshot: body.snapshot!, status: { ...s.status, resolved: s.status.resolved || !!body.resolved } });
         if (body.resolved) {
+          celebrateXp(body.credited?.xp ?? 0, body.credited?.achievements ?? [], 'Incidente resolvido');
           const conquests = achievementsNote(body.credited?.achievements);
           setMessage({ tone: 'ok', text: (body.credited?.xp ? `Incidente resolvido! +${body.credited.xp} XP` : 'Incidente resolvido de novo — sem XP novo.') + conquests });
         } else {
@@ -167,10 +170,13 @@ export function IncidentPanel({ incident, onLeave }: { incident: IncidentPublic;
     }
   }
 
-  function restart() {
-    if (window.confirm('Voltar a arquitetura do incidente ao estado original? Suas mudanças no canvas somem (dá pra desfazer com Ctrl/Cmd+Z).')) {
-      loadDesign(designToCanvas(incident.design));
-    }
+  async function restart() {
+    const confirmed = await confirmDialog({
+      title: 'Voltar ao estado original?',
+      message: 'A arquitetura do incidente volta como era e suas mudanças no canvas somem. Dá pra desfazer com Ctrl/Cmd+Z.',
+      confirmLabel: 'Voltar',
+    });
+    if (confirmed) loadDesign(designToCanvas(incident.design));
   }
 
   const now = state?.snapshot;

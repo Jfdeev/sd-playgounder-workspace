@@ -13,6 +13,7 @@
 import { BookOpen } from 'lucide-react';
 import type { Problem } from '@sdp/problems';
 import { designToCanvas } from '@/lib/design-to-canvas';
+import { confirmReplaceCanvas } from '@/lib/dialogs';
 import { useCanvasStore } from '@/stores/canvas-store';
 
 export function ReferenceSolutionPanel({ problem }: { problem: Problem }) {
@@ -20,13 +21,8 @@ export function ReferenceSolutionPanel({ problem }: { problem: Problem }) {
   const edges = useCanvasStore((s) => s.edges);
   const loadDesign = useCanvasStore((s) => s.loadDesign);
 
-  function handleLoad() {
-    if (nodes.length > 0 || edges.length > 0) {
-      const confirmed = window.confirm(
-        'Carregar a solução de referência? Isso substitui todo o design atual do canvas (dá pra desfazer com Ctrl/Cmd+Z).',
-      );
-      if (!confirmed) return;
-    }
+  async function handleLoad() {
+    if ((nodes.length > 0 || edges.length > 0) && !(await confirmReplaceCanvas('Carregar a solução de referência?'))) return;
     loadDesign(designToCanvas(problem.referenceSolution.design));
   }
 
