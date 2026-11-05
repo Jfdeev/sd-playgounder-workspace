@@ -147,6 +147,7 @@ describe('toWorkload', () => {
     id: 'test-problem',
     title: 'Problema de teste',
     level: 'basic',
+    concepts: [],
     statement: 'Enunciado',
     functionalRequirements: [],
     nonFunctionalRequirements: [],

@@ -13,10 +13,10 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Blocks, BookOpen, Calculator, ChevronDown, HelpCircle, Lock, Siren, Sparkles, Trophy } from 'lucide-react';
-import { ALL_PROBLEMS, INCIDENTS, PROBLEM_LEVELS, type ProblemLevel } from '@sdp/problems';
+import { ALL_PROBLEMS, INCIDENTS, PROBLEM_LEVELS } from '@sdp/problems';
 import type { TemplateId } from '@sdp/knowledge';
 import { ARCHITECTURE_TEMPLATES, type ArchitectureTemplate } from '@/lib/canvas-templates';
-import { blockingLevel, isChallengeUnlocked } from '@/lib/challenge-progression';
+import { blockingLevel, isChallengeUnlocked, LEVEL_LABEL } from '@/lib/challenge-progression';
 import { useProgressionStore } from '@/stores/progression-store';
 import { CapacityCalculatorPanel } from './capacity-calculator-panel';
 import { ReferenceArchitecturesMenu } from './reference-architectures-menu';
@@ -27,7 +27,6 @@ import { StyleSheet } from './style-sheet';
 // Nomes do site de inspiração que ainda não têm um Problem completo autorado — aparecem na lista
 // como "em breve" (sempre bloqueados), pra manter a lista visualmente parecida com o site sem
 // fingir que existe conteúdo que não existe.
-const LEVEL_LABEL: Record<ProblemLevel, string> = { basic: 'Básico', intermediate: 'Intermediário', advanced: 'Avançado' };
 
 function useClickOutside(ref: React.RefObject<HTMLElement | null>, onOutside: () => void) {
   useEffect(() => {

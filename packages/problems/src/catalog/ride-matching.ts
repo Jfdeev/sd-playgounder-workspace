@@ -91,6 +91,7 @@ export const RIDE_MATCHING: Problem = {
   id: 'ride-matching',
   title: 'Matching de corridas',
   level: 'advanced',
+  concepts: ['caching', 'partitioning'],
 
   statement:
     'Projete o núcleo de um app de corridas: motoristas mandam a localização o tempo todo e, quando um ' +

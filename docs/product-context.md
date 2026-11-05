@@ -461,8 +461,13 @@ dono só se o perfil for visível). **M4.2 concluído (2026-10-29)**
 problemas — os 3 anteriores + Rate limiter, Leaderboard, Notificações, Chat, Vídeo, Web crawler, Pix,
 Matching de corridas e Agregador de cliques (o Google Drive ficou de fora: é o que o engine menos
 consegue mostrar). Progressão **por nível** (básico sempre aberto; resolver qualquer problema de um
-nível abre o seguinte), matriz de conexões do canvas com 5 conexões novas, engine intocado. Falta:
-progresso por conceito + wiki.
+nível abre o seguinte), matriz de conexões do canvas com 5 conexões novas, engine intocado. **M4.3
+concluído (2026-10-29)** ([specs/conceitos-progresso-m4-3](../specs/conceitos-progresso-m4-3/spec.md)):
+wiki de 13 conceitos como seção da Biblioteca (os 8 do foundational-doc §5 + os que os problemas
+exercitam; fonte *Designing Data-Intensive Applications*, por capítulo), cada problema ligado aos
+conceitos que ensina (e cada conceito aos seus problemas), e progresso por conceito em `/app/progresso`
+derivado dos desafios resolvidos, com os pontos fracos em destaque. **Com isso, todo o P0 do M4 está
+entregue**; ficam os P1 (widgets animados de conceito, galeria da comunidade).
 
 ### M5 — Modo Campanha, multiplayer e turma
 Campanha (mesmo problema em fases, com custo de migração no score) · canvas colaborativo

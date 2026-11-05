@@ -79,6 +79,7 @@ export const NOTIFICATIONS: Problem = {
   id: 'notifications',
   title: 'Sistema de notificações',
   level: 'basic',
+  concepts: ['fan-out', 'queues', 'idempotency'],
 
   statement:
     'Vários times da empresa precisam mandar notificações push aos usuários (pedido saiu, promoção, ' +

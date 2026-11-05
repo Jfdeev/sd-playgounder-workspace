@@ -81,6 +81,7 @@ export const RATE_LIMITER: Problem = {
   id: 'rate-limiter',
   title: 'Rate limiter distribuído',
   level: 'basic',
+  concepts: ['backpressure'],
 
   statement:
     'Uma API pública está sendo derrubada por poucos clientes que mandam requisição demais. Projete um ' +

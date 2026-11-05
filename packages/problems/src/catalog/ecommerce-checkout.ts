@@ -103,6 +103,7 @@ export const ECOMMERCE_CHECKOUT: Problem = {
   id: 'ecommerce-checkout',
   title: 'E-commerce Checkout',
   level: 'advanced',
+  concepts: ['transactions', 'cap-pacelc', 'backpressure'],
 
   statement:
     'Projete o fluxo de checkout de uma loja online: o usuário finaliza a compra dos itens do ' +

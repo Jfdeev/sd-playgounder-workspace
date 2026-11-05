@@ -86,6 +86,7 @@ export const WEB_CRAWLER: Problem = {
   id: 'web-crawler',
   title: 'Web crawler',
   level: 'intermediate',
+  concepts: ['queues', 'backpressure'],
 
   statement:
     'Projete um robô que visita a web continuamente para um buscador, sem visitar a mesma página duas ' +

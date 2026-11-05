@@ -84,6 +84,7 @@ export const REALTIME_CHAT: Problem = {
   id: 'realtime-chat',
   title: 'Chat em tempo real',
   level: 'intermediate',
+  concepts: ['pubsub', 'redundancy'],
 
   statement:
     'Projete um chat de conversas 1:1 e em grupo, com mensagens chegando na hora e o indicador de ' +

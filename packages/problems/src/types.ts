@@ -72,6 +72,12 @@ export type Problem = {
   id: string;
   title: string;
   level: ProblemLevel;
+  /**
+   * Conceitos de system design que o problema ensina (M4.3) — ids de entradas `concepts` da biblioteca
+   * de `@sdp/knowledge`. É a única fonte do vínculo: a lista de problemas de um conceito é derivada
+   * daqui (`problemsForConcept`), e o progresso por conceito também.
+   */
+  concepts: readonly string[];
   /** Anatomia §2.1 parte 1 — enunciado curto e ambíguo de propósito. */
   statement: string;
   /** Anatomia §2.1 parte 3. */

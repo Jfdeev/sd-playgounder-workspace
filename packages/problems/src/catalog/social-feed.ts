@@ -102,6 +102,7 @@ export const SOCIAL_FEED: Problem = {
   id: 'social-feed',
   title: 'Social Feed',
   level: 'intermediate',
+  concepts: ['fan-out', 'caching', 'cap-pacelc'],
 
   statement:
     'Projete um sistema onde um usuário publica posts curtos e seus seguidores veem esses posts, ' +

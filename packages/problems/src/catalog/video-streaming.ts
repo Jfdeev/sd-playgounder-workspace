@@ -88,6 +88,7 @@ export const VIDEO_STREAMING: Problem = {
   id: 'video-streaming',
   title: 'Upload e streaming de vídeo',
   level: 'intermediate',
+  concepts: ['caching', 'queues'],
 
   statement: 'Projete uma plataforma onde criadores sobem vídeos e qualquer pessoa assiste.',
 
