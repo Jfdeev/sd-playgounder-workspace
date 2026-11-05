@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { AppPage } from '@/components/layout/app-page';
 import { ProfileSettingsForm } from '@/components/progress/profile-settings-form';
 import { loadProfileSettings, loadRankingEntries } from '@/db/gamification';
 import { levelForXp } from '@/lib/gamification/levels';
@@ -16,16 +16,7 @@ export default async function RankingPage() {
   const ranking = sortRanking(entries);
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto">
-      <div className="mx-auto w-full max-w-3xl px-6 py-6">
-        <Link href="/app/progresso" className="mb-4 inline-flex items-center gap-1.5 text-xs text-zinc-500 transition hover:text-zinc-300">
-          <ArrowLeft className="size-3.5" aria-hidden />
-          Seu progresso
-        </Link>
-        <h1 className="mb-1 text-lg font-semibold text-zinc-100">Ranking</h1>
-        <p className="mb-4 text-xs text-zinc-500">
-          Ordenado por XP de estudo — mede desafios resolvidos, não a qualidade de um design.
-        </p>
+    <AppPage title="Ranking" description="Ordenado por XP de estudo — mede desafios resolvidos, não a qualidade de um design.">
 
         <div className="mb-6">
           {!profile.nickname && (
@@ -51,7 +42,6 @@ export default async function RankingPage() {
             ))}
           </ol>
         )}
-      </div>
-    </div>
+    </AppPage>
   );
 }

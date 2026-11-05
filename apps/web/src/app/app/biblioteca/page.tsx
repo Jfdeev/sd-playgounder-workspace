@@ -1,5 +1,6 @@
 import { CONCEPT_ENTRIES, LIBRARY_ENTRIES } from '@sdp/knowledge';
 import { ALL_PROBLEMS, problemsForConcept } from '@sdp/problems';
+import { AppPage } from '@/components/layout/app-page';
 import { LibraryBrowser, type ConceptProblemLink } from '@/components/library/library-browser';
 import { loadSolvedProblemIds } from '@/db/gamification';
 import { blockingLevel, LEVEL_LABEL } from '@/lib/challenge-progression';
@@ -28,8 +29,11 @@ export default async function LibraryPage({
   );
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto">
+    <AppPage
+      title="Biblioteca"
+      description="Conceitos de system design e princípios, características e padrões da literatura clássica de arquitetura — só leitura, sem pontuação, sempre com a fonte."
+    >
       <LibraryBrowser entries={LIBRARY_ENTRIES} initialEntryId={initialEntryId} conceptProblems={conceptProblems} />
-    </div>
+    </AppPage>
   );
 }

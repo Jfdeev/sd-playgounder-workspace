@@ -37,19 +37,23 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const now = new Date();
   try {
-    if (!(await consumeSubmissionQuota(userId))) {
+    // Idas independentes ao banco em paralelo (ajustes gerais, US5).
+    const [withinQuota, diagnosed] = await Promise.all([consumeSubmissionQuota(userId), hasEvent(userId, `incident-diagnosis:${id}`)]);
+    if (!withinQuota) {
       return NextResponse.json({ error: 'RATE_LIMITED' }, { status: 429 });
     }
-    if (!(await hasEvent(userId, `incident-diagnosis:${id}`))) {
+    if (!diagnosed) {
       return NextResponse.json({ error: 'DIAGNOSIS_REQUIRED' }, { status: 409 });
     }
 
     const design = validation.design;
     const { resolved, failing } = evaluateFix(design, incident.design, secret.fault, secret.fixCriterion, incident.workload);
     const snapshot = buildIncidentSnapshot(design, simulate(applyFault(design, secret.fault), incident.workload));
-    await recordActivityDay(userId, now);
-    const credited =
-      resolved && (await creditEvent(userId, { eventKey: `incident:${id}`, type: 'incident', problemId: null, xp: INCIDENT_XP }));
+    // O dia de atividade precisa estar gravado antes de `creditUnlockedAchievements` ler a ofensiva.
+    const [, credited] = await Promise.all([
+      recordActivityDay(userId, now),
+      resolved && creditEvent(userId, { eventKey: `incident:${id}`, type: 'incident', problemId: null, xp: INCIDENT_XP }),
+    ]);
 
     const { newAchievements, progress } = await creditUnlockedAchievements(userId, now, { solvedWithoutSpof: false });
     return NextResponse.json({

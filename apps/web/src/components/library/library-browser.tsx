@@ -9,8 +9,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, BookOpen, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { LIBRARY_CATEGORY_LABELS, type LibraryCategory, type LibraryEntry } from '@sdp/knowledge';
 import { filterLibraryEntries } from '@/lib/library-search';
 import { LibraryEntryCard } from './library-entry-card';
@@ -64,25 +63,8 @@ export function LibraryBrowser({
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 py-6">
-      <Link
-        href="/app"
-        className="mb-4 inline-flex items-center gap-1.5 text-xs text-zinc-500 transition hover:text-zinc-300"
-      >
-        <ArrowLeft className="size-3.5" aria-hidden />
-        Voltar ao canvas
-      </Link>
-
-      <h1 className="flex items-center gap-2 text-lg font-semibold text-zinc-100">
-        <BookOpen className="size-5 text-violet-400" aria-hidden />
-        Biblioteca
-      </h1>
-      <p className="mt-1 text-xs text-zinc-500">
-        Conceitos de system design e princípios, características e padrões da literatura clássica de
-        arquitetura — só leitura, sem pontuação, sempre com a fonte.
-      </p>
-
-      <label className="mt-4 flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 focus-within:border-violet-500">
+    <div>
+      <label className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 focus-within:border-violet-500">
         <Search className="size-4 text-zinc-500" aria-hidden />
         <input
           type="search"

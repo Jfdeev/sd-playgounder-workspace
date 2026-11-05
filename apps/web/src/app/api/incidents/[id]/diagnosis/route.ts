@@ -40,10 +40,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
     const now = new Date();
     const verdict = diagnose(secret.fault, nodeId, faultType);
-    await recordActivityDay(userId, now);
-    if (verdict === 'correct') {
-      await creditEvent(userId, { eventKey: `incident-diagnosis:${id}`, type: 'incident-diagnosis', problemId: null, xp: 0 });
-    }
+    // Em paralelo (ajustes gerais, US5); os dois precisam terminar antes de ler a ofensiva e as conquistas.
+    await Promise.all([
+      recordActivityDay(userId, now),
+      verdict === 'correct' &&
+        creditEvent(userId, { eventKey: `incident-diagnosis:${id}`, type: 'incident-diagnosis', problemId: null, xp: 0 }),
+    ]);
     const { newAchievements, progress } = await creditUnlockedAchievements(userId, now, { solvedWithoutSpof: false });
     const credited = { achievements: newAchievements };
     return NextResponse.json(
