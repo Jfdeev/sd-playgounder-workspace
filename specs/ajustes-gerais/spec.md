@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-05
 
-**Status**: Ready
+**Status**: Done
 
 **Input**: Pedido do autor (2026-11-05), depois do M4: "ajuste geral dos erros que achei no sistema" —
 tela de Progresso fora do design system; desafio/incidente que não conta XP nem fica salvo; falta
@@ -88,3 +88,24 @@ animação de XP; varredura de segurança; lentidão ao trocar de tela; alertas 
 - **SC-003**: Zero alert/confirm/prompt nativos.
 - **SC-004**: Tempo até o primeiro retorno visual ao trocar de tela < 100ms (estado de carregamento).
 - **SC-005**: Relatório de segurança entregue ao autor.
+
+## Resultado (2026-11-05)
+
+- **US1 (XP)**: causa reproduzida e corrigida — `lib/rubric-status.ts` só verifica a rubrica depois de um
+  Submeter; o card avisa "Submeta para validar os critérios e ganhar XP — Simular não conta"; o botão
+  mostra "Registrando…" enquanto o servidor responde. Browser: Simular deixa o card "não verificado";
+  Submeter credita +100 XP e o ✓ persiste depois de recarregar. Incidente (diagnóstico + fix) creditou
+  XP e apareceu no Progresso — não reproduzi falha nele; a hipótese é a espera longa sem retorno.
+- **US2**: `celebrateXp` (toast animado "+100 XP" + conquistas) no Submeter e no fix de incidente.
+- **US3**: `lib/dialogs.ts` + `DialogHost` (Radix Dialog) e `Toaster` (sonner); os 11 alert/confirm/prompt
+  viraram modal/toast (`confirmReplaceCanvas` unifica as 5 confirmações de trocar o canvas).
+- **US4**: `AppPage`/`AppPageNav` em Progresso, Biblioteca, Ranking e perfil — mesma barra do canvas,
+  link ativo destacado.
+- **US5**: `app/app/loading.tsx` (retorno imediato); idas independentes ao Neon em paralelo em
+  submissões, diagnóstico/fix de incidente e conquistas. Medição em dev: 400–750ms de servidor por tela e
+  ~3,4s por submissão antes; o banco fica em `us-east-2`, então cada consulta daqui custa ~150–200ms —
+  em produção na mesma região o ganho relativo é menor. Não medi build de produção.
+- **US6**: [security-report.md](security-report.md) — 13 achados (1 crítico, 3 altos, 3 médios, 6 baixos),
+  nenhum corrigido, aguardando decisão do autor.
+- 897 testes (web 399), cobertura `src/lib` 100% linhas, tsc e build limpos. Dependências novas:
+  `sonner`, `@radix-ui/react-dialog` (autorizadas).

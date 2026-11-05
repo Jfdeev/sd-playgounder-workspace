@@ -34,8 +34,15 @@ Este projeto segue Spec-Driven Development via GitHub Spec Kit
 do anterior ser atingido.
 
 <!-- SPECKIT START -->
-**Plano ativo**: nenhum — M4.3 concluído e, com ele, todo o P0 do M4. Ficam os P1 do M4 (widgets animados,
-galeria da comunidade) e o M5; o autor decide o próximo.
+**Plano ativo**: nenhum — ajustes gerais concluídos; o relatório de segurança
+([specs/ajustes-gerais/security-report.md](specs/ajustes-gerais/security-report.md)) espera o autor decidir o
+que corrigir. Depois: P1 do M4 (widgets animados, galeria da comunidade) ou M5.
+
+Ajustes gerais (pós-M4) ([specs/ajustes-gerais/spec.md](specs/ajustes-gerais/spec.md)): **concluído e verificado
+no browser (2026-11-05)**. Card do desafio só verifica a rubrica com Submeter (`lib/rubric-status.ts` — Simular
+deixava tudo ✓ sem XP); modais/toasts no lugar de alert/confirm/prompt (`lib/dialogs.ts`, `DialogHost` com Radix,
+`sonner`); animação de XP (`celebrateXp`); `AppPage`/`AppPageNav` nas telas fora do canvas; `app/app/loading.tsx` e
+idas ao Neon em paralelo nas rotas de atividade. Engine, narrador e banco intocados.
 
 M4.3 — Wiki de conceitos e progresso por conceito ([specs/conceitos-progresso-m4-3/plan.md](specs/conceitos-progresso-m4-3/plan.md)):
 **concluído e verificado no browser (2026-10-29)**, `spec.md` em `Done`. 13 conceitos aprovados como categoria
