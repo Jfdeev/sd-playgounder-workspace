@@ -56,3 +56,24 @@ describe('sendConfirmationEmail', () => {
     expect(console.error).toHaveBeenCalledOnce();
   });
 });
+
+describe('sendExistingAccountNotice (relatório de segurança, item 8)', () => {
+  beforeEach(() => {
+    sendMock.mockReset();
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it('avisa o dono do email com o link de login', async () => {
+    process.env.RESEND_API_KEY = 'stub';
+    sendMock.mockResolvedValueOnce({ data: { id: 'email-2' }, error: null });
+    const { sendExistingAccountNotice } = await import('../src/lib/email');
+
+    await sendExistingAccountNotice('dono@example.com', 'http://localhost:3000');
+
+    const callArgs = sendMock.mock.calls[0]?.[0];
+    expect(callArgs.to).toBe('dono@example.com');
+    expect(callArgs.html).toContain('http://localhost:3000/entrar');
+  });
+});

@@ -35,6 +35,11 @@ export const users = pgTable('user', {
   passwordHash: text('passwordHash'),
   failedLoginAttempts: integer('failedLoginAttempts').notNull().default(0),
   lockedUntil: timestamp('lockedUntil', { mode: 'date' }),
+  /**
+   * Relatório de segurança, item 12: vai no JWT; incrementar derruba toda sessão aberta da conta (ex.:
+   * quando o Google assume uma conta não confirmada — a senha de quem a cadastrou deixa de valer).
+   */
+  sessionVersion: integer('sessionVersion').notNull().default(0),
 
   createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
 });

@@ -6,13 +6,21 @@ Route Handler novo, mesmo padrão dos já existentes em `apps/web/src/app/api/ac
 
 ```ts
 type NarratorRequest = {
-  design: Design;         // @sdp/engine — o mesmo Design que gerou `result`
-  workload: Workload;     // @sdp/engine
-  result: SimulationResult; // @sdp/engine — já calculado no client, nunca recalculado aqui
+  design: Design;           // @sdp/engine — validado com os limites das submissões
+  workload: Workload;       // @sdp/engine — números finitos e limitados
+  problemId?: string | null; // desafio ativo: dá o contexto de score (orçamento, custo de referência)
 };
 ```
 
-**Regra 1**: o servidor NUNCA recalcula `simulate(design, workload)` pra conferir `result` — o
+> **Revisão de 2026-11-05 (relatório de segurança, itens 2 e 3 — `specs/ajustes-gerais/security-report.md`)**:
+> a Regra 1 abaixo foi **invertida**. Confiar no `result` do cliente deixava gravar uma explicação falsa
+> no cache compartilhado (`narratorExplanations`), servida a todos que simulassem o mesmo design. Agora o
+> servidor ignora qualquer `result`, recalcula `simulate(design, workload, scoreContextFor(problem))`, e a
+> chave do cache inclui o desafio (`narratorCacheKey`) — o que também deixa inacessíveis as linhas antigas,
+> que podiam estar envenenadas. Cache miss cobra a cota das submissões (`consumeSubmissionQuota`, 429).
+> A Regra 2 continua: `design`/`workload` não vão para o prompt.
+
+**Regra 1 (substituída — histórico)**: o servidor NUNCA recalcula `simulate(design, workload)` pra conferir `result` — o
 Route Handler confia no `result` recebido (mesmo modelo de confiança de M1: submissão é 100%
 client-side, sem persistência "oficial" que dependa desse resultado — narrador é só explicação,
 nunca fonte de verificação de progressão/rubrica, que já roda inteiramente no client desde M1).
