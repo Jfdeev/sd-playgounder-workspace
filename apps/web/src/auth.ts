@@ -2,11 +2,16 @@ import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
+import { isAttemptAllowed, recordAttempt, resetAttempts } from './db/attempts';
 import { db } from './db/client';
-import { accounts, loginIpAttempts, sessions, users, verificationTokens } from './db/schema';
+import { accounts, sessions, users, verificationTokens } from './db/schema';
 import { decideAccountLinking } from './lib/account-linking';
+import { normalizeEmail } from './lib/email-address';
 import {
+  ACCOUNT_LOGIN_POLICY,
+  ACCOUNT_WIDE_LOGIN_POLICY,
+  attemptKey,
   checkLoginAttempt,
   IP_LOGIN_POLICY,
   recordFailedAttempt,
@@ -14,6 +19,7 @@ import {
 } from './lib/rate-limit';
 import { verifyPassword } from './lib/password';
 import { getClientIp } from './lib/client-ip';
+import { isSessionCurrent, sessionCheckNeeded } from './lib/session-version';
 
 const baseAdapter = DrizzleAdapter(db, {
   usersTable: users,
@@ -37,40 +43,12 @@ const adapter = {
 // bloqueada) — nunca revela qual delas ocorreu (FR-010/SC-003, mitigação de user enumeration).
 const GENERIC_LOGIN_ERROR = 'Email ou senha inválidos.';
 
-/**
- * Registra uma tentativa de login malsucedida no nível de IP (camada secundária contra
- * credential spraying, `IP_LOGIN_POLICY`) — chamada em TODO caminho de falha do `authorize`
- * abaixo (senha errada, email inexistente, conta já bloqueada), não só senha errada, porque a
- * intenção aqui é contar volume de tentativas mal-sucedidas vindas do IP, independente do motivo.
- * Upsert (não há linha pra um IP na 1ª tentativa) — leitura+escrita não-atômica é aceitável para
- * uma camada secundária de rate limit (mesmo padrão já usado para o contador por conta).
- */
-async function recordIpFailure(ip: string, now: Date): Promise<void> {
-  const [current] = await db
-    .select({
-      failedAttempts: loginIpAttempts.failedAttempts,
-      lockedUntil: loginIpAttempts.lockedUntil,
-    })
-    .from(loginIpAttempts)
-    .where(eq(loginIpAttempts.ip, ip))
-    .limit(1);
+/** Conta pelo e-mail sem diferenciar maiúsculas — contas antigas podem ter sido gravadas sem normalizar (item 9). */
+const sameEmail = (email: string) => sql`lower(${users.email}) = ${normalizeEmail(email)}`;
 
-  const next = recordFailedAttempt(
-    {
-      failedLoginAttempts: current?.failedAttempts ?? 0,
-      lockedUntil: current?.lockedUntil ?? null,
-    },
-    now,
-    IP_LOGIN_POLICY,
-  );
-
-  await db
-    .insert(loginIpAttempts)
-    .values({ ip, failedAttempts: next.failedLoginAttempts, lockedUntil: next.lockedUntil })
-    .onConflictDoUpdate({
-      target: loginIpAttempts.ip,
-      set: { failedAttempts: next.failedLoginAttempts, lockedUntil: next.lockedUntil },
-    });
+async function loadSessionVersion(userId: string): Promise<number | null> {
+  const [row] = await db.select({ sessionVersion: users.sessionVersion }).from(users).where(eq(users.id, userId)).limit(1);
+  return row?.sessionVersion ?? null;
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -91,70 +69,55 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: {},
       },
       authorize: async (credentials, request) => {
-        const email = typeof credentials?.email === 'string' ? credentials.email : null;
+        const email = typeof credentials?.email === 'string' ? normalizeEmail(credentials.email) : null;
         const password = typeof credentials?.password === 'string' ? credentials.password : null;
         if (!email || !password) return null;
 
         const now = new Date();
-        const ip = getClientIp(request.headers);
+        const ip = getClientIp(request.headers, process.env.CLIENT_IP_HEADER);
+        const ipKey = attemptKey.ip(ip);
 
         // Camada de IP checada ANTES de qualquer consulta de conta — se o IP já está bloqueado
         // por volume (credential spraying), nega sem sequer olhar se o email existe.
-        const [ipState] = await db
-          .select({
-            failedAttempts: loginIpAttempts.failedAttempts,
-            lockedUntil: loginIpAttempts.lockedUntil,
-          })
-          .from(loginIpAttempts)
-          .where(eq(loginIpAttempts.ip, ip))
-          .limit(1);
-        const ipCheck = checkLoginAttempt(
-          { failedLoginAttempts: ipState?.failedAttempts ?? 0, lockedUntil: ipState?.lockedUntil ?? null },
-          now,
-        );
-        if (!ipCheck.allowed) return null;
+        if (!(await isAttemptAllowed(ipKey, now))) return null;
+        const failFromIp = () => recordAttempt(ipKey, now, IP_LOGIN_POLICY);
 
-        const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
-
+        const [user] = await db.select().from(users).where(sameEmail(email)).limit(1);
         if (!user || !user.passwordHash) {
-          await recordIpFailure(ip, now);
+          await failFromIp();
           return null;
         }
 
-        const attemptCheck = checkLoginAttempt(
-          { failedLoginAttempts: user.failedLoginAttempts, lockedUntil: user.lockedUntil },
-          now,
-        );
-        if (!attemptCheck.allowed) {
-          await recordIpFailure(ip, now);
+        // Item 11: as 5 tentativas (FR-012) contam por conta + IP — errar a senha de outra pessoa de
+        // propósito só trava quem erra. O teto da conta inteira (50) segura força bruta distribuída.
+        const sourceKey = attemptKey.accountFromIp(user.id, ip);
+        const accountWide = { failedLoginAttempts: user.failedLoginAttempts, lockedUntil: user.lockedUntil };
+        if (!checkLoginAttempt(accountWide, now).allowed || !(await isAttemptAllowed(sourceKey, now))) {
+          await failFromIp();
           return null;
         }
 
-        const passwordCorrect = await verifyPassword(password, user.passwordHash);
-        if (!passwordCorrect) {
-          const nextState = recordFailedAttempt(
-            { failedLoginAttempts: user.failedLoginAttempts, lockedUntil: user.lockedUntil },
-            now,
-          );
-          await db
+        if (!(await verifyPassword(password, user.passwordHash))) {
+          const next = recordFailedAttempt(accountWide, now, ACCOUNT_WIDE_LOGIN_POLICY);
+          await Promise.all([
+            db
+              .update(users)
+              .set({ failedLoginAttempts: next.failedLoginAttempts, lockedUntil: next.lockedUntil })
+              .where(eq(users.id, user.id)),
+            recordAttempt(sourceKey, now, ACCOUNT_LOGIN_POLICY),
+            failFromIp(),
+          ]);
+          return null;
+        }
+
+        const reset = recordSuccessfulAttempt();
+        await Promise.all([
+          db
             .update(users)
-            .set({
-              failedLoginAttempts: nextState.failedLoginAttempts,
-              lockedUntil: nextState.lockedUntil,
-            })
-            .where(eq(users.id, user.id));
-          await recordIpFailure(ip, now);
-          return null;
-        }
-
-        const resetState = recordSuccessfulAttempt();
-        await db
-          .update(users)
-          .set({
-            failedLoginAttempts: resetState.failedLoginAttempts,
-            lockedUntil: resetState.lockedUntil,
-          })
-          .where(eq(users.id, user.id));
+            .set({ failedLoginAttempts: reset.failedLoginAttempts, lockedUntil: reset.lockedUntil })
+            .where(eq(users.id, user.id)),
+          resetAttempts(sourceKey),
+        ]);
 
         return { id: user.id, email: user.email, name: user.name, image: user.image };
       },
@@ -195,10 +158,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const [existing] = await db
           .select({ id: users.id, emailVerified: users.emailVerified })
           .from(users)
-          .where(eq(users.email, user.email))
+          .where(sameEmail(user.email))
           .limit(1);
 
-        const decision = decideAccountLinking({ existingUserByEmail: existing ?? null });
+        const decision = decideAccountLinking({
+          existingUserByEmail: existing ?? null,
+          googleEmailVerified: profile?.['email_verified'] === true,
+        });
 
         if (decision.action === 'reject') {
           // Não cria uma segunda conta com o mesmo email (violaria unique em users.email) —
@@ -207,7 +173,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return false;
         }
 
-        if (decision.action === 'link' && existing) {
+        if (decision.action === 'claim' && existing) {
+          // Item 10: o Google provou a posse do email; quem criou a conta pendente não. A senha dela deixa
+          // de valer e toda sessão aberta com ela cai (sessionVersion + 1) — depois vincula como no "link".
+          await db
+            .update(users)
+            .set({
+              passwordHash: null,
+              emailVerified: new Date(),
+              failedLoginAttempts: 0,
+              lockedUntil: null,
+              sessionVersion: sql`${users.sessionVersion} + 1`,
+            })
+            .where(eq(users.id, existing.id));
+        }
+
+        if ((decision.action === 'link' || decision.action === 'claim') && existing) {
           await adapter.linkAccount?.({
             userId: existing.id,
             type: 'oauth',
@@ -238,6 +219,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     session({ session, token }) {
       if (token.sub) session.user.id = token.sub;
       return session;
+    },
+    // Item 12: o token carrega a sessionVersion da conta; de tempos em tempos (session-version.ts) ela é
+    // conferida no banco, e uma versão diferente (ou conta apagada) derruba a sessão.
+    async jwt({ token, user }) {
+      const now = Date.now();
+      if (user?.id) {
+        token.sv = await loadSessionVersion(user.id);
+        token.svAt = now;
+        return token;
+      }
+      if (!token.sub || sessionCheckNeeded(token.svAt, now) === 'skip') return token;
+      if (!isSessionCurrent(token.sv, await loadSessionVersion(token.sub))) return null;
+      token.svAt = now;
+      return token;
     },
   },
   pages: {

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { securityHeaders } from "./src/lib/security-headers";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -6,6 +7,10 @@ const nextConfig: NextConfig = {
   // main/types apontam direto pra src/index.ts). Next não transpila TS de fora de apps/web por
   // padrão; isso é o que faz esse import funcionar (spike de risco do M1, ver plan.md research.md).
   transpilePackages: ["@sdp/engine", "@sdp/knowledge", "@sdp/problems"],
+  // Relatório de segurança, item 5: CSP, anti-clickjacking, nosniff, Referrer-Policy, HSTS em todas as rotas.
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders(process.env.NODE_ENV !== "production") }];
+  },
   webpack(config) {
     // packages/engine usa imports relativos com extensão .js (convenção do moduleResolution
     // NodeNext do TS, mesmo apontando pra arquivos .ts) — webpack não resolve isso por padrão

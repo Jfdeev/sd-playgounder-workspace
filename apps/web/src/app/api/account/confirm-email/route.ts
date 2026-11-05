@@ -1,6 +1,7 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { users, verificationTokens } from '@/db/schema';
+import { hashToken } from '@/lib/token-hash';
 
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
@@ -13,7 +14,8 @@ export async function GET(request: Request): Promise<Response> {
   const [verification] = await db
     .select()
     .from(verificationTokens)
-    .where(eq(verificationTokens.token, token))
+    // Relatório de segurança, item 13: o banco só tem o hash; o link traz o token em claro.
+    .where(eq(verificationTokens.token, hashToken(token)))
     .limit(1);
 
   if (!verification || verification.expires < new Date()) {
@@ -23,7 +25,7 @@ export async function GET(request: Request): Promise<Response> {
   await db
     .update(users)
     .set({ emailVerified: new Date() })
-    .where(eq(users.email, verification.identifier));
+    .where(sql`lower(${users.email}) = lower(${verification.identifier})`);
 
   // Uso único — remove o token consumido.
   await db
