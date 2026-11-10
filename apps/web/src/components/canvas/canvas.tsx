@@ -23,6 +23,7 @@ import type { ClientVariant } from '@/lib/canvas-types';
 import { connectableKindOf, isValidCanvasConnection } from '@/lib/connection-rules';
 import type { SimulationRunKind } from '@/lib/rubric-status';
 import { confirmDialog } from '@/lib/dialogs';
+import { scoreContextFor } from '@/lib/simulation-context';
 import { celebrateXp } from '../ui/xp-celebration';
 import { RPS_SLIDER_RESOLUTION, clampRps, rpsToSliderPosition, sliderPositionToRps } from '@/lib/rps-slider';
 import { useCanvasStore, useCanvasStoreApi, type CanvasEdge, type CanvasNode } from '@/stores/canvas-store';
@@ -168,10 +169,7 @@ function CanvasInner({ problem, onLeaveChallenge, incident = null, onLeaveIncide
   // problema, na escala oficial dele. Memoizado por `problem?.id` — só recalcula ao trocar de
   // desafio, não a cada Simular/Submeter (a referência não muda entre uma submissão e outra).
   // `null` fora de um desafio (sandbox) — a dimensão Custo aí retorna 0 (scores/calculate.ts).
-  const referenceCostUsd = useMemo(() => {
-    if (!problem) return null;
-    return simulate(problem.referenceSolution.design, toWorkload(problem)).cost.monthlyTotal;
-  }, [problem]);
+  const scoreContext = useMemo(() => scoreContextFor(problem ?? null), [problem]);
 
   // FR-008/FR-009/FR-029: roda o design atual contra o engine e propaga status/gargalo de volta
   // pros nós (destaque em ComponentNode). Canvas vazio (edge case do spec) mostra uma mensagem
@@ -187,10 +185,7 @@ function CanvasInner({ problem, onLeaveChallenge, incident = null, onLeaveIncide
       }
       setActionError(null);
 
-      const result = simulate(design, workload, {
-        latencyBudgetMs: problem?.latencyBudgetMs ?? null,
-        referenceCostUsd,
-      });
+      const result = simulate(design, workload, scoreContext);
 
       applySimulationResult(result, design, workload, kind);
       for (const [nodeId, nodeResult] of Object.entries(result.nodes)) {
@@ -200,7 +195,7 @@ function CanvasInner({ problem, onLeaveChallenge, incident = null, onLeaveIncide
       }
       return true;
     },
-    [nodes, design, problem, referenceCostUsd, applySimulationResult, updateNodeConfig],
+    [nodes, design, scoreContext, applySimulationResult, updateNodeConfig],
   );
 
   // Sem desafio ativo, o botão de Submeter já vem desabilitado (ver JSX) — handleSubmit nunca
@@ -405,7 +400,7 @@ function CanvasInner({ problem, onLeaveChallenge, incident = null, onLeaveIncide
         )}
         <ResultPanel result={lastResult} actionError={actionError} />
         <ScorePanel result={lastResult} />
-        <NarratorPanel />
+        <NarratorPanel problemId={problem?.id ?? null} />
       </div>
       <ConfigPanel />
     </div>

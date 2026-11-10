@@ -24,10 +24,14 @@ export default function CriarContaPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<FieldError | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // Relatório de segurança, item 8: o servidor responde igual para email novo e existente; se o login
+  // automático não entra, a pessoa provavelmente já tinha conta — a tela diz isso sem confirmar nada.
+  const [neutralNotice, setNeutralNotice] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setNeutralNotice(false);
     setSubmitting(true);
 
     try {
@@ -48,9 +52,14 @@ export default function CriarContaPage() {
         return;
       }
 
-      // Conta criada (201) — signup não autentica sozinho (contracts/auth-api.md); o cliente
-      // autentica em seguida chamando signIn diretamente.
-      await signIn('credentials', { email, password, redirect: false });
+      // 201 — signup não autentica sozinho (contracts/auth-api.md); o cliente autentica em seguida. Se não
+      // entrar, o email já tinha conta (com outra senha): mensagem neutra, sem revelar isso.
+      const login = await signIn('credentials', { email, password, redirect: false });
+      if (!login || login.error) {
+        setNeutralNotice(true);
+        setSubmitting(false);
+        return;
+      }
       router.push('/app');
     } catch {
       setError({ field: 'email', message: 'Erro de rede. Tente novamente.' });
@@ -71,6 +80,16 @@ export default function CriarContaPage() {
         </>
       }
     >
+      {neutralNotice && (
+        <p role="status" className="mb-4 rounded-lg border border-violet-500/40 bg-violet-500/10 px-3 py-2 text-sm text-zinc-200">
+          Se este email for novo, sua conta foi criada e enviamos um link de confirmação. Se você já tem conta
+          com ele,{' '}
+          <Link href="/entrar" className="font-medium text-violet-300 hover:text-violet-200">
+            entre por aqui
+          </Link>
+          .
+        </p>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <div className="relative">

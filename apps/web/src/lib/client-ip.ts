@@ -1,20 +1,33 @@
 /**
- * Extrai o IP do cliente a partir dos headers de proxy padrão (`x-forwarded-for`, depois
- * `x-real-ip`) — usado pelo rate limiting de IP (FR-012, camada secundária, `IP_LOGIN_POLICY`).
- * Em dev local sem proxy na frente, nenhum dos dois headers existe — cai no bucket `"unknown"`
- * (todas as tentativas locais compartilham o mesmo estado de rate limit de IP; limitação
- * conhecida e aceitável para desenvolvimento, sem proxy real até o deploy).
+ * IP do cliente para os limites de tentativa (login e cadastro) — relatório de segurança, item 7.
+ *
+ * O 1º valor de `X-Forwarded-For` é escrito por quem faz a requisição, então não serve para bloquear
+ * nada: bastava trocá-lo a cada tentativa. Regras:
+ * - `trustedHeader` definido (env `CLIENT_IP_HEADER`, ex. `x-real-ip` ou `x-vercel-forwarded-for`): usa só
+ *   esse cabeçalho, que a plataforma de hospedagem garante.
+ * - senão: o **último** valor de `X-Forwarded-For` — o que o proxy mais próximo anotou. Vale atrás de um
+ *   proxy; sem nenhum proxy na frente, nenhum cabeçalho é confiável (o app ainda não está no ar).
+ * - por fim `x-real-ip`, e `unknown` quando não há nada (dev local).
  */
-export function getClientIp(headers: Headers): string {
-  const forwardedFor = headers.get('x-forwarded-for');
-  if (forwardedFor) {
-    // Pode vir "client, proxy1, proxy2" — o primeiro é o IP original do cliente.
-    const first = forwardedFor.split(',')[0]?.trim();
-    if (first) return first;
+export function getClientIp(headers: Headers, trustedHeader?: string): string {
+  if (trustedHeader) {
+    return firstValue(headers.get(trustedHeader)) ?? 'unknown';
   }
 
-  const realIp = headers.get('x-real-ip');
-  if (realIp) return realIp;
+  const forwardedFor = headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    const last = forwardedFor
+      .split(',')
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .at(-1);
+    if (last) return last;
+  }
 
-  return 'unknown';
+  return firstValue(headers.get('x-real-ip')) ?? 'unknown';
+}
+
+function firstValue(raw: string | null): string | null {
+  const value = raw?.split(',')[0]?.trim();
+  return value ? value : null;
 }

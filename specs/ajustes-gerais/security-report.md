@@ -1,6 +1,7 @@
 # Relatório de segurança — ajustes gerais (2026-11-05)
 
-**Status**: só relatório (decisão do autor). Nada abaixo foi corrigido; cada item espera "corrigir / aceitar".
+**Status**: **todos os 13 itens corrigidos em 2026-11-05** (pedido do autor: "resolva tudo"), branch
+`feature/005-security-fixes`. Ver "Correções" no fim — inclui o que ficou de risco residual.
 
 **Escopo**: `apps/web` (rotas `/api/*`, Auth.js, middleware, páginas de `/app`), dependências de produção
 (`pnpm audit --prod`) e configuração do Next. Método: leitura do código de cada rota e de `src/auth.ts`,
@@ -80,3 +81,39 @@ cabeçalho que a plataforma garante (na Vercel, `x-real-ip`/`x-vercel-forwarded-
 link"); normalizar e-mail (`trim().toLowerCase()`) no cadastro e no login; permitir que o dono real do
 e-mail recupere a conta (reenviar confirmação / reset); bloqueio progressivo com atraso em vez de trava
 dura; versão de sessão no JWT para revogar ao trocar senha; guardar o hash do token de confirmação.
+
+## Correções (2026-11-05)
+
+| # | O que foi feito | Onde |
+|---|---|---|
+| 1, 4 | `next` 15.5.29, `next-auth` 5.0.0-beta.32 (@auth/core 0.41.3), `@auth/drizzle-adapter` 1.11, `drizzle-orm` 0.45.4 + `drizzle-kit` 0.31, `zod` 4, `resend` 6; `pnpm.overrides` para postcss, sharp, source-map-js e shell-quote; o peer `@react-email/render` do resend (não usado, trazia deepmerge) foi removido. **`pnpm audit --prod`: 25 → 0.** | `package.json`, `apps/web/package.json` |
+| 2 | O narrador ignora o `result` do navegador e recalcula `simulate(design, workload, scoreContextFor(problem))`; o corpo é `{ design, workload, problemId? }`; a chave do cache inclui o desafio, o que deixa inacessíveis as linhas antigas (possivelmente envenenadas). Contrato do M2 (Regra 1) revisto. | `api/narrator`, `lib/narrator-request.ts`, `lib/simulation-context.ts` |
+| 3 | Design validado com os limites das submissões, carga com números finitos e limitados, cache miss consome a cota das submissões (429). | idem |
+| 5 | CSP, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, HSTS em todas as rotas. | `lib/security-headers.ts`, `next.config.ts` |
+| 6 | Cadastro limitado a 5 tentativas por IP por hora. | `api/account/signup`, `SIGNUP_IP_POLICY` |
+| 7 | IP = cabeçalho de `CLIENT_IP_HEADER` (se definido) ou o **último** valor de `X-Forwarded-For`. | `lib/client-ip.ts`, `.env.example` |
+| 8 | Cadastro responde 201 nos dois casos; o dono do email existente recebe um aviso; bcrypt roda nos dois caminhos (tempo igual); a tela mostra uma mensagem neutra. | `api/account/signup`, `criar-conta`, `lib/email.ts` |
+| 9 | Email normalizado no cadastro e comparado sem diferenciar maiúsculas no login, na confirmação e no vínculo Google. | `lib/email-address.ts`, `auth.ts` |
+| 10 | Conta não confirmada + Google confirmou o email → `claim`: a senha da conta pendente é apagada, as sessões dela caem e o Google é vinculado. | `lib/account-linking.ts`, `auth.ts` |
+| 11 | As 5 tentativas (FR-012) contam por conta + IP; teto de 50 na conta inteira. | `auth.ts`, `db/attempts.ts`, `lib/rate-limit.ts` |
+| 12 | Coluna `user.sessionVersion` (migração `0006`, aplicada ao Neon com autorização do autor) no JWT, conferida a cada 5 min; versão diferente derruba a sessão. | `lib/session-version.ts`, `auth.ts` |
+| 13 | O banco guarda o SHA-256 do token de confirmação; o link continua com o token. | `lib/token-hash.ts`, `api/account/*` |
+
+**Verificado no browser** (conta descartável, apagada no fim): cabeçalhos presentes e nenhuma violação
+de CSP no cadastro e no canvas; email com maiúsculas gravado em minúsculas e login com maiúsculas
+funciona; o token gravado não confirma a conta (é hash); cadastro com email existente mostra a mensagem
+neutra; 5 erros travam a senha certa a partir da mesma origem, e outra origem entra; o narrador respondeu
+com o p99 real (92,4ms) mesmo recebendo um `result` forjado com p99 = 1 e texto de injeção de prompt;
+incrementar `sessionVersion` derrubou a sessão aberta dentro da janela de 5 minutos.
+
+**Risco residual (conhecido)**
+- `script-src 'unsafe-inline'`: o Next injeta scripts inline; trocar por nonce exige renderizar toda
+  página dinamicamente. A CSP ainda fecha frames, objetos, `base-uri`, origens externas e `form-action`.
+- Item 7: sem proxy na frente (dev), nenhum cabeçalho é confiável — o teste em dev mostrou que forjar o
+  `X-Forwarded-For` troca o IP. **Ao publicar, definir `CLIENT_IP_HEADER`** com o cabeçalho da plataforma
+  (na Vercel, `x-real-ip` ou `x-vercel-forwarded-for`). O teto de 50 por conta segura mesmo assim.
+- Item 3: a cota do Gemini (free tier) continua global; o limite por conta e o cache reduzem o abuso, não
+  aumentam a cota.
+- Item 13: links de confirmação emitidos antes desta mudança (token em claro, válidos por 24h) deixam de
+  funcionar; não existe tela de reenviar confirmação.
+- Item 12: a revogação vale em até 5 minutos (intervalo de conferência), não na hora.

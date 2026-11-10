@@ -30,6 +30,29 @@ export const IP_LOGIN_POLICY: LoginAttemptPolicy = {
 };
 
 /**
+ * Relatório de segurança, item 11: o bloqueio de 5 tentativas (FR-012, `ACCOUNT_LOGIN_POLICY`) passa a
+ * valer por **conta + IP** — quem erra a senha de outra pessoa de propósito só trava a si mesmo. Este teto
+ * alto, na conta inteira, continua freando força bruta distribuída por muitos IPs.
+ */
+export const ACCOUNT_WIDE_LOGIN_POLICY: LoginAttemptPolicy = {
+  maxAttempts: 50,
+  lockoutMs: 15 * 60 * 1000,
+};
+
+/** Relatório de segurança, item 6: cadastros por IP (cada tentativa conta, criada ou não). */
+export const SIGNUP_IP_POLICY: LoginAttemptPolicy = {
+  maxAttempts: 5,
+  lockoutMs: 60 * 60 * 1000,
+};
+
+/** Chaves do contador de tentativas (`loginIpAttempts.ip` guarda qualquer chave textual). */
+export const attemptKey = {
+  ip: (ip: string) => ip,
+  accountFromIp: (userId: string, ip: string) => `account-ip:${userId}:${ip}`,
+  signup: (ip: string) => `signup:${ip}`,
+};
+
+/**
  * Checa se uma tentativa de login pode prosseguir (FR-012). Chamada ANTES de verificar a senha —
  * se a conta (ou o IP) está bloqueada, a tentativa é negada sem sequer olhar a senha (evita que o
  * próprio rate limit vaze informação sobre se a senha estaria certa). Não depende da política —

@@ -111,7 +111,8 @@ describe('validateLibraryEntries — cada invariante acusa uma violação (o tes
   });
 
   it('acusa conceito sem trade-off ou sem capítulo (M4.3)', () => {
-    expect(validateLibraryEntries([validConceptEntry({ tradeoff: undefined })])).toEqual(['z: conceito exige trade-off']);
+    const { tradeoff: _omitted, ...withoutTradeoff } = validConceptEntry();
+    expect(validateLibraryEntries([withoutTradeoff])).toEqual(['z: conceito exige trade-off']);
     expect(validateLibraryEntries([validConceptEntry({ chapter: ' ' })])).toEqual(['z: conceito exige o capítulo da fonte']);
   });
 
