@@ -45,11 +45,25 @@ export const SIGNUP_IP_POLICY: LoginAttemptPolicy = {
   lockoutMs: 60 * 60 * 1000,
 };
 
+/** Pedidos de link de redefinição de senha por IP (specs/conta-lgpd, FR-002). */
+export const PASSWORD_RESET_IP_POLICY: LoginAttemptPolicy = {
+  maxAttempts: 5,
+  lockoutMs: 60 * 60 * 1000,
+};
+
+/** Reenvios do e-mail de confirmação por conta (specs/conta-lgpd, US2): 3 por hora. */
+export const CONFIRMATION_RESEND_POLICY: LoginAttemptPolicy = {
+  maxAttempts: 3,
+  lockoutMs: 60 * 60 * 1000,
+};
+
 /** Chaves do contador de tentativas (`loginIpAttempts.ip` guarda qualquer chave textual). */
 export const attemptKey = {
   ip: (ip: string) => ip,
   accountFromIp: (userId: string, ip: string) => `account-ip:${userId}:${ip}`,
   signup: (ip: string) => `signup:${ip}`,
+  passwordReset: (ip: string) => `password-reset:${ip}`,
+  confirmationResend: (userId: string) => `confirmation-resend:${userId}`,
 };
 
 /**

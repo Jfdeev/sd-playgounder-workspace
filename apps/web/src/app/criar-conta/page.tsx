@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Lock, Mail } from 'lucide-react';
+import { MINIMUM_AGE } from '@/lib/legal';
 import { AuthShell } from '../_components/auth-shell';
 import {
   fieldErrorClassName,
@@ -139,6 +140,17 @@ export default function CriarContaPage() {
         <button type="submit" disabled={submitting} className={primaryButtonClassName}>
           Criar conta
         </button>
+        <p className="text-xs text-zinc-500">
+          Ao criar a conta, você confirma ter {MINIMUM_AGE} anos ou mais e concorda com os{' '}
+          <Link href="/termos" className="text-violet-400 hover:text-violet-300">
+            Termos de uso
+          </Link>{' '}
+          e a{' '}
+          <Link href="/privacidade" className="text-violet-400 hover:text-violet-300">
+            Política de privacidade
+          </Link>
+          .
+        </p>
       </form>
 
       <div className="my-5 flex items-center gap-3">

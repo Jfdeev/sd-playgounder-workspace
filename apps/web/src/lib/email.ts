@@ -54,3 +54,14 @@ export async function sendExistingAccountNotice(to: string, baseUrl: string): Pr
     'aviso de conta existente',
   );
 }
+
+/** Link de redefinição de senha (specs/conta-lgpd, US1) — vale 1 hora e serve uma vez. */
+export async function sendPasswordResetEmail(to: string, token: string, baseUrl: string): Promise<void> {
+  const resetUrl = `${baseUrl}/redefinir-senha?token=${encodeURIComponent(token)}`;
+  await sendEmail(
+    to,
+    'Redefinir sua senha — System Design Playground',
+    `<p>Para criar uma senha nova, abra <a href="${resetUrl}">${resetUrl}</a>. O link vale 1 hora e funciona uma vez. Se não foi você que pediu, ignore este e-mail — sua senha continua a mesma.</p>`,
+    'link de redefinição de senha',
+  );
+}

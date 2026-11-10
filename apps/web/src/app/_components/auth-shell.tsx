@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { LegalLinks } from './legal-links';
 
 interface AuthShellProps {
   title: string;
@@ -30,6 +31,9 @@ export function AuthShell({ title, subtitle, children, footer }: AuthShellProps)
         </div>
 
         <p className="mt-6 text-center text-sm text-zinc-500">{footer}</p>
+        <p className="mt-3 text-center text-xs text-zinc-600">
+          <LegalLinks />
+        </p>
       </div>
     </main>
   );

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { LegalLinks } from './legal-links';
 
 export function Footer() {
   return (
@@ -12,6 +13,7 @@ export function Footer() {
           <Link href="/criar-conta" className="transition hover:text-zinc-300">
             Criar conta
           </Link>
+          <LegalLinks className="gap-6" />
         </div>
       </div>
     </footer>

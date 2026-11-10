@@ -16,6 +16,11 @@ export default function EntrarPage() {
           <Link href="/criar-conta" className="font-medium text-violet-400 hover:text-violet-300">
             Criar conta
           </Link>
+          <span className="mt-2 block">
+            <Link href="/esqueci-senha" className="text-violet-400 hover:text-violet-300">
+              Esqueci minha senha
+            </Link>
+          </span>
         </>
       }
     >
