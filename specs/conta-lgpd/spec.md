@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-10
 
-**Status**: Ready (texto legal aguarda revisão do autor)
+**Status**: Done (texto legal aguarda revisão do autor; dados do responsável a preencher em `apps/web/src/lib/legal.ts`)
 
 **Input**: Pedido do autor (2026-11-10) — itens 1 a 3 da lista "o que falta para lançar": recuperar senha,
 reenviar confirmação de e-mail, e LGPD (excluir conta, privacidade e termos).
@@ -65,3 +65,21 @@ reenviar confirmação de e-mail, e LGPD (excluir conta, privacidade e termos).
 - **SC-001**: Fluxo de redefinição completo verificado no browser (pedir → link → nova senha → login).
 - **SC-002**: Excluir a conta remove todas as linhas do usuário no banco (verificado por consulta).
 - **SC-003**: Exportação contém os dados do usuário e nenhum segredo (testado).
+
+## Resultado (2026-11-10)
+
+Verificado no browser com conta descartável (apagada pela própria exclusão):
+- **US1**: pedido de redefinição responde igual para email existente e inexistente (só o existente ganha
+  token); senha fraca é recusada sem queimar o link; link de redefinição não confirma email na rota de
+  confirmação (e continua intacto); senha nova salva → entra direto em `/app`; reusar o link → 400; senha
+  antiga deixa de valer; email fica confirmado; `sessionVersion` 0 → 1.
+- **US2**: faixa aparece para conta não confirmada; reenvios 1–3 → 200, 4º → 429; só o último token vale.
+- **US3**: export em JSON com conta, perfil, eventos, dias e designs, sem `passwordHash`/tokens; excluir com
+  email errado → recusado; com o email certo (em maiúsculas) → sai da sessão e volta à página inicial, e o
+  banco fica sem nenhuma linha da conta (usuário, eventos, dias, perfil/ranking, designs, tokens,
+  contadores); `/privacidade` e `/termos` renderizam com o aviso de rascunho.
+- 937 testes, tsc e build limpos. Sem migração.
+
+**Pendências do autor**: preencher nome e email de contato em `apps/web/src/lib/legal.ts` e revisar o texto
+de `/privacidade` e `/termos` (não é aconselhamento jurídico). Emails só chegam com domínio verificado no
+Resend (item 4 da lista de lançamento).
