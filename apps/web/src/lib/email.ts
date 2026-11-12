@@ -1,13 +1,15 @@
 import { Resend } from 'resend';
 
-// BUGFIX (2026-08-25): `systemdesignplayground.dev` nunca foi verificado como domínio de envio
-// no Resend (confirmado via GET /domains da própria API do Resend: retorna `[]`, zero domínios) —
-// todo envio falhava sempre, silenciosamente, capturado pelo try/catch abaixo (nunca chegava a
-// nenhuma caixa de entrada desde M0.5). `onboarding@resend.dev` é o remetente sandbox do próprio
-// Resend, funciona sem verificação de domínio, mas só entrega pro email da conta Resend dona da
-// API key — suficiente para dev/teste local. Trocar por um domínio próprio verificado antes de
-// qualquer usuário real além do autor depender do link de confirmação.
-const FROM_ADDRESS = 'System Design Playground <onboarding@resend.dev>';
+// Remetente vem de `EMAIL_FROM` (endereço de um domínio verificado no Resend, ex.
+// `System Design Playground <nao-responda@seudominio.com>`). Sem ela, cai no remetente sandbox do
+// Resend (`onboarding@resend.dev`), que funciona sem verificar domínio mas só entrega pro email da conta
+// Resend dona da API key — serve para dev, nunca para produção (BUGFIX de 2026-08-25: um domínio nunca
+// verificado fazia todo envio falhar em silêncio).
+const SANDBOX_FROM = 'System Design Playground <onboarding@resend.dev>';
+
+export function senderAddress(emailFrom: string | undefined = process.env.EMAIL_FROM): string {
+  return emailFrom?.trim() || SANDBOX_FROM;
+}
 
 function buildConfirmationUrl(baseUrl: string, token: string): string {
   return `${baseUrl}/api/account/confirm-email?token=${encodeURIComponent(token)}`;
@@ -24,7 +26,7 @@ async function sendEmail(to: string, subject: string, html: string, what: string
     return;
   }
   try {
-    await new Resend(apiKey).emails.send({ from: FROM_ADDRESS, to, subject, html });
+    await new Resend(apiKey).emails.send({ from: senderAddress(), to, subject, html });
   } catch (error) {
     console.error(`[email] falha ao enviar ${what} para ${to}:`, error);
   }

@@ -98,3 +98,23 @@ describe('sendPasswordResetEmail (specs/conta-lgpd, US1)', () => {
     expect(callArgs.html).toContain('http://localhost:3000/redefinir-senha?token=tok-1');
   });
 });
+
+describe('senderAddress (EMAIL_FROM)', () => {
+  it('usa EMAIL_FROM quando definida, e o sandbox do Resend quando não', async () => {
+    const { senderAddress } = await import('../src/lib/email');
+    expect(senderAddress('SDP <nao-responda@exemplo.com>')).toBe('SDP <nao-responda@exemplo.com>');
+    expect(senderAddress('  ')).toBe('System Design Playground <onboarding@resend.dev>');
+    expect(senderAddress(undefined)).toBe('System Design Playground <onboarding@resend.dev>');
+  });
+
+  it('o envio usa o remetente configurado', async () => {
+    process.env.RESEND_API_KEY = 'stub';
+    process.env.EMAIL_FROM = 'SDP <nao-responda@exemplo.com>';
+    sendMock.mockReset();
+    sendMock.mockResolvedValueOnce({ data: { id: 'email-4' }, error: null });
+    const { sendConfirmationEmail } = await import('../src/lib/email');
+    await sendConfirmationEmail('ana@example.com', 'tok', 'http://localhost:3000');
+    expect(sendMock.mock.calls[0]?.[0].from).toBe('SDP <nao-responda@exemplo.com>');
+    delete process.env.EMAIL_FROM;
+  });
+});
