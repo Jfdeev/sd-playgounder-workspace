@@ -36,8 +36,8 @@ do anterior ser atingido.
 <!-- SPECKIT START -->
 **Plano ativo**: nenhum — pré-lançamento de conta e LGPD concluído ([specs/conta-lgpd/spec.md](specs/conta-lgpd/spec.md),
 2026-11-10): recuperar senha (`/esqueci-senha`, `/redefinir-senha`), reenviar confirmação (faixa no app), baixar
-dados e excluir conta (Progresso), `/privacidade` e `/termos` — **preencher `apps/web/src/lib/legal.ts`** antes de
-publicar. Antes disso, os 13 itens do relatório de segurança
+dados e excluir conta (Progresso), `/privacidade` e `/termos` (responsável: System Design Playground, contato
+sd-playgrounder@gmail.com; remetente dos emails em `EMAIL_FROM`). Antes disso, os 13 itens do relatório de segurança
 ([specs/ajustes-gerais/security-report.md](specs/ajustes-gerais/security-report.md)) foram corrigidos em 2026-11-05
 (dependências atualizadas, `pnpm audit` zerado; narrador recalcula no servidor; cabeçalhos HTTP; limites de
 cadastro/login por conta + IP; sessão revogável com `user.sessionVersion`, migração `0006` aplicada ao Neon). Ao

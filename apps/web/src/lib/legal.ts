@@ -1,11 +1,11 @@
 /**
  * Dados do responsável pelo tratamento (LGPD) mostrados em /privacidade e /termos — specs/conta-lgpd.
- *
- * PREENCHER ANTES DE PUBLICAR: o autor é o controlador (pessoa física). Enquanto os valores abaixo forem os
- * marcadores, as páginas mostram o aviso destacado de "a preencher" (`isLegalInfoPending`).
+ * O projeto é mantido por pessoa física (o autor) e se identifica pelo nome do projeto (decisão do autor,
+ * 2026-11-11). Se algum valor voltar a ser um marcador entre colchetes, as páginas mostram o aviso de
+ * "a preencher" (`isLegalInfoPending`).
  */
 export const LEGAL_CONTROLLER = {
-  name: '[NOME DO RESPONSÁVEL]',
+  name: 'System Design Playground',
   contactEmail: 'sd-playgrounder@gmail.com',
 } as const;
 

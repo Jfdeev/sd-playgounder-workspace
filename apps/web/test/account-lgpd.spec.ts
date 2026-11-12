@@ -50,8 +50,9 @@ describe('dados legais', () => {
     expect(isLegalInfoPending({ name: 'Ana', contactEmail: 'privacidade@x.com' })).toBe(false);
   });
 
-  it('o padrão usa os dados configurados, e a idade mínima é 18', () => {
-    expect(isLegalInfoPending()).toBe(isLegalInfoPending(LEGAL_CONTROLLER));
+  it('os dados configurados estão preenchidos (sem aviso de rascunho), e a idade mínima é 18', () => {
+    expect(LEGAL_CONTROLLER).toEqual({ name: 'System Design Playground', contactEmail: 'sd-playgrounder@gmail.com' });
+    expect(isLegalInfoPending()).toBe(false);
     expect(MINIMUM_AGE).toBe(18);
   });
 });
