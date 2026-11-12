@@ -16,7 +16,7 @@ export default function PrivacidadePage() {
 
       <h2>Quem é o responsável</h2>
       <p>
-        O controlador dos dados é {name}, pessoa física. Pedidos sobre privacidade: <strong>{contactEmail}</strong>.
+        O controlador dos dados é o {name}, projeto mantido por pessoa física. Pedidos sobre privacidade: <strong>{contactEmail}</strong>.
       </p>
 
       <h2>Quais dados tratamos</h2>

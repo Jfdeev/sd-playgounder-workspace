@@ -11,8 +11,8 @@ export default function TermosPage() {
   return (
     <LegalPage title="Termos de uso">
       <p>
-        Ao criar uma conta ou usar o System Design Playground você concorda com estes termos. O serviço é oferecido por{' '}
-        {name}, pessoa física. Contato: <strong>{contactEmail}</strong>.
+        Ao criar uma conta ou usar o System Design Playground você concorda com estes termos. O serviço é oferecido pelo{' '}
+        {name}, projeto mantido por pessoa física. Contato: <strong>{contactEmail}</strong>.
       </p>
 
       <h2>O que é o serviço</h2>
