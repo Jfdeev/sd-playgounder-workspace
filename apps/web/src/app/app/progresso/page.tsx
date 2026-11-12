@@ -1,6 +1,7 @@
 import { CONCEPT_ENTRIES } from '@sdp/knowledge';
 import { ALL_PROBLEMS } from '@sdp/problems';
 import { AppPage } from '@/components/layout/app-page';
+import { AccountPanel } from '@/components/progress/account-panel';
 import { ConceptProgressPanel } from '@/components/progress/concept-progress-panel';
 import { ProgressOverview } from '@/components/progress/progress-overview';
 import { conceptProgress } from '@/lib/gamification/concept-progress';
@@ -31,6 +32,7 @@ export default async function ProgressPage() {
         }}
       />
       <ConceptProgressPanel progress={conceptProgress(conceptIds, ALL_PROBLEMS, solvedIds)} anySolved={solvedIds.length > 0} />
+      <AccountPanel />
     </AppPage>
   );
 }

@@ -77,3 +77,24 @@ describe('sendExistingAccountNotice (relatório de segurança, item 8)', () => {
     expect(callArgs.html).toContain('http://localhost:3000/entrar');
   });
 });
+
+describe('sendPasswordResetEmail (specs/conta-lgpd, US1)', () => {
+  beforeEach(() => {
+    sendMock.mockReset();
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it('manda o link de redefinição com o token', async () => {
+    process.env.RESEND_API_KEY = 'stub';
+    sendMock.mockResolvedValueOnce({ data: { id: 'email-3' }, error: null });
+    const { sendPasswordResetEmail } = await import('../src/lib/email');
+
+    await sendPasswordResetEmail('ana@example.com', 'tok-1', 'http://localhost:3000');
+
+    const callArgs = sendMock.mock.calls[0]?.[0];
+    expect(callArgs.to).toBe('ana@example.com');
+    expect(callArgs.html).toContain('http://localhost:3000/redefinir-senha?token=tok-1');
+  });
+});

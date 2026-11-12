@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
+import { EmailConfirmationBanner } from '@/components/layout/email-confirmation-banner';
+import { findUserById } from '@/db/account';
 import { PATHNAME_HEADER } from '@/lib/designs/return-path';
 import { SignOutButton } from './_sign-out-button';
 
@@ -14,6 +16,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     const path = (await headers()).get(PATHNAME_HEADER);
     redirect(path ? `/entrar?voltar=${encodeURIComponent(path)}` : '/entrar');
   }
+  // specs/conta-lgpd, US2: conta não confirmada vê a faixa com "Reenviar" (lido do banco — a confirmação
+  // pode ter acontecido em outro navegador).
+  const account = session.user?.id ? await findUserById(session.user.id) : null;
 
   return (
     <div className="flex h-screen flex-col bg-zinc-950">
@@ -24,6 +29,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <SignOutButton />
         </div>
       </header>
+      {account && !account.emailVerified && <EmailConfirmationBanner email={account.email} />}
       <div className="flex min-h-0 flex-1 flex-col">{children}</div>
     </div>
   );

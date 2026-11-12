@@ -13,7 +13,7 @@ export function AppPage({ title, description, children }: { title: ReactNode; de
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-3xl px-6 py-6">
           <h1 className="text-lg font-semibold text-zinc-100">{title}</h1>
-          {description && <p className="mt-1 text-xs text-zinc-500">{description}</p>}
+          {description && <p className="mt-1 text-xs text-zinc-500">{description}</p>}  
           <div className="mt-5">{children}</div>
         </div>
       </div>

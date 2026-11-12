@@ -1,19 +1,17 @@
-import { randomBytes } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { isAttemptAllowed, recordAttempt } from '@/db/attempts';
+import { issueToken } from '@/db/account';
 import { db } from '@/db/client';
-import { users, verificationTokens } from '@/db/schema';
+import { users } from '@/db/schema';
+import { CONFIRMATION_TTL_MS } from '@/lib/account-tokens';
 import { getClientIp } from '@/lib/client-ip';
 import { isSameOriginRequest } from '@/lib/csrf';
 import { sendConfirmationEmail, sendExistingAccountNotice } from '@/lib/email';
 import { normalizeEmail } from '@/lib/email-address';
 import { hashPassword, validatePasswordPolicy } from '@/lib/password';
 import { attemptKey, SIGNUP_IP_POLICY } from '@/lib/rate-limit';
-import { hashToken } from '@/lib/token-hash';
-
-const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -84,12 +82,7 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const token = randomBytes(32).toString('hex');
-  await db.insert(verificationTokens).values({
-    identifier: email,
-    token: hashToken(token),
-    expires: new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
-  });
+  const token = await issueToken('confirmation', email, CONFIRMATION_TTL_MS);
 
   // Falha de envio é capturada dentro de sendConfirmationEmail (research.md §4) — nunca lançada
   // aqui, então nunca bloqueia a resposta 201.
