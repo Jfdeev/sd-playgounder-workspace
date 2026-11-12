@@ -6,7 +6,7 @@
  */
 export const LEGAL_CONTROLLER = {
   name: '[NOME DO RESPONSÁVEL]',
-  contactEmail: '[E-MAIL DE CONTATO DE PRIVACIDADE]',
+  contactEmail: 'sd-playgrounder@gmail.com',
 } as const;
 
 /** Data da versão em vigor das páginas legais — atualizar quando o texto mudar. */
