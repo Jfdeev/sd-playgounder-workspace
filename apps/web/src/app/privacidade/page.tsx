@@ -54,8 +54,7 @@ export default function PrivacidadePage() {
       <p>Não vendemos dados. Usamos fornecedores que tratam dados em nosso nome:</p>
       <ul>
         <li>Neon (banco de dados) — Estados Unidos.</li>
-        <li>Resend (envio de emails) — Estados Unidos.</li>
-        <li>Google — login com Google; e o narrador, que envia ao Google Gemini só a arquitetura simulada (componentes e números), nunca seus dados de conta.</li>
+        <li>Google — login com Google; envio dos emails pelo Gmail; e o narrador, que envia ao Google Gemini só a arquitetura simulada (componentes e números), nunca seus dados de conta.</li>
         <li>O provedor de hospedagem do site.</li>
       </ul>
       <p>

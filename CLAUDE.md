@@ -37,7 +37,7 @@ do anterior ser atingido.
 **Plano ativo**: nenhum — pré-lançamento de conta e LGPD concluído ([specs/conta-lgpd/spec.md](specs/conta-lgpd/spec.md),
 2026-11-10): recuperar senha (`/esqueci-senha`, `/redefinir-senha`), reenviar confirmação (faixa no app), baixar
 dados e excluir conta (Progresso), `/privacidade` e `/termos` (responsável: System Design Playground, contato
-sd-playgrounder@gmail.com; remetente dos emails em `EMAIL_FROM`). Antes disso, os 13 itens do relatório de segurança
+sd-playgrounder@gmail.com; emails por SMTP/Gmail via `SMTP_USER`/`SMTP_PASSWORD` — o Resend saiu em 2026-11-15). Antes disso, os 13 itens do relatório de segurança
 ([specs/ajustes-gerais/security-report.md](specs/ajustes-gerais/security-report.md)) foram corrigidos em 2026-11-05
 (dependências atualizadas, `pnpm audit` zerado; narrador recalcula no servidor; cabeçalhos HTTP; limites de
 cadastro/login por conta + IP; sessão revogável com `user.sessionVersion`, migração `0006` aplicada ao Neon). Ao

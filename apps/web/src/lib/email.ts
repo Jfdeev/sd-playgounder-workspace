@@ -1,14 +1,29 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-// Remetente vem de `EMAIL_FROM` (endereço de um domínio verificado no Resend, ex.
-// `System Design Playground <nao-responda@seudominio.com>`). Sem ela, cai no remetente sandbox do
-// Resend (`onboarding@resend.dev`), que funciona sem verificar domínio mas só entrega pro email da conta
-// Resend dona da API key — serve para dev, nunca para produção (BUGFIX de 2026-08-25: um domínio nunca
-// verificado fazia todo envio falhar em silêncio).
-const SANDBOX_FROM = 'System Design Playground <onboarding@resend.dev>';
+/**
+ * Envio de e-mail por SMTP (decisão do autor, 2026-11-15: sai o Resend, que só entregava com domínio próprio
+ * verificado). Padrão: Gmail (`smtp.gmail.com:465`) com a conta do projeto e uma "senha de app" do Google
+ * (exige verificação em 2 etapas na conta). Limite do Gmail: ~500 e-mails por dia.
+ */
 
-export function senderAddress(emailFrom: string | undefined = process.env.EMAIL_FROM): string {
-  return emailFrom?.trim() || SANDBOX_FROM;
+export type SmtpConfig = { host: string; port: number; user: string; password: string; from: string };
+
+/** Lido de `process.env`: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD e EMAIL_FROM. */
+type EmailEnv = Readonly<Record<string, string | undefined>>;
+
+/** Configuração SMTP a partir do ambiente; `null` sem usuário ou senha (aí nenhum e-mail sai — só log). */
+export function smtpConfig(env: EmailEnv): SmtpConfig | null {
+  const user = env.SMTP_USER?.trim();
+  const password = env.SMTP_PASSWORD?.trim();
+  if (!user || !password) return null;
+  const port = Number(env.SMTP_PORT) || 465;
+  return {
+    host: env.SMTP_HOST?.trim() || 'smtp.gmail.com',
+    port,
+    user,
+    password,
+    from: env.EMAIL_FROM?.trim() || `System Design Playground <${user}>`,
+  };
 }
 
 function buildConfirmationUrl(baseUrl: string, token: string): string {
@@ -16,17 +31,23 @@ function buildConfirmationUrl(baseUrl: string, token: string): string {
 }
 
 /**
- * Degradação graciosa (research.md §4): se o envio falhar (RESEND_API_KEY ausente/inválida, serviço fora
+ * Degradação graciosa (research.md §4): se o envio falhar (SMTP não configurado, senha inválida, serviço fora
  * do ar), a falha é logada e a Promise resolve normalmente — um e-mail que não sai nunca bloqueia o cadastro.
  */
 async function sendEmail(to: string, subject: string, html: string, what: string): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.error(`[email] RESEND_API_KEY não configurada — ${what} para ${to} não foi enviado.`);
+  const config = smtpConfig(process.env);
+  if (!config) {
+    console.error(`[email] SMTP_USER/SMTP_PASSWORD não configurados — ${what} para ${to} não foi enviado.`);
     return;
   }
   try {
-    await new Resend(apiKey).emails.send({ from: senderAddress(), to, subject, html });
+    const transport = nodemailer.createTransport({
+      host: config.host,
+      port: config.port,
+      secure: config.port === 465,
+      auth: { user: config.user, pass: config.password },
+    });
+    await transport.sendMail({ from: config.from, to, subject, html });
   } catch (error) {
     console.error(`[email] falha ao enviar ${what} para ${to}:`, error);
   }

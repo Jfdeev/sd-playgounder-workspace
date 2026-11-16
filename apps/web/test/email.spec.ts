@@ -1,120 +1,112 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const sendMock = vi.hoisted(() => vi.fn());
+const sendMailMock = vi.hoisted(() => vi.fn());
+const createTransportMock = vi.hoisted(() => vi.fn(() => ({ sendMail: sendMailMock })));
 
-vi.mock('resend', () => ({
-  Resend: class {
-    emails = { send: sendMock };
-  },
-}));
+vi.mock('nodemailer', () => ({ default: { createTransport: createTransportMock } }));
 
-describe('sendConfirmationEmail', () => {
-  const originalApiKey = process.env.RESEND_API_KEY;
+const SMTP_KEYS = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASSWORD', 'EMAIL_FROM'] as const;
+const original = Object.fromEntries(SMTP_KEYS.map((key) => [key, process.env[key]]));
 
-  beforeEach(() => {
-    sendMock.mockReset();
-    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+function configureSmtp() {
+  process.env.SMTP_USER = 'projeto@gmail.com';
+  process.env.SMTP_PASSWORD = 'stub'; // valor curto e não-secreto, só para passar no truthy-check
+}
+
+beforeEach(() => {
+  for (const key of SMTP_KEYS) delete process.env[key];
+  sendMailMock.mockReset();
+  createTransportMock.mockClear();
+  vi.spyOn(console, 'error').mockImplementation(() => undefined);
+});
+
+afterEach(() => {
+  for (const key of SMTP_KEYS) {
+    if (original[key] === undefined) delete process.env[key];
+    else process.env[key] = original[key];
+  }
+  vi.restoreAllMocks();
+});
+
+describe('smtpConfig', () => {
+  it('sem usuário ou senha não há configuração', async () => {
+    const { smtpConfig } = await import('../src/lib/email');
+    expect(smtpConfig({})).toBeNull();
+    expect(smtpConfig({ SMTP_USER: 'a@gmail.com' })).toBeNull();
+    expect(smtpConfig({ SMTP_USER: ' ', SMTP_PASSWORD: 'x' })).toBeNull();
   });
 
-  afterEach(() => {
-    process.env.RESEND_API_KEY = originalApiKey;
-    vi.restoreAllMocks();
+  it('usa os padrões do Gmail e a própria conta como remetente', async () => {
+    const { smtpConfig } = await import('../src/lib/email');
+    expect(smtpConfig({ SMTP_USER: 'a@gmail.com', SMTP_PASSWORD: 'x' })).toEqual({
+      host: 'smtp.gmail.com',
+      port: 465,
+      user: 'a@gmail.com',
+      password: 'x',
+      from: 'System Design Playground <a@gmail.com>',
+    });
   });
 
-  it('não chama o Resend e resolve sem lançar quando RESEND_API_KEY não está configurada', async () => {
-    delete process.env.RESEND_API_KEY;
+  it('respeita host, porta e remetente configurados', async () => {
+    const { smtpConfig } = await import('../src/lib/email');
+    expect(
+      smtpConfig({ SMTP_USER: 'u', SMTP_PASSWORD: 'p', SMTP_HOST: 'smtp.exemplo.com', SMTP_PORT: '587', EMAIL_FROM: 'SDP <x@y.com>' }),
+    ).toMatchObject({ host: 'smtp.exemplo.com', port: 587, from: 'SDP <x@y.com>' });
+  });
+});
+
+describe('envio', () => {
+  it('sem SMTP configurado não tenta enviar e resolve sem lançar', async () => {
     const { sendConfirmationEmail } = await import('../src/lib/email');
-
-    await expect(
-      sendConfirmationEmail('user@example.com', 'token-123', 'http://localhost:3000'),
-    ).resolves.toBeUndefined();
-    expect(sendMock).not.toHaveBeenCalled();
+    await expect(sendConfirmationEmail('user@example.com', 'token-123', 'http://localhost:3000')).resolves.toBeUndefined();
+    expect(createTransportMock).not.toHaveBeenCalled();
     expect(console.error).toHaveBeenCalledOnce();
   });
 
-  it('chama o Resend com o link de confirmação quando a chave está configurada', async () => {
-    process.env.RESEND_API_KEY = 'stub'; // valor curto e não-secreto, só para passar no truthy-check
-    sendMock.mockResolvedValueOnce({ data: { id: 'email-1' }, error: null });
+  it('confirmação: envia pelo SMTP, com TLS na porta 465 e o link no corpo', async () => {
+    configureSmtp();
     const { sendConfirmationEmail } = await import('../src/lib/email');
-
     await sendConfirmationEmail('user@example.com', 'token-123', 'http://localhost:3000');
 
-    expect(sendMock).toHaveBeenCalledOnce();
-    const callArgs = sendMock.mock.calls[0]?.[0];
-    expect(callArgs.to).toBe('user@example.com');
-    expect(callArgs.html).toContain('token-123');
+    expect(createTransportMock).toHaveBeenCalledWith({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: { user: 'projeto@gmail.com', pass: 'stub' },
+    });
+    const mail = sendMailMock.mock.calls[0]?.[0];
+    expect(mail.from).toBe('System Design Playground <projeto@gmail.com>');
+    expect(mail.to).toBe('user@example.com');
+    expect(mail.html).toContain('token-123');
   });
 
-  it('captura erro do envio e resolve mesmo assim (degradação graciosa, research.md §4)', async () => {
-    process.env.RESEND_API_KEY = 'stub'; // valor curto e não-secreto, só para passar no truthy-check
-    sendMock.mockRejectedValueOnce(new Error('Resend indisponível'));
+  it('porta diferente de 465 usa STARTTLS (secure: false)', async () => {
+    configureSmtp();
+    process.env.SMTP_PORT = '587';
     const { sendConfirmationEmail } = await import('../src/lib/email');
+    await sendConfirmationEmail('user@example.com', 'token-123', 'http://localhost:3000');
+    expect(createTransportMock).toHaveBeenCalledWith(expect.objectContaining({ port: 587, secure: false }));
+  });
 
-    await expect(
-      sendConfirmationEmail('user@example.com', 'token-123', 'http://localhost:3000'),
-    ).resolves.toBeUndefined();
+  it('captura erro do envio e resolve mesmo assim (degradação graciosa)', async () => {
+    configureSmtp();
+    sendMailMock.mockRejectedValueOnce(new Error('SMTP indisponível'));
+    const { sendConfirmationEmail } = await import('../src/lib/email');
+    await expect(sendConfirmationEmail('user@example.com', 'token-123', 'http://localhost:3000')).resolves.toBeUndefined();
     expect(console.error).toHaveBeenCalledOnce();
   });
-});
 
-describe('sendExistingAccountNotice (relatório de segurança, item 8)', () => {
-  beforeEach(() => {
-    sendMock.mockReset();
-    vi.spyOn(console, 'error').mockImplementation(() => undefined);
-  });
-
-  afterEach(() => vi.restoreAllMocks());
-
-  it('avisa o dono do email com o link de login', async () => {
-    process.env.RESEND_API_KEY = 'stub';
-    sendMock.mockResolvedValueOnce({ data: { id: 'email-2' }, error: null });
+  it('aviso de conta existente leva o link de login', async () => {
+    configureSmtp();
     const { sendExistingAccountNotice } = await import('../src/lib/email');
-
     await sendExistingAccountNotice('dono@example.com', 'http://localhost:3000');
-
-    const callArgs = sendMock.mock.calls[0]?.[0];
-    expect(callArgs.to).toBe('dono@example.com');
-    expect(callArgs.html).toContain('http://localhost:3000/entrar');
-  });
-});
-
-describe('sendPasswordResetEmail (specs/conta-lgpd, US1)', () => {
-  beforeEach(() => {
-    sendMock.mockReset();
-    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    expect(sendMailMock.mock.calls[0]?.[0].html).toContain('http://localhost:3000/entrar');
   });
 
-  afterEach(() => vi.restoreAllMocks());
-
-  it('manda o link de redefinição com o token', async () => {
-    process.env.RESEND_API_KEY = 'stub';
-    sendMock.mockResolvedValueOnce({ data: { id: 'email-3' }, error: null });
+  it('redefinição de senha leva o link com o token', async () => {
+    configureSmtp();
     const { sendPasswordResetEmail } = await import('../src/lib/email');
-
     await sendPasswordResetEmail('ana@example.com', 'tok-1', 'http://localhost:3000');
-
-    const callArgs = sendMock.mock.calls[0]?.[0];
-    expect(callArgs.to).toBe('ana@example.com');
-    expect(callArgs.html).toContain('http://localhost:3000/redefinir-senha?token=tok-1');
-  });
-});
-
-describe('senderAddress (EMAIL_FROM)', () => {
-  it('usa EMAIL_FROM quando definida, e o sandbox do Resend quando não', async () => {
-    const { senderAddress } = await import('../src/lib/email');
-    expect(senderAddress('SDP <nao-responda@exemplo.com>')).toBe('SDP <nao-responda@exemplo.com>');
-    expect(senderAddress('  ')).toBe('System Design Playground <onboarding@resend.dev>');
-    expect(senderAddress(undefined)).toBe('System Design Playground <onboarding@resend.dev>');
-  });
-
-  it('o envio usa o remetente configurado', async () => {
-    process.env.RESEND_API_KEY = 'stub';
-    process.env.EMAIL_FROM = 'SDP <nao-responda@exemplo.com>';
-    sendMock.mockReset();
-    sendMock.mockResolvedValueOnce({ data: { id: 'email-4' }, error: null });
-    const { sendConfirmationEmail } = await import('../src/lib/email');
-    await sendConfirmationEmail('ana@example.com', 'tok', 'http://localhost:3000');
-    expect(sendMock.mock.calls[0]?.[0].from).toBe('SDP <nao-responda@exemplo.com>');
-    delete process.env.EMAIL_FROM;
+    expect(sendMailMock.mock.calls[0]?.[0].html).toContain('http://localhost:3000/redefinir-senha?token=tok-1');
   });
 });
