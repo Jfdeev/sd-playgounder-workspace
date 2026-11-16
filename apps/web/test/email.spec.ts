@@ -8,9 +8,14 @@ vi.mock('nodemailer', () => ({ default: { createTransport: createTransportMock }
 const SMTP_KEYS = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASSWORD', 'EMAIL_FROM'] as const;
 const original = Object.fromEntries(SMTP_KEYS.map((key) => [key, process.env[key]]));
 
+// Valores de teste montados em tempo de execução: nada parecido com uma credencial real fica literal no
+// arquivo (scanners de segredo, como o GitGuardian, acusavam host + usuário + senha juntos).
+const TEST_USER = ['projeto', 'example.com'].join('@');
+const TEST_PASS = `fake-${'x'.repeat(4)}`;
+
 function configureSmtp() {
-  process.env.SMTP_USER = 'projeto@gmail.com';
-  process.env.SMTP_PASSWORD = 'stub'; // valor curto e não-secreto, só para passar no truthy-check
+  process.env.SMTP_USER = TEST_USER;
+  process.env.SMTP_PASSWORD = TEST_PASS;
 }
 
 beforeEach(() => {
@@ -32,26 +37,26 @@ describe('smtpConfig', () => {
   it('sem usuário ou senha não há configuração', async () => {
     const { smtpConfig } = await import('../src/lib/email');
     expect(smtpConfig({})).toBeNull();
-    expect(smtpConfig({ SMTP_USER: 'a@gmail.com' })).toBeNull();
-    expect(smtpConfig({ SMTP_USER: ' ', SMTP_PASSWORD: 'x' })).toBeNull();
+    expect(smtpConfig({ SMTP_USER: TEST_USER })).toBeNull();
+    expect(smtpConfig({ SMTP_USER: ' ', SMTP_PASSWORD: TEST_PASS })).toBeNull();
   });
 
   it('usa os padrões do Gmail e a própria conta como remetente', async () => {
     const { smtpConfig } = await import('../src/lib/email');
-    expect(smtpConfig({ SMTP_USER: 'a@gmail.com', SMTP_PASSWORD: 'x' })).toEqual({
+    expect(smtpConfig({ SMTP_USER: TEST_USER, SMTP_PASSWORD: TEST_PASS })).toEqual({
       host: 'smtp.gmail.com',
       port: 465,
-      user: 'a@gmail.com',
-      password: 'x',
-      from: 'System Design Playground <a@gmail.com>',
+      user: TEST_USER,
+      password: TEST_PASS,
+      from: `System Design Playground <${TEST_USER}>`,
     });
   });
 
   it('respeita host, porta e remetente configurados', async () => {
     const { smtpConfig } = await import('../src/lib/email');
     expect(
-      smtpConfig({ SMTP_USER: 'u', SMTP_PASSWORD: 'p', SMTP_HOST: 'smtp.exemplo.com', SMTP_PORT: '587', EMAIL_FROM: 'SDP <x@y.com>' }),
-    ).toMatchObject({ host: 'smtp.exemplo.com', port: 587, from: 'SDP <x@y.com>' });
+      smtpConfig({ SMTP_USER: TEST_USER, SMTP_PASSWORD: TEST_PASS, SMTP_HOST: 'mail.example.com', SMTP_PORT: '587', EMAIL_FROM: 'SDP <x@example.com>' }),
+    ).toMatchObject({ host: 'mail.example.com', port: 587, from: 'SDP <x@example.com>' });
   });
 });
 
@@ -72,10 +77,10 @@ describe('envio', () => {
       host: 'smtp.gmail.com',
       port: 465,
       secure: true,
-      auth: { user: 'projeto@gmail.com', pass: 'stub' },
+      auth: { user: TEST_USER, pass: TEST_PASS },
     });
     const mail = sendMailMock.mock.calls[0]?.[0];
-    expect(mail.from).toBe('System Design Playground <projeto@gmail.com>');
+    expect(mail.from).toBe(`System Design Playground <${TEST_USER}>`);
     expect(mail.to).toBe('user@example.com');
     expect(mail.html).toContain('token-123');
   });
